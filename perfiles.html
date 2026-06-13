@@ -8,457 +8,93 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: #F0F7FF;
-    font-family: 'Nunito Sans', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 32px 20px;
-    position: relative;
-    overflow-x: hidden;
-  }
-
-  .burbuja {
-    position: fixed;
-    border-radius: 50%;
-    opacity: 0.12;
-    animation: flotar 6s ease-in-out infinite;
-    z-index: 0;
-  }
+  body { background: #F0F7FF; font-family: 'Nunito Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 32px 20px; position: relative; overflow-x: hidden; }
+  .burbuja { position: fixed; border-radius: 50%; opacity: 0.12; animation: flotar 6s ease-in-out infinite; z-index: 0; }
   .b1 { width: 200px; height: 200px; background: #5BBFEA; top: -50px; left: -50px; }
   .b2 { width: 150px; height: 150px; background: #FFCC3B; top: 10%; right: -30px; animation-delay: 1s; }
   .b3 { width: 100px; height: 100px; background: #52D9A0; bottom: 15%; left: 10px; animation-delay: 2s; }
   .b4 { width: 120px; height: 120px; background: #A78BFA; bottom: -30px; right: 20%; animation-delay: 0.5s; }
-
-  @keyframes flotar {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-  }
-
-  .contenedor {
-    z-index: 10;
-    width: 100%;
-    max-width: 480px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 28px;
-  }
-
-  /* Header */
-  .header {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .logo {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    font-size: 28px;
-    color: #5BBFEA;
-  }
-
-  .logo span { color: #A78BFA; }
-
-  .btn-salir {
-    background: white;
-    border: 2px solid #FF7E6B;
-    border-radius: 14px;
-    padding: 8px 16px;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    color: #FF7E6B;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
+  @keyframes flotar { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+  .contenedor { z-index: 10; width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  .header { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+  .logo-img { height: 48px; animation: flotar 3s ease-in-out infinite; filter: drop-shadow(0 4px 12px #5BBFEA33); }
+  .btn-salir { background: white; border: 2px solid #FF7E6B; border-radius: 14px; padding: 8px 16px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 14px; color: #FF7E6B; cursor: pointer; }
   .btn-salir:active { background: #FFF0EE; }
-
-  /* Título */
-  .titulo {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    font-size: 28px;
-    color: #333;
-    text-align: center;
-  }
-
-  /* Grid de perfiles */
-  .grid-perfiles {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    width: 100%;
-  }
-
-  .tarjeta-perfil {
-    background: white;
-    border-radius: 24px;
-    padding: 24px 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 4px 20px #5BBFEA15;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 3px solid transparent;
-    animation: aparecer 0.4s ease forwards;
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  @keyframes aparecer {
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .tarjeta-perfil:active {
-    transform: scale(0.96);
-    border-color: #5BBFEA;
-    box-shadow: 0 8px 32px #5BBFEA33;
-  }
-
-  .avatar-circulo {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-    animation: pulsar 3s ease-in-out infinite;
-  }
-
-  @keyframes pulsar {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-
-  .perfil-nombre {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    font-size: 18px;
-    color: #333;
-    text-align: center;
-  }
-
-  .perfil-xp {
-    background: #F0F7FF;
-    border-radius: 50px;
-    padding: 4px 12px;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    font-size: 13px;
-    color: #5BBFEA;
-  }
-
-  .perfil-racha {
-    font-size: 13px;
-    color: #888;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 600;
-  }
-
-  /* Tarjeta agregar hijo */
-  .tarjeta-agregar {
-    background: white;
-    border-radius: 24px;
-    padding: 24px 16px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 4px 20px #5BBFEA15;
-    cursor: pointer;
-    border: 3px dashed #C5E8F7;
-    transition: all 0.2s;
-  }
-
-  .tarjeta-agregar:active {
-    border-color: #5BBFEA;
-    background: #F0F7FF;
-  }
-
-  .agregar-icono {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: #F0F7FF;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    color: #5BBFEA;
-  }
-
-  .agregar-texto {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 800;
-    font-size: 16px;
-    color: #5BBFEA;
-    text-align: center;
-  }
-
-  /* Estado vacío */
-  .vacio {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    padding: 40px 20px;
-    text-align: center;
-  }
-
+  .titulo { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 28px; color: #333; text-align: center; }
+  .grid-perfiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; }
+  .tarjeta-perfil { background: white; border-radius: 24px; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-shadow: 0 4px 20px #5BBFEA15; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 3px solid transparent; animation: aparecer 0.4s ease forwards; opacity: 0; }
+  @keyframes aparecer { to { opacity: 1; transform: translateY(0); } }
+  .tarjeta-perfil { transform: translateY(20px); }
+  .tarjeta-perfil:active { transform: scale(0.96); border-color: #5BBFEA; box-shadow: 0 8px 32px #5BBFEA33; }
+  .avatar-circulo { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; animation: pulsar 3s ease-in-out infinite; }
+  @keyframes pulsar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  .perfil-nombre { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 18px; color: #333; text-align: center; }
+  .perfil-xp { background: #F0F7FF; border-radius: 50px; padding: 4px 12px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 13px; color: #5BBFEA; }
+  .perfil-racha { font-size: 13px; color: #888; font-family: 'Nunito', sans-serif; font-weight: 600; }
+  .tarjeta-agregar { background: white; border-radius: 24px; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-shadow: 0 4px 20px #5BBFEA15; cursor: pointer; border: 3px dashed #C5E8F7; transition: all 0.2s; }
+  .tarjeta-agregar:active { border-color: #5BBFEA; background: #F0F7FF; }
+  .agregar-icono { width: 80px; height: 80px; border-radius: 50%; background: #F0F7FF; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+  .agregar-texto { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px; color: #5BBFEA; text-align: center; }
+  .vacio { display: none; flex-direction: column; align-items: center; gap: 16px; padding: 40px 20px; text-align: center; }
   .vacio-emoji { font-size: 60px; }
-
-  .vacio-texto {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 800;
-    font-size: 20px;
-    color: #555;
-  }
-
-  .vacio-sub {
-    font-size: 15px;
-    color: #888;
-    font-family: 'Nunito Sans', sans-serif;
-  }
-
-  /* Cargando */
-  .cargando {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    padding: 40px;
-  }
-
-  .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #E0EFFF;
-    border-top-color: #5BBFEA;
-    border-radius: 50%;
-    animation: girar 0.8s linear infinite;
-  }
-
+  .vacio-texto { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 20px; color: #555; }
+  .cargando { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 40px; }
+  .spinner { width: 40px; height: 40px; border: 4px solid #E0EFFF; border-top-color: #5BBFEA; border-radius: 50%; animation: girar 0.8s linear infinite; }
   @keyframes girar { to { transform: rotate(360deg); } }
-
-  .cargando-texto {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    color: #5BBFEA;
-    font-size: 16px;
-  }
-
-  /* Modal agregar hijo */
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: #00000055;
-    z-index: 200;
-    display: none;
-    align-items: flex-end;
-    justify-content: center;
-  }
-
-  .modal {
-    background: white;
-    border-radius: 28px 28px 0 0;
-    padding: 32px 24px 48px;
-    width: 100%;
-    max-width: 480px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    animation: subir 0.3s ease;
-  }
-
-  @keyframes subir {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
-
-  .modal-titulo {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    font-size: 22px;
-    color: #333;
-    text-align: center;
-  }
-
-  .campo {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .campo label {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    color: #555;
-  }
-
-  .campo input {
-    background: #F0F7FF;
-    border: 2px solid #E0EFFF;
-    border-radius: 16px;
-    padding: 16px 18px;
-    font-family: 'Nunito Sans', sans-serif;
-    font-size: 16px;
-    color: #333;
-    outline: none;
-    transition: border-color 0.2s;
-    width: 100%;
-  }
-
+  .cargando-texto { font-family: 'Nunito', sans-serif; font-weight: 700; color: #5BBFEA; font-size: 16px; }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #00000055; z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+  .modal { background: white; border-radius: 28px 28px 0 0; padding: 32px 24px 48px; width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 20px; animation: subir 0.3s ease; }
+  @keyframes subir { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-titulo { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 22px; color: #333; text-align: center; }
+  .campo { display: flex; flex-direction: column; gap: 8px; }
+  .campo label { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 15px; color: #555; }
+  .campo input { background: #F0F7FF; border: 2px solid #E0EFFF; border-radius: 16px; padding: 16px 18px; font-family: 'Nunito Sans', sans-serif; font-size: 16px; color: #333; outline: none; transition: border-color 0.2s; width: 100%; }
   .campo input:focus { border-color: #5BBFEA; }
-
-  /* Selector de avatar */
-  .avatares {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .avatar-opcion {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: #F0F7FF;
-    border: 3px solid transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .avatar-opcion.seleccionado {
-    border-color: #5BBFEA;
-    background: #E0F4FF;
-    transform: scale(1.15);
-  }
-
-  .btn-guardar {
-    background: linear-gradient(135deg, #5BBFEA, #A78BFA);
-    border: none;
-    border-radius: 20px;
-    padding: 18px;
-    width: 100%;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    font-size: 20px;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 6px 20px #5BBFEA44;
-  }
-
+  .avatares { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .avatar-opcion { width: 52px; height: 52px; border-radius: 50%; background: #F0F7FF; border: 3px solid transparent; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; transition: all 0.15s; }
+  .avatar-opcion.seleccionado { border-color: #5BBFEA; background: #E0F4FF; transform: scale(1.15); }
+  .btn-guardar { background: linear-gradient(135deg, #5BBFEA, #A78BFA); border: none; border-radius: 20px; padding: 18px; width: 100%; font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 6px 20px #5BBFEA44; }
   .btn-guardar:active { transform: scale(0.97); }
   .btn-guardar:disabled { opacity: 0.6; }
-
-  .btn-cancelar {
-    background: #F0F7FF;
-    border: none;
-    border-radius: 16px;
-    padding: 14px;
-    width: 100%;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    font-size: 16px;
-    color: #888;
-    cursor: pointer;
-  }
-
-  .error {
-    background: #FFF0EE;
-    border: 2px solid #FF7E6B;
-    border-radius: 14px;
-    padding: 12px 16px;
-    font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    color: #FF7E6B;
-    text-align: center;
-    display: none;
-  }
+  .btn-cancelar { background: #F0F7FF; border: none; border-radius: 16px; padding: 14px; width: 100%; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 16px; color: #888; cursor: pointer; }
+  .error { background: #FFF0EE; border: 2px solid #FF7E6B; border-radius: 14px; padding: 12px 16px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 14px; color: #FF7E6B; text-align: center; display: none; }
 </style>
 </head>
 <body>
+<div class="burbuja b1"></div><div class="burbuja b2"></div><div class="burbuja b3"></div><div class="burbuja b4"></div>
 
-<div class="burbuja b1"></div>
-<div class="burbuja b2"></div>
-<div class="burbuja b3"></div>
-<div class="burbuja b4"></div>
-
-<!-- Modal agregar hijo -->
 <div class="modal-overlay" id="modalAgregar">
   <div class="modal">
     <div class="modal-titulo">👶 Agregar hijo</div>
-
-    <div class="campo">
-      <label>📝 Nombre del niño</label>
-      <input type="text" id="nuevoNombre" placeholder="¿Cómo se llama?">
-    </div>
-
+    <div class="campo"><label>📝 Nombre del niño</label><input type="text" id="nuevoNombre" placeholder="¿Cómo se llama?"></div>
     <div class="campo">
       <label>🎨 Elegí un avatar</label>
       <div class="avatares" id="avatares">
-        <div class="avatar-opcion seleccionado" onclick="elegirAvatar(this, '🦋')">🦋</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this, '🦁')">🦁</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this, '🐬')">🐬</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this, '🦊')">🦊</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this, '🐸')">🐸</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this, '🦄')">🦄</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this, '🐧')">🐧</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this, '🐯')">🐯</div>
+        <div class="avatar-opcion seleccionado" onclick="elegirAvatar(this,'🦋')">🦋</div>
+        <div class="avatar-opcion" onclick="elegirAvatar(this,'🦁')">🦁</div>
+        <div class="avatar-opcion" onclick="elegirAvatar(this,'🐬')">🐬</div>
+        <div class="avatar-opcion" onclick="elegirAvatar(this,'🦊')">🦊</div>
+        <div class="avatar-opcion" onclick="elegirAvatar(this,'🐸')">🐸</div>
+        <div class="avatar-opcion" onclick="elegirAvatar(this,'🦄')">🦄</div>
+        <div class="avatar-opcion" onclick="elegirAvatar(this,'🐧')">🐧</div>
+        <div class="avatar-opcion" onclick="elegirAvatar(this,'🐯')">🐯</div>
       </div>
     </div>
-
     <div class="error" id="errorModal"></div>
-
-    <button class="btn-guardar" id="btnGuardar" onclick="agregarHijo()">
-      ✅ Guardar
-    </button>
+    <button class="btn-guardar" id="btnGuardar" onclick="agregarHijo()">✅ Guardar</button>
     <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
   </div>
 </div>
 
 <div class="contenedor">
-
   <div class="header">
-    <div class="logo">TEA<span>brazo</span> 🦋</div>
+    <img class="logo-img" src="TEAbrazo.png" alt="TEAbrazo">
     <button class="btn-salir" onclick="salir()">Salir 👋</button>
   </div>
-
   <div class="titulo">¿Quién juega hoy? 🎮</div>
-
-  <!-- Estado cargando -->
-  <div class="cargando" id="cargando">
-    <div class="spinner"></div>
-    <div class="cargando-texto">Cargando perfiles...</div>
-  </div>
-
-  <!-- Estado vacío -->
-  <div class="vacio" id="vacio">
-    <div class="vacio-emoji">👶</div>
-    <div class="vacio-texto">¡Agregá tu primer hijo!</div>
-    <div class="vacio-sub">Tocá el botón de abajo para crear su perfil</div>
-  </div>
-
-  <!-- Grid de perfiles -->
+  <div class="cargando" id="cargando"><div class="spinner"></div><div class="cargando-texto">Cargando perfiles...</div></div>
+  <div class="vacio" id="vacio"><div class="vacio-emoji">👶</div><div class="vacio-texto">¡Agregá tu primer hijo!</div></div>
   <div class="grid-perfiles" id="gridPerfiles" style="display:none;"></div>
-
 </div>
 
 <script>
@@ -466,101 +102,58 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  const COLORES = ['#5BBFEA', '#FFCC3B', '#52D9A0', '#FF7E6B', '#A78BFA'];
+  const COLORES = ['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
   let avatarSeleccionado = '🦋';
   let sesionActual = null;
 
   window.addEventListener('load', async () => {
-    // Verificar sesión
     try {
       const { data: { session } } = await sb.auth.getSession();
-      if (!session) {
-        window.location.href = 'index.html';
-        return;
-      }
+      if (!session) { window.location.href = 'index.html'; return; }
       sesionActual = session;
       await cargarPerfiles();
-    } catch(e) {
-      window.location.href = 'index.html';
-    }
+    } catch(e) { window.location.href = 'index.html'; }
   });
 
   async function cargarPerfiles() {
     document.getElementById('cargando').style.display = 'flex';
     document.getElementById('gridPerfiles').style.display = 'none';
     document.getElementById('vacio').style.display = 'none';
-
     try {
-      const { data: hijos, error } = await sb
-        .from('children')
-        .select('*')
-        .eq('padre_id', sesionActual.user.id)
-        .order('created_at', { ascending: true });
-
+      const { data: hijos, error } = await sb.from('children').select('*').eq('padre_id', sesionActual.user.id).order('created_at', { ascending: true });
       if (error) throw error;
-
       document.getElementById('cargando').style.display = 'none';
-
-      if (!hijos || hijos.length === 0) {
-        document.getElementById('vacio').style.display = 'flex';
-        renderAgregarBoton(true);
-        return;
-      }
-
+      if (!hijos || hijos.length === 0) { document.getElementById('vacio').style.display = 'flex'; renderAgregarBoton(true); return; }
       renderPerfiles(hijos);
-
-    } catch(e) {
-      document.getElementById('cargando').style.display = 'none';
-      document.getElementById('vacio').style.display = 'flex';
-      renderAgregarBoton(true);
-    }
+    } catch(e) { document.getElementById('cargando').style.display = 'none'; document.getElementById('vacio').style.display = 'flex'; renderAgregarBoton(true); }
   }
 
   function renderPerfiles(hijos) {
     const grid = document.getElementById('gridPerfiles');
-    grid.style.display = 'grid';
-    grid.innerHTML = '';
-
+    grid.style.display = 'grid'; grid.innerHTML = '';
     hijos.forEach((hijo, i) => {
       const color = COLORES[i % COLORES.length];
-      const tarjeta = document.createElement('div');
-      tarjeta.className = 'tarjeta-perfil';
-      tarjeta.style.animationDelay = (i * 0.1) + 's';
-      tarjeta.innerHTML = `
-        <div class="avatar-circulo" style="background: ${color}22;">
-          ${hijo.avatar_emoji || '🦋'}
-        </div>
-        <div class="perfil-nombre">${hijo.nombre}</div>
-        <div class="perfil-xp">⚡ ${hijo.xp_total || 0} XP</div>
-        <div class="perfil-racha">🔥 ${hijo.racha_dias || 0} días seguidos</div>
-      `;
-      tarjeta.onclick = () => seleccionarHijo(hijo);
-      grid.appendChild(tarjeta);
+      const t = document.createElement('div');
+      t.className = 'tarjeta-perfil';
+      t.style.animationDelay = (i * 0.1) + 's';
+      t.innerHTML = `<div class="avatar-circulo" style="background:${color}22;">${hijo.avatar_emoji||'🦋'}</div><div class="perfil-nombre">${hijo.nombre}</div><div class="perfil-xp">⚡ ${hijo.xp_total||0} XP</div><div class="perfil-racha">🔥 ${hijo.racha_dias||0} días seguidos</div>`;
+      t.onclick = () => seleccionarHijo(hijo);
+      grid.appendChild(t);
     });
-
-    // Botón agregar al final del grid
     renderAgregarBoton(false);
   }
 
-  function renderAgregarBoton(soloBoton) {
+  function renderAgregarBoton(solo) {
     const grid = document.getElementById('gridPerfiles');
-    if (soloBoton) {
-      grid.style.display = 'grid';
-      grid.innerHTML = '';
-    }
-    const agregar = document.createElement('div');
-    agregar.className = 'tarjeta-agregar';
-    agregar.innerHTML = `
-      <div class="agregar-icono">➕</div>
-      <div class="agregar-texto">Agregar hijo</div>
-    `;
-    agregar.onclick = abrirModal;
-    grid.appendChild(agregar);
+    if (solo) { grid.style.display = 'grid'; grid.innerHTML = ''; }
+    const a = document.createElement('div');
+    a.className = 'tarjeta-agregar';
+    a.innerHTML = '<div class="agregar-icono">➕</div><div class="agregar-texto">Agregar hijo</div>';
+    a.onclick = abrirModal;
+    grid.appendChild(a);
   }
 
   function seleccionarHijo(hijo) {
-    // Guardar el hijo seleccionado en sessionStorage
     sessionStorage.setItem('hijoActual', JSON.stringify(hijo));
     window.location.href = 'bienvenida.html';
   }
@@ -575,36 +168,15 @@
     const nombre = document.getElementById('nuevoNombre').value.trim();
     const errorEl = document.getElementById('errorModal');
     errorEl.style.display = 'none';
-
-    if (!nombre) {
-      errorEl.textContent = '⚠️ Escribí el nombre del niño';
-      errorEl.style.display = 'block';
-      return;
-    }
-
+    if (!nombre) { errorEl.textContent = '⚠️ Escribí el nombre del niño'; errorEl.style.display = 'block'; return; }
     document.getElementById('btnGuardar').disabled = true;
-
     try {
-      const { error } = await sb.from('children').insert({
-        padre_id: sesionActual.user.id,
-        nombre: nombre,
-        avatar_emoji: avatarSeleccionado,
-        xp_total: 0,
-        racha_dias: 0,
-        nivel: 1
-      });
-
+      const { error } = await sb.from('children').insert({ padre_id: sesionActual.user.id, nombre, avatar_emoji: avatarSeleccionado, xp_total: 0, racha_dias: 0, nivel: 1 });
       if (error) throw error;
-
       cerrarModal();
       await cargarPerfiles();
-
-    } catch(e) {
-      errorEl.textContent = '❌ Error al guardar. Intentá de nuevo.';
-      errorEl.style.display = 'block';
-    } finally {
-      document.getElementById('btnGuardar').disabled = false;
-    }
+    } catch(e) { errorEl.textContent = '❌ Error al guardar. Intentá de nuevo.'; errorEl.style.display = 'block'; }
+    finally { document.getElementById('btnGuardar').disabled = false; }
   }
 
   function abrirModal() {
@@ -612,19 +184,11 @@
     document.getElementById('errorModal').style.display = 'none';
     document.getElementById('modalAgregar').style.display = 'flex';
     avatarSeleccionado = '🦋';
-    document.querySelectorAll('.avatar-opcion').forEach((a, i) => {
-      a.classList.toggle('seleccionado', i === 0);
-    });
+    document.querySelectorAll('.avatar-opcion').forEach((a,i) => a.classList.toggle('seleccionado', i===0));
   }
 
-  function cerrarModal() {
-    document.getElementById('modalAgregar').style.display = 'none';
-  }
-
-  async function salir() {
-    await sb.auth.signOut();
-    window.location.href = 'index.html';
-  }
+  function cerrarModal() { document.getElementById('modalAgregar').style.display = 'none'; }
+  async function salir() { await sb.auth.signOut(); window.location.href = 'index.html'; }
 </script>
 </body>
 </html>
