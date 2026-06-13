@@ -12,276 +12,214 @@
     background: #F0F7FF;
     font-family: 'Nunito Sans', sans-serif;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     position: relative;
+    padding-bottom: 24px;
   }
 
-  .burbuja { position: absolute; border-radius: 50%; opacity: 0.15; animation: flotar 6s ease-in-out infinite; }
-  .b1 { width: 200px; height: 200px; background: #5BBFEA; top: -50px; left: -50px; }
-  .b2 { width: 150px; height: 150px; background: #FFCC3B; top: 10%; right: -30px; animation-delay: 1s; }
-  .b3 { width: 100px; height: 100px; background: #52D9A0; bottom: 15%; left: 10px; animation-delay: 2s; }
-  .b4 { width: 120px; height: 120px; background: #A78BFA; bottom: -30px; right: 20%; animation-delay: 0.5s; }
-  @keyframes flotar { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+  .burbuja { position: fixed; border-radius: 50%; opacity: 0.15; animation: flotar 6s ease-in-out infinite; pointer-events: none; z-index: 0; }
+  .b1 { width: 160px; height: 160px; background: #5BBFEA; top: -40px; left: -40px; }
+  .b2 { width: 120px; height: 120px; background: #FFCC3B; top: 8%; right: -20px; animation-delay: 1s; }
+  .b3 { width: 80px; height: 80px; background: #52D9A0; bottom: 20%; left: 5px; animation-delay: 2s; }
+  .b4 { width: 100px; height: 100px; background: #A78BFA; bottom: 5%; right: 10%; animation-delay: 0.5s; }
+  @keyframes flotar { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-16px); } }
 
   .contenedor {
     z-index: 10;
     width: 100%;
     max-width: 420px;
-    padding: 30px 24px;
+    padding: 24px 20px 32px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
   }
 
-  /* Logo */
   .logo-img {
-    width: 160px;
+    width: 140px;
     animation: flotar-logo 3s ease-in-out infinite;
-    filter: drop-shadow(0 8px 24px #5BBFEA44);
+    filter: drop-shadow(0 6px 18px #5BBFEA44);
   }
-
   @keyframes flotar-logo {
     0%, 100% { transform: translateY(0px) scale(1); }
-    50% { transform: translateY(-10px) scale(1.03); }
+    50% { transform: translateY(-8px) scale(1.03); }
   }
 
-  /* Saludo */
   .saludo {
     font-family: 'Nunito', sans-serif;
     font-weight: 900;
-    font-size: 30px;
+    font-size: clamp(22px, 6vw, 30px);
     color: #333;
     text-align: center;
-    animation: aparecer 0.6s ease;
   }
-
-  @keyframes aparecer {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
   .saludo span { color: #5BBFEA; }
 
-  /* Avatar del niño */
-  .avatar-wrap {
-    position: relative;
-    width: 120px;
-    height: 120px;
-  }
-
+  .avatar-wrap { position: relative; width: 100px; height: 100px; }
   .avatar-circulo {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 60px;
-    animation: pulsar 2s ease-in-out infinite;
+    width: 100px; height: 100px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 50px; animation: pulsar 2s ease-in-out infinite;
   }
-
-  @keyframes pulsar {
-    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 #5BBFEA33; }
-    50% { transform: scale(1.05); box-shadow: 0 0 0 12px #5BBFEA00; }
-  }
-
-  .estrella { position: absolute; font-size: 18px; animation: girar 4s linear infinite; }
-  .e1 { top: 0; right: 0; animation-delay: 0s; }
-  .e2 { bottom: 5px; left: 0; animation-delay: 1.5s; font-size: 14px; }
+  @keyframes pulsar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+  .estrella { position: absolute; font-size: 16px; animation: girar 4s linear infinite; }
+  .e1 { top: 0; right: 0; } .e2 { bottom: 5px; left: 0; animation-delay: 1.5s; font-size: 12px; }
   @keyframes girar { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.3) rotate(180deg); } }
 
-  /* Progreso semanal */
-  .progreso-card {
-    background: white;
-    border-radius: 24px;
-    padding: 20px 24px;
-    width: 100%;
-    box-shadow: 0 4px 20px #5BBFEA22;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  .nivel-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: white; border-radius: 50px; padding: 8px 18px;
+    box-shadow: 0 2px 12px #5BBFEA15;
   }
+  .nivel-animal { font-size: 22px; animation: bounce 2s ease-in-out infinite; }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  .nivel-texto { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px; color: #555; }
 
-  .progreso-titulo { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 16px; color: #555; text-align: center; }
+  .progreso-card {
+    background: white; border-radius: 24px; padding: 16px 18px;
+    width: 100%; box-shadow: 0 4px 20px #5BBFEA22;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .progreso-titulo { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px; color: #555; text-align: center; }
 
-  .dias { display: flex; justify-content: space-between; gap: 6px; }
-  .dia { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+  .dias { display: flex; justify-content: space-between; gap: 4px; width: 100%; }
+  .dia { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; min-width: 0; }
   .dia-circulo {
-    width: 36px; height: 36px; border-radius: 50%; background: #F0F7FF;
-    border: 2px solid #ddd; display: flex; align-items: center;
-    justify-content: center; font-size: 15px;
+    width: clamp(28px, 8vw, 36px);
+    height: clamp(28px, 8vw, 36px);
+    border-radius: 50%; background: #F0F7FF;
+    border: 2px solid #ddd;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(11px, 3vw, 15px);
+    flex-shrink: 0;
   }
   .dia-circulo.completado { background: #52D9A0; border-color: #52D9A0; }
   .dia-circulo.hoy { background: #FFCC3B; border-color: #FFCC3B; animation: pulsar 1.5s ease-in-out infinite; }
-  .dia-label { font-size: 10px; font-weight: 700; color: #888; font-family: 'Nunito', sans-serif; }
+  .dia-label { font-size: clamp(8px, 2.5vw, 11px); font-weight: 700; color: #888; font-family: 'Nunito', sans-serif; }
 
-  /* XP Badge */
   .xp-badge {
     background: linear-gradient(135deg, #FFCC3B, #FF7E6B);
-    border-radius: 50px; padding: 8px 20px;
+    border-radius: 50px; padding: 8px 18px;
     display: flex; align-items: center; gap: 8px; align-self: center;
     box-shadow: 0 4px 12px #FFCC3B44;
-    animation: flotar 3s ease-in-out infinite;
   }
-  .xp-texto { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 18px; color: white; }
+  .xp-texto { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 17px; color: white; }
 
-  /* Nivel pollito */
-  .nivel-badge {
-    background: white;
-    border-radius: 50px;
-    padding: 8px 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 2px 12px #5BBFEA15;
-  }
-  .nivel-animal { font-size: 24px; animation: bounce 2s ease-in-out infinite; }
-  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-  .nivel-texto { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px; color: #555; }
-
-  /* Botón empezar */
   .btn-empezar {
     background: linear-gradient(135deg, #5BBFEA, #A78BFA);
-    border: none; border-radius: 30px; padding: 22px 0; width: 100%;
-    font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 26px;
-    color: white; cursor: pointer; box-shadow: 0 8px 24px #5BBFEA44;
-    animation: llamar 2s ease-in-out infinite; letter-spacing: 1px;
+    border: none; border-radius: 28px; padding: 20px 0; width: 100%;
+    font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: clamp(20px, 6vw, 26px);
+    color: white; cursor: pointer;
+    box-shadow: 0 8px 24px #5BBFEA44;
+    animation: llamar 2s ease-in-out infinite;
+    letter-spacing: 1px;
   }
   @keyframes llamar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
-  .btn-empezar:active { transform: scale(0.96); }
+  .btn-empezar:active { transform: scale(0.96) !important; }
 
-  /* Confeti */
   .confeti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; display: none; }
   .confeti-pieza { position: absolute; border-radius: 2px; animation: caer 1.5s ease-in forwards; }
   @keyframes caer { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
 </style>
 </head>
 <body>
-
-<div class="burbuja b1"></div>
-<div class="burbuja b2"></div>
-<div class="burbuja b3"></div>
-<div class="burbuja b4"></div>
+<div class="burbuja b1"></div><div class="burbuja b2"></div><div class="burbuja b3"></div><div class="burbuja b4"></div>
 <div class="confeti" id="confeti"></div>
 
 <div class="contenedor">
-
-  <!-- Logo -->
   <img class="logo-img" src="TEAbrazo.png" alt="TEAbrazo">
 
-  <!-- Avatar del niño -->
   <div class="avatar-wrap">
-    <div class="avatar-circulo" id="avatarCirculo" style="background: #5BBFEA22;">
+    <div class="avatar-circulo" id="avatarCirculo" style="background:#5BBFEA22;">
       <span id="avatarEmoji">🦋</span>
     </div>
     <span class="estrella e1">⭐</span>
     <span class="estrella e2">✨</span>
   </div>
 
-  <!-- Saludo con nombre real -->
   <div class="saludo">¡Hola, <span id="nombreNino">amigo</span>! 👋</div>
 
-  <!-- Nivel pollito -->
   <div class="nivel-badge">
     <span class="nivel-animal" id="nivelAnimal">🥚</span>
-    <span class="nivel-texto" id="nivelTexto">Nivel 1</span>
+    <span class="nivel-texto" id="nivelTexto">Nivel Huevo</span>
   </div>
 
-  <!-- Progreso semanal -->
   <div class="progreso-card">
     <div class="progreso-titulo">⭐ Tu semana</div>
     <div class="dias" id="diasSemana"></div>
     <div class="xp-badge">
-      <span style="font-size:20px">⚡</span>
+      <span style="font-size:18px">⚡</span>
       <span class="xp-texto" id="xpTexto">0 puntos XP</span>
-      <span style="font-size:20px">🏆</span>
+      <span style="font-size:18px">🏆</span>
     </div>
   </div>
 
-  <!-- Botón empezar -->
-  <button class="btn-empezar" onclick="empezar()">
-    ¡Empezar! 🚀
-  </button>
-
+  <button class="btn-empezar" onclick="empezar()">¡Empezar! 🚀</button>
 </div>
 
 <script>
   const NIVELES = {
-    1: { animal: '🥚', nombre: 'Nivel 1' },
-    2: { animal: '🐣', nombre: 'Nivel 2' },
-    3: { animal: '🐤', nombre: '¡Experto!' }
+    1: { animal: '🥚', nombre: 'Huevo' },
+    2: { animal: '🐣', nombre: 'Pollito' },
+    3: { animal: '🐤', nombre: 'Pollito grande' }
   };
-
   const DIAS = ['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'];
 
   window.addEventListener('load', () => {
-    // Recuperar hijo desde sessionStorage
     const hijoData = sessionStorage.getItem('hijoActual');
     if (!hijoData) { window.location.href = 'perfiles.html'; return; }
-
     const hijo = JSON.parse(hijoData);
 
-    // Nombre
     document.getElementById('nombreNino').textContent = hijo.nombre;
+    if (hijo.avatar_emoji) document.getElementById('avatarEmoji').textContent = hijo.avatar_emoji;
 
-    // Avatar
-    if (hijo.avatar_emoji) {
-      document.getElementById('avatarEmoji').textContent = hijo.avatar_emoji;
-    }
-
-    // XP y nivel
     const xp = hijo.xp_total || 0;
     const nivel = xp >= 150 ? 3 : xp >= 50 ? 2 : 1;
     document.getElementById('xpTexto').textContent = xp + ' puntos XP';
     document.getElementById('nivelAnimal').textContent = NIVELES[nivel].animal;
     document.getElementById('nivelTexto').textContent = NIVELES[nivel].nombre;
 
-    // Días de la semana (simulado con racha)
     const racha = hijo.racha_dias || 0;
     const hoy = new Date().getDay();
-    const diaHoy = hoy === 0 ? 6 : hoy - 1; // 0=lun
+    const diaHoy = hoy === 0 ? 6 : hoy - 1;
     const diasWrap = document.getElementById('diasSemana');
     DIAS.forEach((dia, i) => {
       const div = document.createElement('div');
       div.className = 'dia';
       let claseCirculo = 'dia-circulo';
-      let contenido = '⬜';
+      let contenido = '';
       if (i === diaHoy) { claseCirculo += ' hoy'; contenido = hijo.avatar_emoji || '🦋'; }
       else if (i < diaHoy && i >= diaHoy - racha) { claseCirculo += ' completado'; contenido = '✅'; }
       div.innerHTML = `<div class="${claseCirculo}">${contenido}</div><div class="dia-label">${dia}</div>`;
       diasWrap.appendChild(div);
     });
 
-    // Narrar bienvenida
-    setTimeout(() => {
-      hablar('¡Hola ' + hijo.nombre + '! Bienvenido a TEAbrazo. ¿Estás listo para jugar?');
-    }, 800);
+    setTimeout(() => hablar('¡Hola ' + hijo.nombre + '! ¿Jugamos?'), 600);
   });
 
   function hablar(texto) {
     if ('speechSynthesis' in window) {
-      const msg = new SpeechSynthesisUtterance(texto);
-      msg.lang = 'es-AR'; msg.rate = 0.85; msg.pitch = 1.2;
       window.speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance(texto);
+      msg.lang = 'es-AR'; msg.rate = 1.1; msg.pitch = 1.8;
       window.speechSynthesis.speak(msg);
     }
   }
 
   function empezar() {
-    hablar('¡Vamos! ¡Sos increíble!');
+    hablar('¡Vamos!');
     lanzarConfeti();
-    setTimeout(() => { window.location.href = 'emocion.html'; }, 1800);
+    setTimeout(() => { window.location.href = 'burbujas.html'; }, 1500);
   }
 
   function lanzarConfeti() {
     const confeti = document.getElementById('confeti');
-    confeti.style.display = 'block';
-    confeti.innerHTML = '';
+    confeti.style.display = 'block'; confeti.innerHTML = '';
     const colores = ['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
     for (let i = 0; i < 60; i++) {
       const p = document.createElement('div');
@@ -294,7 +232,7 @@
       p.style.height = (Math.random() * 10 + 6) + 'px';
       confeti.appendChild(p);
     }
-    setTimeout(() => { confeti.style.display = 'none'; confeti.innerHTML = ''; }, 2500);
+    setTimeout(() => { confeti.style.display = 'none'; confeti.innerHTML = ''; }, 2000);
   }
 </script>
 </body>
