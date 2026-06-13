@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TEAbrazo 🦋</title>
+<title>TEAbrazo — Ingresar</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -26,7 +27,7 @@
     opacity: 0.15;
     animation: flotar 6s ease-in-out infinite;
   }
-  .b1 { width: 200px; height: 200px; background: #5BBFEA; top: -50px; left: -50px; animation-delay: 0s; }
+  .b1 { width: 200px; height: 200px; background: #5BBFEA; top: -50px; left: -50px; }
   .b2 { width: 150px; height: 150px; background: #FFCC3B; top: 10%; right: -30px; animation-delay: 1s; }
   .b3 { width: 100px; height: 100px; background: #52D9A0; bottom: 15%; left: 10px; animation-delay: 2s; }
   .b4 { width: 120px; height: 120px; background: #A78BFA; bottom: -30px; right: 20%; animation-delay: 0.5s; }
@@ -37,224 +38,237 @@
   }
 
   .contenedor {
+    z-index: 10;
+    width: 100%;
+    max-width: 400px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 30px 24px;
-    z-index: 10;
-    gap: 20px;
-    max-width: 420px;
-    width: 100%;
+    gap: 24px;
   }
 
-  .mariposa-wrap {
-    position: relative;
-    width: 160px;
-    height: 160px;
+  .logo {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-  }
-
-  .circulo-mariposa {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #5BBFEA33, #A78BFA33);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: pulsar 2s ease-in-out infinite;
-    box-shadow: 0 0 0 0 #5BBFEA44;
-  }
-
-  @keyframes pulsar {
-    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 #5BBFEA44; }
-    50% { transform: scale(1.05); box-shadow: 0 0 0 15px #5BBFEA00; }
+    gap: 8px;
   }
 
   .mariposa {
-    font-size: 80px;
+    font-size: 64px;
     animation: volar 3s ease-in-out infinite;
-    display: block;
-    line-height: 1;
   }
 
   @keyframes volar {
     0%, 100% { transform: translateY(0) rotate(-3deg); }
-    25% { transform: translateY(-10px) rotate(3deg); }
-    75% { transform: translateY(5px) rotate(-2deg); }
-  }
-
-  .estrella {
-    position: absolute;
-    font-size: 20px;
-    animation: girar 4s linear infinite;
-  }
-  .e1 { top: 5px; right: 10px; animation-delay: 0s; }
-  .e2 { bottom: 10px; left: 5px; animation-delay: 1s; font-size: 14px; }
-  .e3 { top: 20px; left: 0px; animation-delay: 2s; font-size: 16px; }
-
-  @keyframes girar {
-    0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
-    50% { transform: scale(1.4) rotate(180deg); opacity: 0.6; }
+    50% { transform: translateY(-10px) rotate(3deg); }
   }
 
   .titulo {
     font-family: 'Nunito', sans-serif;
     font-weight: 900;
-    font-size: 42px;
+    font-size: 36px;
     color: #5BBFEA;
-    text-align: center;
-    line-height: 1.1;
-    text-shadow: 2px 2px 0px #FFCC3B44;
   }
 
   .titulo span { color: #A78BFA; }
 
-  .saludo {
+  .subtitulo {
     font-family: 'Nunito', sans-serif;
     font-weight: 700;
-    font-size: 22px;
-    color: #444;
-    text-align: center;
-  }
-
-  .progreso-card {
-    background: white;
-    border-radius: 24px;
-    padding: 20px 24px;
-    width: 100%;
-    box-shadow: 0 4px 20px #5BBFEA22;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .progreso-titulo {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 800;
     font-size: 16px;
-    color: #555;
-    text-align: center;
-  }
-
-  .dias {
-    display: flex;
-    justify-content: space-between;
-    gap: 6px;
-  }
-
-  .dia {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    flex: 1;
-  }
-
-  .dia-circulo {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #F0F7FF;
-    border: 2px solid #ddd;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    transition: all 0.3s;
-  }
-
-  .dia-circulo.completado {
-    background: #52D9A0;
-    border-color: #52D9A0;
-    animation: pop 0.4s ease;
-  }
-
-  .dia-circulo.hoy {
-    background: #FFCC3B;
-    border-color: #FFCC3B;
-    animation: pulsar 1.5s ease-in-out infinite;
-  }
-
-  @keyframes pop {
-    0% { transform: scale(0.8); }
-    60% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-  }
-
-  .dia-label {
-    font-size: 11px;
-    font-weight: 700;
     color: #888;
-    font-family: 'Nunito', sans-serif;
+    text-align: center;
   }
 
-  .xp-badge {
-    background: linear-gradient(135deg, #FFCC3B, #FF7E6B);
-    border-radius: 50px;
-    padding: 8px 20px;
+  .card {
+    background: white;
+    border-radius: 28px;
+    padding: 32px 24px;
+    width: 100%;
+    box-shadow: 0 8px 32px #5BBFEA22;
     display: flex;
-    align-items: center;
-    gap: 8px;
-    align-self: center;
-    box-shadow: 0 4px 12px #FFCC3B44;
-    animation: flotar 3s ease-in-out infinite;
+    flex-direction: column;
+    gap: 20px;
   }
 
-  .xp-texto {
+  .card-titulo {
     font-family: 'Nunito', sans-serif;
     font-weight: 900;
-    font-size: 18px;
-    color: white;
+    font-size: 22px;
+    color: #333;
+    text-align: center;
   }
 
-  .btn-empezar {
+  .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .campo label {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: #555;
+  }
+
+  .campo input {
+    background: #F0F7FF;
+    border: 2px solid #E0EFFF;
+    border-radius: 16px;
+    padding: 16px 18px;
+    font-family: 'Nunito Sans', sans-serif;
+    font-size: 16px;
+    color: #333;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .campo input:focus {
+    border-color: #5BBFEA;
+  }
+
+  .btn-login {
     background: linear-gradient(135deg, #5BBFEA, #A78BFA);
     border: none;
-    border-radius: 30px;
-    padding: 22px 0;
+    border-radius: 20px;
+    padding: 18px;
     width: 100%;
     font-family: 'Nunito', sans-serif;
     font-weight: 900;
-    font-size: 26px;
+    font-size: 20px;
     color: white;
     cursor: pointer;
-    box-shadow: 0 8px 24px #5BBFEA44;
-    transition: transform 0.15s, box-shadow 0.15s;
-    animation: llamar 2s ease-in-out infinite;
-    letter-spacing: 1px;
+    box-shadow: 0 6px 20px #5BBFEA44;
+    transition: transform 0.15s;
+    margin-top: 4px;
   }
 
-  @keyframes llamar {
-    0%, 100% { transform: scale(1); box-shadow: 0 8px 24px #5BBFEA44; }
-    50% { transform: scale(1.03); box-shadow: 0 12px 32px #5BBFEA66; }
+  .btn-login:active { transform: scale(0.97); }
+
+  .btn-login:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
-  .btn-empezar:active { transform: scale(0.96); }
+  .separador {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #bbb;
+    font-size: 14px;
+  }
 
-  .confeti {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 100;
+  .separador::before,
+  .separador::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #eee;
+  }
+
+  .btn-registro {
+    background: white;
+    border: 2px solid #5BBFEA;
+    border-radius: 20px;
+    padding: 16px;
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: #5BBFEA;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-registro:active {
+    background: #F0F7FF;
+    transform: scale(0.97);
+  }
+
+  .error {
+    background: #FFF0EE;
+    border: 2px solid #FF7E6B;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #FF7E6B;
+    text-align: center;
     display: none;
   }
 
-  .confeti-pieza {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    animation: caer 1.5s ease-in forwards;
+  .cargando {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    color: #5BBFEA;
+    font-size: 16px;
   }
 
-  @keyframes caer {
-    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #E0EFFF;
+    border-top-color: #5BBFEA;
+    border-radius: 50%;
+    animation: girar 0.8s linear infinite;
+  }
+
+  @keyframes girar {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Modal de registro */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #00000055;
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal {
+    background: white;
+    border-radius: 28px;
+    padding: 32px 24px;
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 20px 60px #00000033;
+  }
+
+  .modal-titulo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    color: #333;
+    text-align: center;
+  }
+
+  .btn-cerrar {
+    background: #F0F7FF;
+    border: none;
+    border-radius: 14px;
+    padding: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: #888;
+    cursor: pointer;
   }
 </style>
 </head>
@@ -265,114 +279,178 @@
 <div class="burbuja b3"></div>
 <div class="burbuja b4"></div>
 
-<div class="confeti" id="confeti"></div>
+<!-- Modal de registro -->
+<div class="modal-overlay" id="modalRegistro">
+  <div class="modal">
+    <div class="modal-titulo">👋 Crear cuenta</div>
+    <div class="campo">
+      <label>📧 Tu email</label>
+      <input type="email" id="regEmail" placeholder="nombre@email.com">
+    </div>
+    <div class="campo">
+      <label>🔒 Contraseña</label>
+      <input type="password" id="regPassword" placeholder="Mínimo 6 caracteres">
+    </div>
+    <div class="error" id="errorRegistro"></div>
+    <button class="btn-login" onclick="registrarse()">✨ Crear cuenta</button>
+    <button class="btn-cerrar" onclick="cerrarModal()">Cancelar</button>
+  </div>
+</div>
 
 <div class="contenedor">
 
-  <div class="mariposa-wrap">
-    <div class="circulo-mariposa">
-      <span class="mariposa">🦋</span>
-    </div>
-    <span class="estrella e1">⭐</span>
-    <span class="estrella e2">✨</span>
-    <span class="estrella e3">🌟</span>
+  <div class="logo">
+    <span class="mariposa">🦋</span>
+    <div class="titulo">TEA<span>brazo</span></div>
+    <div class="subtitulo">Acceso para padres y tutores</div>
   </div>
 
-  <div class="titulo">TEA<span>brazo</span></div>
+  <div class="card">
+    <div class="card-titulo">👋 ¡Hola de nuevo!</div>
 
-  <div class="saludo">¡Hola, Sofi! 👋</div>
+    <div class="campo">
+      <label>📧 Email</label>
+      <input type="email" id="email" placeholder="nombre@email.com">
+    </div>
 
-  <div class="progreso-card">
-    <div class="progreso-titulo">⭐ Tu semana</div>
-    <div class="dias">
-      <div class="dia">
-        <div class="dia-circulo completado">✅</div>
-        <div class="dia-label">LUN</div>
-      </div>
-      <div class="dia">
-        <div class="dia-circulo completado">✅</div>
-        <div class="dia-label">MAR</div>
-      </div>
-      <div class="dia">
-        <div class="dia-circulo completado">✅</div>
-        <div class="dia-label">MIÉ</div>
-      </div>
-      <div class="dia">
-        <div class="dia-circulo hoy">🦋</div>
-        <div class="dia-label">HOY</div>
-      </div>
-      <div class="dia">
-        <div class="dia-circulo">⬜</div>
-        <div class="dia-label">VIE</div>
-      </div>
-      <div class="dia">
-        <div class="dia-circulo">⬜</div>
-        <div class="dia-label">SÁB</div>
-      </div>
-      <div class="dia">
-        <div class="dia-circulo">⬜</div>
-        <div class="dia-label">DOM</div>
-      </div>
+    <div class="campo">
+      <label>🔒 Contraseña</label>
+      <input type="password" id="password" placeholder="Tu contraseña">
     </div>
-    <div class="xp-badge">
-      <span style="font-size:20px">⚡</span>
-      <span class="xp-texto">150 puntos XP</span>
-      <span style="font-size:20px">🏆</span>
+
+    <div class="error" id="errorLogin"></div>
+
+    <div class="cargando" id="cargando">
+      <div class="spinner"></div>
+      Ingresando...
     </div>
+
+    <button class="btn-login" id="btnLogin" onclick="login()">
+      Ingresar 🚀
+    </button>
+
+    <div class="separador">¿Primera vez?</div>
+
+    <button class="btn-registro" onclick="abrirModal()">
+      ✨ Crear cuenta gratis
+    </button>
   </div>
-
-  <button class="btn-empezar" onclick="empezar()">
-    ¡Empezar! 🚀
-  </button>
 
 </div>
 
 <script>
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      hablar('¡Hola Sofi! Bienvenida a TEAbrazo. ¿Estás lista para jugar?');
-    }, 800);
+  // Configuración Supabase
+  const SUPABASE_URL = 'https://oyuriwnxioylyetchbbz.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Si ya hay sesión activa, ir directo a perfiles
+  window.addEventListener('load', async () => {
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        window.location.href = 'perfiles.html';
+      }
+    } catch(e) {
+      console.log('Sin sesión previa');
+    }
   });
 
-  function hablar(texto) {
-    if ('speechSynthesis' in window) {
-      const msg = new SpeechSynthesisUtterance(texto);
-      msg.lang = 'es-AR';
-      msg.rate = 0.85;
-      msg.pitch = 1.2;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(msg);
+  function mostrarError(id, mensaje) {
+    const el = document.getElementById(id);
+    el.textContent = mensaje;
+    el.style.display = 'block';
+  }
+
+  function ocultarError(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  async function login() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    ocultarError('errorLogin');
+
+    if (!email || !password) {
+      mostrarError('errorLogin', '⚠️ Completá el email y la contraseña');
+      return;
+    }
+
+    // Mostrar cargando
+    document.getElementById('btnLogin').disabled = true;
+    document.getElementById('cargando').style.display = 'flex';
+
+    try {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        mostrarError('errorLogin', '❌ Email o contraseña incorrectos');
+        return;
+      }
+
+      // Login exitoso → ir a perfiles
+      window.location.href = 'perfiles.html';
+
+    } catch(e) {
+      mostrarError('errorLogin', '⚠️ Error de conexión. Intentá de nuevo.');
+    } finally {
+      document.getElementById('btnLogin').disabled = false;
+      document.getElementById('cargando').style.display = 'none';
     }
   }
 
-  function empezar() {
-    hablar('¡Vamos! ¡Sos increíble!');
-    lanzarConfeti();
-    setTimeout(() => {
-      window.location.href = 'emocion.html';
-    }, 1800);
+  async function registrarse() {
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    ocultarError('errorRegistro');
+
+    if (!email || !password) {
+      mostrarError('errorRegistro', '⚠️ Completá todos los campos');
+      return;
+    }
+
+    if (password.length < 6) {
+      mostrarError('errorRegistro', '⚠️ La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    try {
+      const { data, error } = await sb.auth.signUp({ email, password });
+
+      if (error) {
+        mostrarError('errorRegistro', '❌ ' + error.message);
+        return;
+      }
+
+      // Registro exitoso
+      cerrarModal();
+      mostrarError('errorLogin', '✅ ¡Cuenta creada! Revisá tu email para confirmar y luego ingresá.');
+      document.getElementById('errorLogin').style.background = '#F0FFF8';
+      document.getElementById('errorLogin').style.borderColor = '#52D9A0';
+      document.getElementById('errorLogin').style.color = '#2A9D6E';
+      document.getElementById('errorLogin').style.display = 'block';
+
+    } catch(e) {
+      mostrarError('errorRegistro', '⚠️ Error de conexión. Intentá de nuevo.');
+    }
   }
 
-  function lanzarConfeti() {
-    const confeti = document.getElementById('confeti');
-    confeti.style.display = 'block';
-    const colores = ['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
-    for (let i = 0; i < 60; i++) {
-      const pieza = document.createElement('div');
-      pieza.classList.add('confeti-pieza');
-      pieza.style.left = Math.random() * 100 + 'vw';
-      pieza.style.top = '-10px';
-      pieza.style.background = colores[Math.floor(Math.random() * colores.length)];
-      pieza.style.animationDelay = Math.random() * 0.8 + 's';
-      pieza.style.width = (Math.random() * 10 + 6) + 'px';
-      pieza.style.height = (Math.random() * 10 + 6) + 'px';
-      confeti.appendChild(pieza);
-    }
-    setTimeout(() => {
-      confeti.style.display = 'none';
-      confeti.innerHTML = '';
-    }, 2500);
+  function abrirModal() {
+    document.getElementById('modalRegistro').style.display = 'flex';
   }
+
+  function cerrarModal() {
+    document.getElementById('modalRegistro').style.display = 'none';
+    document.getElementById('regEmail').value = '';
+    document.getElementById('regPassword').value = '';
+    ocultarError('errorRegistro');
+  }
+
+  // Login con Enter
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') login();
+  });
 </script>
 </body>
 </html>
