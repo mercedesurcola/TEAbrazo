@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEAbrazo 🦋</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #F0F7FF;
+    font-family: 'Nunito Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .burbuja {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.15;
+    animation: flotar 6s ease-in-out infinite;
+  }
+  .b1 { width: 200px; height: 200px; background: #5BBFEA; top: -50px; left: -50px; animation-delay: 0s; }
+  .b2 { width: 150px; height: 150px; background: #FFCC3B; top: 10%; right: -30px; animation-delay: 1s; }
+  .b3 { width: 100px; height: 100px; background: #52D9A0; bottom: 15%; left: 10px; animation-delay: 2s; }
+  .b4 { width: 120px; height: 120px; background: #A78BFA; bottom: -30px; right: 20%; animation-delay: 0.5s; }
+
+  @keyframes flotar {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  .contenedor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 24px;
+    z-index: 10;
+    gap: 20px;
+    max-width: 420px;
+    width: 100%;
+  }
+
+  .mariposa-wrap {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .circulo-mariposa {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5BBFEA33, #A78BFA33);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulsar 2s ease-in-out infinite;
+    box-shadow: 0 0 0 0 #5BBFEA44;
+  }
+
+  @keyframes pulsar {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 #5BBFEA44; }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 15px #5BBFEA00; }
+  }
+
+  .mariposa {
+    font-size: 80px;
+    animation: volar 3s ease-in-out infinite;
+    display: block;
+    line-height: 1;
+  }
+
+  @keyframes volar {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    25% { transform: translateY(-10px) rotate(3deg); }
+    75% { transform: translateY(5px) rotate(-2deg); }
+  }
+
+  .estrella {
+    position: absolute;
+    font-size: 20px;
+    animation: girar 4s linear infinite;
+  }
+  .e1 { top: 5px; right: 10px; animation-delay: 0s; }
+  .e2 { bottom: 10px; left: 5px; animation-delay: 1s; font-size: 14px; }
+  .e3 { top: 20px; left: 0px; animation-delay: 2s; font-size: 16px; }
+
+  @keyframes girar {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    50% { transform: scale(1.4) rotate(180deg); opacity: 0.6; }
+  }
+
+  .titulo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 42px;
+    color: #5BBFEA;
+    text-align: center;
+    line-height: 1.1;
+    text-shadow: 2px 2px 0px #FFCC3B44;
+  }
+
+  .titulo span { color: #A78BFA; }
+
+  .saludo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: #444;
+    text-align: center;
+  }
+
+  .progreso-card {
+    background: white;
+    border-radius: 24px;
+    padding: 20px 24px;
+    width: 100%;
+    box-shadow: 0 4px 20px #5BBFEA22;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .progreso-titulo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    color: #555;
+    text-align: center;
+  }
+
+  .dias {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .dia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .dia-circulo {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #F0F7FF;
+    border: 2px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.3s;
+  }
+
+  .dia-circulo.completado {
+    background: #52D9A0;
+    border-color: #52D9A0;
+    animation: pop 0.4s ease;
+  }
+
+  .dia-circulo.hoy {
+    background: #FFCC3B;
+    border-color: #FFCC3B;
+    animation: pulsar 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0.8); }
+    60% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .dia-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .xp-badge {
+    background: linear-gradient(135deg, #FFCC3B, #FF7E6B);
+    border-radius: 50px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    align-self: center;
+    box-shadow: 0 4px 12px #FFCC3B44;
+    animation: flotar 3s ease-in-out infinite;
+  }
+
+  .xp-texto {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: white;
+  }
+
+  .btn-empezar {
+    background: linear-gradient(135deg, #5BBFEA, #A78BFA);
+    border: none;
+    border-radius: 30px;
+    padding: 22px 0;
+    width: 100%;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 26px;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 8px 24px #5BBFEA44;
+    transition: transform 0.15s, box-shadow 0.15s;
+    animation: llamar 2s ease-in-out infinite;
+    letter-spacing: 1px;
+  }
+
+  @keyframes llamar {
+    0%, 100% { transform: scale(1); box-shadow: 0 8px 24px #5BBFEA44; }
+    50% { transform: scale(1.03); box-shadow: 0 12px 32px #5BBFEA66; }
+  }
+
+  .btn-empezar:active { transform: scale(0.96); }
+
+  .confeti {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 100;
+    display: none;
+  }
+
+  .confeti-pieza {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    animation: caer 1.5s ease-in forwards;
+  }
+
+  @keyframes caer {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="burbuja b1"></div>
+<div class="burbuja b2"></div>
+<div class="burbuja b3"></div>
+<div class="burbuja b4"></div>
+
+<div class="confeti" id="confeti"></div>
+
+<div class="contenedor">
+
+  <div class="mariposa-wrap">
+    <div class="circulo-mariposa">
+      <span class="mariposa">🦋</span>
+    </div>
+    <span class="estrella e1">⭐</span>
+    <span class="estrella e2">✨</span>
+    <span class="estrella e3">🌟</span>
+  </div>
+
+  <div class="titulo">TEA<span>brazo</span></div>
+
+  <div class="saludo">¡Hola, Sofi! 👋</div>
+
+  <div class="progreso-card">
+    <div class="progreso-titulo">⭐ Tu semana</div>
+    <div class="dias">
+      <div class="dia">
+        <div class="dia-circulo completado">✅</div>
+        <div class="dia-label">LUN</div>
+      </div>
+      <div class="dia">
+        <div class="dia-circulo completado">✅</div>
+        <div class="dia-label">MAR</div>
+      </div>
+      <div class="dia">
+        <div class="dia-circulo completado">✅</div>
+        <div class="dia-label">MIÉ</div>
+      </div>
+      <div class="dia">
+        <div class="dia-circulo hoy">🦋</div>
+        <div class="dia-label">HOY</div>
+      </div>
+      <div class="dia">
+        <div class="dia-circulo">⬜</div>
+        <div class="dia-label">VIE</div>
+      </div>
+      <div class="dia">
+        <div class="dia-circulo">⬜</div>
+        <div class="dia-label">SÁB</div>
+      </div>
+      <div class="dia">
+        <div class="dia-circulo">⬜</div>
+        <div class="dia-label">DOM</div>
+      </div>
+    </div>
+    <div class="xp-badge">
+      <span style="font-size:20px">⚡</span>
+      <span class="xp-texto">150 puntos XP</span>
+      <span style="font-size:20px">🏆</span>
+    </div>
+  </div>
+
+  <button class="btn-empezar" onclick="empezar()">
+    ¡Empezar! 🚀
+  </button>
+
+</div>
+
+<script>
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      hablar('¡Hola Sofi! Bienvenida a TEAbrazo. ¿Estás lista para jugar?');
+    }, 800);
+  });
+
+  function hablar(texto) {
+    if ('speechSynthesis' in window) {
+      const msg = new SpeechSynthesisUtterance(texto);
+      msg.lang = 'es-AR';
+      msg.rate = 0.85;
+      msg.pitch = 1.2;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(msg);
+    }
+  }
+
+  function empezar() {
+    hablar('¡Vamos! ¡Sos increíble!');
+    lanzarConfeti();
+    setTimeout(() => {
+      window.location.href = 'emocion.html';
+    }, 1800);
+  }
+
+  function lanzarConfeti() {
+    const confeti = document.getElementById('confeti');
+    confeti.style.display = 'block';
+    const colores = ['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+    for (let i = 0; i < 60; i++) {
+      const pieza = document.createElement('div');
+      pieza.classList.add('confeti-pieza');
+      pieza.style.left = Math.random() * 100 + 'vw';
+      pieza.style.top = '-10px';
+      pieza.style.background = colores[Math.floor(Math.random() * colores.length)];
+      pieza.style.animationDelay = Math.random() * 0.8 + 's';
+      pieza.style.width = (Math.random() * 10 + 6) + 'px';
+      pieza.style.height = (Math.random() * 10 + 6) + 'px';
+      confeti.appendChild(pieza);
+    }
+    setTimeout(() => {
+      confeti.style.display = 'none';
+      confeti.innerHTML = '';
+    }, 2500);
+  }
+</script>
+</body>
+</html>
