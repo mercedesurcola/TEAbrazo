@@ -164,6 +164,23 @@
 </head>
 <body>
 
+
+<!-- Intro instrucciones -->
+<div id="introOverlay" style="position:fixed;inset:0;z-index:350;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#0d0d2b,#1a1a4e);">
+  <div id="introEmoji" style="font-size:clamp(72px,20vw,110px);animation:intro-bounce 1s ease-in-out infinite;filter:drop-shadow(0 8px 24px #5BBFEA44);"></div>
+  <div id="introTitulo" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(22px,6vw,32px);color:white;text-align:center;text-shadow:0 2px 12px #00000055;"></div>
+  <div style="display:flex;align-items:flex-end;gap:12px;max-width:360px;width:100%;">
+    <div style="font-size:clamp(44px,12vw,64px);animation:pupi-intro 2s ease-in-out infinite;filter:drop-shadow(0 4px 12px #00000066);flex-shrink:0;">🐙</div>
+    <div id="introTexto" style="background:white;border-radius:20px 20px 20px 4px;padding:14px 18px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(15px,4.5vw,19px);color:#333;box-shadow:0 4px 20px #00000033;line-height:1.4;flex:1;"></div>
+  </div>
+  <button onclick="cerrarIntro()" style="background:linear-gradient(135deg,#52D9A0,#5BBFEA);border:none;border-radius:28px;padding:20px 0;width:100%;max-width:320px;font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(20px,6vw,26px);color:white;cursor:pointer;box-shadow:0 8px 24px #52D9A044;animation:btn-llamar 2s ease-in-out infinite;letter-spacing:1px;">¡Listo! 🚀</button>
+</div>
+<style>
+  @keyframes intro-bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.05)}}
+  @keyframes pupi-intro{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+  @keyframes btn-llamar{0%,100%{transform:scale(1);box-shadow:0 8px 24px #52D9A044}50%{transform:scale(1.03);box-shadow:0 12px 32px #52D9A066}}
+</style>
+
 <div class="countdown-overlay" id="countdownOverlay">
   <div style="font-size:clamp(60px,18vw,90px);">🐙</div>
   <div id="countdownNumero" class="countdown-numero" style="color:#52D9A0;">3</div>
@@ -310,6 +327,37 @@
   const GESTOS_POR_CELEBRACION=5;
   const CIRCUNFERENCIA=150.8; // 2*PI*24
 
+
+  // =============================================
+  // INTRO DE INSTRUCCIONES
+  // =============================================
+  const INSTRUCCIONES_JUEGO={
+    1: "¡Mirá el emoji y hacé la misma cara! La cámara te ve.",
+    2: "¡Copiá el gesto que aparece en la pantalla!",
+    3: "¡Imitá todos los gestos lo más rápido que puedas!",
+  };
+
+  function mostrarIntro(onDone){
+    const overlay=document.getElementById('introOverlay');
+    if(!overlay){onDone();return;}
+    document.getElementById('introEmoji').textContent='🎭';
+    document.getElementById('introTitulo').textContent='¡Copiá el gesto!';
+    const texto=INSTRUCCIONES_JUEGO[nivelActual]||INSTRUCCIONES_JUEGO[1];
+    document.getElementById('introTexto').textContent=texto;
+    overlay.style.display='flex';
+    // Guardar callback para cuando toque Listo
+    window._introDone=onDone;
+    // Narrar
+    setTimeout(()=>_hablar(texto),400);
+  }
+
+  function cerrarIntro(){
+    const overlay=document.getElementById('introOverlay');
+    if(overlay)overlay.style.display='none';
+    window.speechSynthesis&&window.speechSynthesis.cancel();
+    if(window._introDone)window._introDone();
+  }
+
   // =============================================
   // AUDIO
   // =============================================
@@ -386,7 +434,7 @@
       video.srcObject=cameraStream;
       await video.play();
       await iniciarMediaPipe();
-      setTimeout(()=>mostrarCountdown(),800);
+      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
     }catch(e){
       document.getElementById('camBlocked').style.display='flex';
     }
