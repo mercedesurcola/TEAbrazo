@@ -550,33 +550,84 @@
   function cerrarConfig(){document.getElementById('configOverlay').style.display='none';}
 
   async function toggleGrabacion(id){
-    if(grabandoId===id){mediaRecorder.stop();return;}
-    if(grabandoId){mediaRecorder.stop();}
+    // Si ya está grabando este mismo, detener
+    if(grabandoId===id){
+      if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
+      return;
+    }
+    // Si está grabando otro, detener primero
+    if(grabandoId&&mediaRecorder&&mediaRecorder.state==='recording'){
+      mediaRecorder.stop();
+      await new Promise(r=>setTimeout(r,300));
+    }
+
+    // Verificar soporte
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+      mostrarErrorMic('Tu navegador no soporta grabación de audio. Usá Chrome o Edge.');
+      return;
+    }
+
     try{
-      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-      chunksAudio=[];grabandoId=id;
-      mediaRecorder=new MediaRecorder(stream);
-      mediaRecorder.ondataavailable=e=>chunksAudio.push(e.data);
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+      chunksAudio=[];
+      grabandoId=id;
+
+      // Intentar con webm, si no con mp4
+      const mimeType=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
+      mediaRecorder=new MediaRecorder(stream,{mimeType});
+
+      mediaRecorder.ondataavailable=e=>{if(e.data.size>0)chunksAudio.push(e.data);};
       mediaRecorder.onstop=()=>{
-        const blob=new Blob(chunksAudio,{type:'audio/webm'});
+        const blob=new Blob(chunksAudio,{type:mimeType});
         const reader=new FileReader();
         reader.onload=()=>{
           vocesGrabadas[id]=reader.result;
           localStorage.setItem('voces_teabrazo',JSON.stringify(vocesGrabadas));
-          document.getElementById('estado_'+id).textContent='✅ Grabada';
-          document.getElementById('btn_'+id).textContent='🔄';
-          document.getElementById('btn_'+id).classList.remove('grabando');
-          document.getElementById('play_'+id).style.display='block';
+          // Actualizar UI
+          const estadoEl=document.getElementById('estado_'+id);
+          const btnEl=document.getElementById('btn_'+id);
+          const playEl=document.getElementById('play_'+id);
+          if(estadoEl)estadoEl.textContent='✅ Grabada';
+          if(btnEl){btnEl.textContent='🔄';btnEl.classList.remove('grabando');}
+          if(playEl)playEl.style.display='block';
           grabandoId=null;
         };
         reader.readAsDataURL(blob);
         stream.getTracks().forEach(t=>t.stop());
       };
-      mediaRecorder.start();
-      document.getElementById('btn_'+id).textContent='⏹️';
-      document.getElementById('btn_'+id).classList.add('grabando');
-      document.getElementById('estado_'+id).textContent='🔴 Grabando...';
-    }catch(e){alert('No se pudo acceder al micrófono.');}
+
+      mediaRecorder.start(100); // recolectar cada 100ms
+      const btnEl=document.getElementById('btn_'+id);
+      const estadoEl=document.getElementById('estado_'+id);
+      if(btnEl){btnEl.textContent='⏹️';btnEl.classList.add('grabando');}
+      if(estadoEl)estadoEl.textContent='🔴 Grabando...';
+
+    }catch(e){
+      grabandoId=null;
+      if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'){
+        mostrarErrorMic('Permiso de micrófono denegado. Hacé clic en el candado 🔒 del navegador y habilitá el micrófono.');
+      }else if(e.name==='NotFoundError'){
+        mostrarErrorMic('No se encontró micrófono. Conectá uno e intentá de nuevo.');
+      }else{
+        mostrarErrorMic('Error al acceder al micrófono: '+e.message);
+      }
+    }
+  }
+
+  function mostrarErrorMic(msg){
+    // Mostrar error inline en el panel en vez de alert
+    let errorDiv=document.getElementById('mic-error');
+    if(!errorDiv){
+      errorDiv=document.createElement('div');
+      errorDiv.id='mic-error';
+      errorDiv.style.cssText='background:#FFF0EE;border:2px solid #FF7E6B;border-radius:12px;padding:10px 14px;font-family:Nunito,sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;text-align:center;margin:4px 0;';
+      const panel=document.querySelector('.config-panel');
+      const firstSolapa=document.querySelector('.solapas');
+      if(panel&&firstSolapa)panel.insertBefore(errorDiv,firstSolapa.nextSibling);
+    }
+    errorDiv.textContent='⚠️ '+msg;
+    errorDiv.style.display='block';
+    setTimeout(()=>{if(errorDiv)errorDiv.style.display='none';},6000);
   }
 
   function reproducirVoz(id){

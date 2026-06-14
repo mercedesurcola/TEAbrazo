@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TEAbrazo — Copiá el Gesto</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- MediaPipe Face Mesh -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:#0d0d1f;font-family:'Nunito',sans-serif;width:100vw;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+
+  /* Header */
+  .header-juego{position:relative;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#ffffff12;backdrop-filter:blur(12px);flex-shrink:0;}
+  .btn-salir-juego{background:#ffffff18;border:2px solid #ffffff28;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:white;cursor:pointer;}
+  .header-centro{display:flex;align-items:center;gap:10px;}
+  .nivel-badge{display:flex;align-items:center;gap:6px;background:#ffffff18;border:2px solid #ffffff28;border-radius:50px;padding:6px 14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:white;}
+  .nivel-emoji-b{font-size:18px;animation:bounce 2s ease-in-out infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .puntaje-wrap{display:flex;align-items:center;gap:6px;background:#FFCC3B22;border:2px solid #FFCC3B44;border-radius:50px;padding:6px 14px;}
+  .puntaje-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#FFCC3B;}
+  .timer-wrap{background:#A78BFA22;border:2px solid #A78BFA44;border-radius:50px;padding:6px 12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#C4A8FF;display:none;}
+  .timer-wrap.urgente{color:#FF7E6B;border-color:#FF7E6B55;}
+
+  /* Área principal */
+  .area-principal{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;}
+
+  /* Cámara — ocupa toda el área */
+  #videoEl{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    object-fit:cover;
+    transform:scaleX(-1); /* espejo */
+    z-index:1;
+  }
+
+  /* Overlay sobre la cámara */
+  .cam-overlay{
+    position:absolute;inset:0;z-index:10;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:space-between;
+    padding:12px 16px 16px;
+    pointer-events:none;
+  }
+
+  /* Gesto a imitar — arriba al centro */
+  .gesto-wrap{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    background:#000000aa;backdrop-filter:blur(8px);
+    border:3px solid #ffffff22;border-radius:24px;
+    padding:12px 20px;pointer-events:none;
+    animation:aparecer 0.4s ease;
+  }
+  @keyframes aparecer{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+  .gesto-emoji{font-size:clamp(52px,15vw,80px);line-height:1;animation:gesto-pulsar 1.5s ease-in-out infinite;}
+  @keyframes gesto-pulsar{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  .gesto-nombre{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(18px,5vw,24px);color:white;text-align:center;text-shadow:0 2px 8px #000;}
+
+  /* Temporizador circular */
+  .timer-circulo-wrap{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+  }
+  .timer-svg{width:70px;height:70px;}
+  .timer-bg{fill:none;stroke:#ffffff22;stroke-width:6;}
+  .timer-arco{fill:none;stroke:#FFCC3B;stroke-width:6;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 0.1s linear;}
+  .timer-num{font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;fill:white;}
+  .timer-circulo-wrap.urgente .timer-arco{stroke:#FF7E6B;}
+
+  /* Feedback de detección */
+  .feedback-overlay{
+    position:absolute;inset:0;z-index:20;
+    display:flex;align-items:center;justify-content:center;
+    pointer-events:none;
+    opacity:0;transition:opacity 0.3s;
+  }
+  .feedback-overlay.visible{opacity:1;}
+  .feedback-ok{font-size:clamp(80px,22vw,120px);animation:feedback-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  .feedback-fail{font-size:clamp(80px,22vw,120px);animation:feedback-shake 0.4s ease;}
+  @keyframes feedback-pop{from{transform:scale(0.3)}to{transform:scale(1)}}
+  @keyframes feedback-shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}
+
+  /* Marco cara detectada */
+  .cara-marco{
+    position:absolute;z-index:5;
+    border:3px solid #52D9A0;border-radius:50%;
+    pointer-events:none;
+    animation:marco-pulsar 1s ease-in-out infinite;
+    display:none;
+  }
+  @keyframes marco-pulsar{0%,100%{border-color:#52D9A0}50%{border-color:#FFCC3B}}
+
+  /* Pupi en la esquina inferior */
+  .pupi-corner{
+    position:absolute;bottom:16px;left:16px;z-index:15;
+    display:flex;align-items:flex-end;gap:8px;
+    pointer-events:none;
+  }
+  .pupi-emoji-sm{font-size:clamp(36px,10vw,48px);animation:pupi-bounce 2s ease-in-out infinite;filter:drop-shadow(0 3px 8px #00000088);}
+  @keyframes pupi-bounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(3deg)}}
+  .pupi-msg{background:white;border-radius:16px 16px 16px 4px;padding:8px 12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(12px,3.5vw,15px);color:#333;max-width:180px;box-shadow:0 3px 16px #00000055;line-height:1.3;}
+
+  /* Barra de progreso de detección */
+  .progreso-deteccion{
+    position:absolute;bottom:0;left:0;right:0;z-index:15;
+    height:6px;background:#ffffff22;
+  }
+  .progreso-deteccion-barra{height:100%;background:#52D9A0;transition:width 0.1s linear;width:0%;}
+
+  /* Pantalla de cámara bloqueada */
+  .cam-blocked{
+    position:absolute;inset:0;z-index:50;
+    background:#0d0d1fdd;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+    padding:24px;
+  }
+  .cam-blocked-emoji{font-size:64px;}
+  .cam-blocked-txt{font-family:'Nunito',sans-serif;font-weight:800;font-size:18px;color:white;text-align:center;}
+  .btn-permitir{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:20px;padding:16px 32px;font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:white;cursor:pointer;}
+
+  /* Countdown */
+  .countdown-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#0d0d1fee;}
+  .countdown-numero{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(120px,35vw,200px);animation:num-pop 0.6s cubic-bezier(0.34,1.56,0.64,1);line-height:1;}
+  .countdown-ya{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(60px,18vw,100px);color:#52D9A0;animation:num-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes num-pop{from{transform:scale(0.2) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+
+  /* Celebración */
+  .celebracion-overlay{position:fixed;inset:0;background:#00000077;z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
+  .celebracion-card{background:white;border-radius:32px;padding:36px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:340px;animation:pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop-in{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+  .cel-emoji{font-size:64px;}
+  .cel-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(24px,7vw,30px);color:#333;text-align:center;}
+  .cel-xp{background:linear-gradient(135deg,#FFCC3B,#FF7E6B);border-radius:50px;padding:10px 24px;font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:white;}
+  .btn-cel{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:20px;padding:16px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:white;cursor:pointer;}
+  .btn-cel:active{transform:scale(0.97);}
+  .btn-cel-sec{background:#F0F7FF;border:none;border-radius:16px;padding:12px;width:100%;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;}
+
+  /* Fin tiempo */
+  .fin-overlay{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#5BBFEA,#A78BFA);}
+  .fin-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(48px,15vw,80px);color:white;text-align:center;animation:flotar-fin 3s ease-in-out infinite;}
+  @keyframes flotar-fin{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .fin-sub{font-family:'Nunito',sans-serif;font-weight:700;font-size:18px;color:rgba(255,255,255,0.85);text-align:center;}
+  .fin-pupi{font-size:80px;}
+  .fin-pin-wrap{background:white;border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:320px;}
+  .fin-pin-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:#555;text-align:center;}
+  .fin-pin-input{display:flex;gap:10px;justify-content:center;}
+  .fin-pin-digito{width:56px;height:64px;border:3px solid #E0EFFF;border-radius:16px;background:#F0F7FF;text-align:center;font-family:'Nunito',sans-serif;font-weight:900;font-size:28px;color:#333;outline:none;}
+  .fin-pin-digito:focus{border-color:#5BBFEA;}
+  .fin-pin-error{font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;display:none;}
+  .btn-fin-desbloquear{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:18px;padding:14px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:white;cursor:pointer;}
+
+  .confeti{position:fixed;inset:0;pointer-events:none;z-index:700;display:none;}
+  .confeti-pieza{position:absolute;border-radius:2px;animation:caer 1.8s ease-in forwards;}
+  @keyframes caer{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  .footer{position:relative;z-index:100;background:#ffffff11;border-top:1px solid #ffffff18;padding:5px 20px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  .footer-marca{font-family:'Nunito',sans-serif;font-weight:700;font-size:10px;color:#5BBFEA;}
+  .footer-marca a{color:#5BBFEA;text-decoration:none;}
+  .footer-legal{font-family:'Nunito Sans',sans-serif;font-size:9px;color:#555;text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="countdown-overlay" id="countdownOverlay">
+  <div style="font-size:clamp(60px,18vw,90px);">🐙</div>
+  <div id="countdownNumero" class="countdown-numero" style="color:#52D9A0;">3</div>
+</div>
+
+<div class="celebracion-overlay" id="celebracion">
+  <div class="celebracion-card">
+    <div class="cel-emoji" id="celEmoji">🎉</div>
+    <div class="cel-titulo" id="celTitulo">¡EXCELENTE!</div>
+    <div class="cel-xp" id="celXP">+10 XP ⚡</div>
+    <button class="btn-cel" onclick="cerrarCelebracion()">¡Seguir jugando! 🚀</button>
+    <button class="btn-cel-sec" onclick="salir()">Volver al inicio</button>
+  </div>
+</div>
+
+<div class="fin-overlay" id="finOverlay">
+  <div class="fin-pupi">🐙</div>
+  <div class="fin-titulo">¡GRACIAS!</div>
+  <div class="fin-sub">¡Jugaste genial hoy! 🌟</div>
+  <div class="fin-pin-wrap">
+    <div class="fin-pin-label">🔐 Ingresá el PIN para salir</div>
+    <div class="fin-pin-input">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p1" oninput="avanzarPin(this,'p2')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p2" oninput="avanzarPin(this,'p3')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p3" oninput="avanzarPin(this,'p4')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p4" oninput="verificarPin()">
+    </div>
+    <div class="fin-pin-error" id="pinError">❌ PIN incorrecto.</div>
+    <button class="btn-fin-desbloquear" onclick="verificarPin()">Desbloquear 🔓</button>
+  </div>
+</div>
+
+<div class="confeti" id="confeti"></div>
+
+<!-- Header -->
+<div class="header-juego">
+  <button class="btn-salir-juego" onclick="salir()">← Salir</button>
+  <div class="header-centro">
+    <div class="nivel-badge">
+      <span class="nivel-emoji-b" id="nivelEmoji">🥚</span>
+      <span id="nivelNombre">Huevo</span>
+    </div>
+    <div class="timer-wrap" id="timerLimWrap">⏱️ <span id="timerLimTexto">--:--</span></div>
+  </div>
+  <div class="puntaje-wrap">⭐ <span class="puntaje-texto" id="puntaje">0</span></div>
+</div>
+
+<!-- Área de cámara -->
+<div class="area-principal" id="areaPrincipal">
+
+  <!-- Video de cámara -->
+  <video id="videoEl" autoplay playsinline muted></video>
+
+  <!-- Marco cara -->
+  <div class="cara-marco" id="caraMarco"></div>
+
+  <!-- Progreso de detección -->
+  <div class="progreso-deteccion"><div class="progreso-deteccion-barra" id="progresoDetBarra"></div></div>
+
+  <!-- Overlay con instrucciones -->
+  <div class="cam-overlay">
+
+    <!-- Gesto a imitar -->
+    <div class="gesto-wrap" id="gestoWrap">
+      <div class="gesto-emoji" id="gestoEmoji">😊</div>
+      <div class="gesto-nombre" id="gestoNombre">Sonreí</div>
+    </div>
+
+    <!-- Timer circular -->
+    <div class="timer-circulo-wrap" id="timerCirculoWrap">
+      <svg class="timer-svg" viewBox="0 0 60 60">
+        <circle class="timer-bg" cx="30" cy="30" r="24"/>
+        <circle class="timer-arco" id="timerArco" cx="30" cy="30" r="24" stroke-dasharray="150.8" stroke-dashoffset="0"/>
+        <text class="timer-num" id="timerNum" x="30" y="36" text-anchor="middle">5</text>
+      </svg>
+    </div>
+
+  </div>
+
+  <!-- Feedback ok/fail -->
+  <div class="feedback-overlay" id="feedbackOverlay">
+    <div id="feedbackEmoji"></div>
+  </div>
+
+  <!-- Pupi -->
+  <div class="pupi-corner">
+    <span class="pupi-emoji-sm">🐙</span>
+    <div class="pupi-msg" id="pupiMsg">¡Copiá el gesto! 🎭</div>
+  </div>
+
+  <!-- Cámara bloqueada -->
+  <div class="cam-blocked" id="camBlocked" style="display:none;">
+    <div class="cam-blocked-emoji">📷</div>
+    <div class="cam-blocked-txt">Necesitamos la cámara frontal para jugar.<br>Por favor permití el acceso.</div>
+    <button class="btn-permitir" onclick="iniciarCamara()">Activar cámara 📷</button>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
+  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados.</div>
+</div>
+
+<script>
+  const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
+  const {createClient}=supabase;
+  const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  // =============================================
+  // GESTOS POR NIVEL
+  // Cada gesto tiene: emoji, nombre, instrucción, y función detectora
+  // =============================================
+  const GESTOS={
+    1:[
+      { emoji:'😊', nombre:'Sonreí',        instruccion:'¡Hacé una gran sonrisa!',   detectar:(lm)=>detectarSonrisa(lm) },
+      { emoji:'😮', nombre:'Abrí la boca',  instruccion:'¡Abrí bien la boca!',       detectar:(lm)=>detectarBocaAbierta(lm) },
+      { emoji:'😛', nombre:'Sacá la lengua',instruccion:'¡Sacá la lengua!',           detectar:(lm)=>detectarLengua(lm) },
+    ],
+    2:[
+      { emoji:'😉', nombre:'Guiñá un ojo',      instruccion:'¡Cerrá un ojo!',                  detectar:(lm)=>detectarGuino(lm) },
+      { emoji:'😠', nombre:'Fruncí el ceño',     instruccion:'¡Juntá las cejas!',               detectar:(lm)=>detectarCeno(lm) },
+      { emoji:'🤨', nombre:'Levantá las cejas',  instruccion:'¡Levantá las cejas bien arriba!', detectar:(lm)=>detectarCejasArriba(lm) },
+    ],
+    3:[
+      { emoji:'😊', nombre:'Sonreí',         instruccion:'¡Hacé una gran sonrisa!',   detectar:(lm)=>detectarSonrisa(lm) },
+      { emoji:'😮', nombre:'Abrí la boca',   instruccion:'¡Abrí bien la boca!',       detectar:(lm)=>detectarBocaAbierta(lm) },
+      { emoji:'😛', nombre:'Sacá la lengua', instruccion:'¡Sacá la lengua!',           detectar:(lm)=>detectarLengua(lm) },
+      { emoji:'😉', nombre:'Guiñá un ojo',   instruccion:'¡Cerrá un ojo!',            detectar:(lm)=>detectarGuino(lm) },
+      { emoji:'😠', nombre:'Fruncí el ceño', instruccion:'¡Juntá las cejas!',         detectar:(lm)=>detectarCeno(lm) },
+      { emoji:'🤨', nombre:'Levantá las cejas',instruccion:'¡Levantá las cejas!',     detectar:(lm)=>detectarCejasArriba(lm) },
+      { emoji:'😗', nombre:'Hacé trompita',  instruccion:'¡Fruncí los labios!',       detectar:(lm)=>detectarTrompita(lm) },
+    ],
+  };
+
+  const NIVELES_CONFIG={
+    1:{emoji:'🥚',nombre:'Huevo',        xpPor:10},
+    2:{emoji:'🐣',nombre:'Pollito',       xpPor:14},
+    3:{emoji:'🐤',nombre:'Pollito grande',xpPor:18},
+  };
+
+  const TIEMPO_GESTO=5; // segundos por gesto
+  const GESTOS_POR_CELEBRACION=5;
+  const CIRCUNFERENCIA=150.8; // 2*PI*24
+
+  // =============================================
+  // AUDIO
+  // =============================================
+  let vocesGrabadas={};
+  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
+  let audioActual=null;
+  function reproducir(id){
+    const tts={excelente:'¡Excelente!',que_bien:'¡Qué bien!',increible:'¡Increíble!',bien:'¡Bien!',upps:'¡Upps!',tres:'Tres',dos:'Dos',uno:'Uno',ya:'¡Ya!'};
+    if(audioActual){audioActual.pause();audioActual.currentTime=0;}
+    const audio=new Audio(vocesGrabadas[id]||('audio/'+id+'.mp3'));
+    audioActual=audio;
+    audio.onerror=()=>{if(tts[id])_hablar(tts[id]);};
+    audio.play().catch(()=>audio.onerror());
+  }
+  function _hablar(t,rate=1.0){
+    if(!('speechSynthesis' in window))return;
+    window.speechSynthesis.cancel();
+    const m=new SpeechSynthesisUtterance(t);
+    m.lang='es-AR';m.rate=rate;m.pitch=1.8;
+    window.speechSynthesis.speak(m);
+  }
+
+  // =============================================
+  // ESTADO
+  // =============================================
+  let hijo=null,nivelActual=1,puntaje=0;
+  let gestosJugados=0,gestosCorrectos=0;
+  let juegoActivo=false,gestoActivo=false;
+  let tiempoLimiteSegundos=0,tiempoRestante=0,intervaloTimerLim=null;
+  let gestoActualIdx=0,gestosNivel=[];
+  let timerGesto=TIEMPO_GESTO,intervaloGesto=null;
+  let faceMesh=null,cameraStream=null;
+  let ultimosLandmarks=null;
+  let tiempoDetectando=0; // ms que lleva detectando el gesto correctamente
+  const TIEMPO_CONFIRMACION=800; // ms que debe mantener el gesto
+
+  // =============================================
+  // INICIO
+  // =============================================
+  window.addEventListener('load',async()=>{
+    const hijoData=sessionStorage.getItem('hijoActual');
+    if(!hijoData){window.location.href='perfiles.html';return;}
+    hijo=JSON.parse(hijoData);
+    puntaje=hijo.xp_total||0;
+    nivelActual=hijo.nivel||1;
+    document.getElementById('puntaje').textContent=puntaje;
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    document.getElementById('nivelEmoji').textContent=nc.emoji;
+    document.getElementById('nivelNombre').textContent=nc.nombre;
+
+    if(hijo.tiempo_limite&&hijo.tiempo_limite>0){
+      tiempoLimiteSegundos=hijo.tiempo_limite*60;
+      tiempoRestante=tiempoLimiteSegundos;
+      document.getElementById('timerLimWrap').style.display='flex';
+      actualizarTimerLim();
+    }
+
+    gestosNivel=[...GESTOS[nivelActual]||GESTOS[1]].sort(()=>Math.random()-0.5);
+
+    await iniciarCamara();
+  });
+
+  // =============================================
+  // CÁMARA
+  // =============================================
+  async function iniciarCamara(){
+    document.getElementById('camBlocked').style.display='none';
+    try{
+      cameraStream=await navigator.mediaDevices.getUserMedia({
+        video:{facingMode:'user',width:{ideal:640},height:{ideal:480}},
+        audio:false
+      });
+      const video=document.getElementById('videoEl');
+      video.srcObject=cameraStream;
+      await video.play();
+      await iniciarMediaPipe();
+      setTimeout(()=>mostrarCountdown(),800);
+    }catch(e){
+      document.getElementById('camBlocked').style.display='flex';
+    }
+  }
+
+  async function iniciarMediaPipe(){
+    faceMesh=new FaceMesh({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${f}`});
+    faceMesh.setOptions({
+      maxNumFaces:1,
+      refineLandmarks:true,
+      minDetectionConfidence:0.5,
+      minTrackingConfidence:0.5,
+    });
+    faceMesh.onResults(onFaceResults);
+
+    const video=document.getElementById('videoEl');
+    const camera=new Camera(video,{
+      onFrame:async()=>{
+        if(faceMesh)await faceMesh.send({image:video});
+      },
+      width:640,height:480,
+    });
+    camera.start();
+  }
+
+  function onFaceResults(results){
+    if(!results.multiFaceLandmarks||results.multiFaceLandmarks.length===0){
+      ultimosLandmarks=null;
+      document.getElementById('caraMarco').style.display='none';
+      tiempoDetectando=0;
+      return;
+    }
+    ultimosLandmarks=results.multiFaceLandmarks[0];
+    mostrarMarcoFace(ultimosLandmarks);
+    if(juegoActivo&&gestoActivo)analizarGesto();
+  }
+
+  function mostrarMarcoFace(lm){
+    const xs=lm.map(p=>p.x),ys=lm.map(p=>p.y);
+    const minX=Math.min(...xs),maxX=Math.max(...xs);
+    const minY=Math.min(...ys),maxY=Math.max(...ys);
+    const area=document.getElementById('areaPrincipal');
+    const w=area.clientWidth,h=area.clientHeight;
+    const cx=(minX+maxX)/2*w,cy=(minY+maxY)/2*h;
+    const sz=Math.max((maxX-minX)*w,(maxY-minY)*h)*1.2;
+    const marco=document.getElementById('caraMarco');
+    marco.style.display='block';
+    marco.style.left=(cx-sz/2)+'px';marco.style.top=(cy-sz/2)+'px';
+    marco.style.width=sz+'px';marco.style.height=sz+'px';
+  }
+
+  // =============================================
+  // COUNTDOWN
+  // =============================================
+  function mostrarCountdown(){
+    const overlay=document.getElementById('countdownOverlay'),numEl=document.getElementById('countdownNumero');
+    overlay.style.display='flex';
+    const pasos=[{texto:'3',color:'#FF7E6B',audio:'tres'},{texto:'2',color:'#FFCC3B',audio:'dos'},{texto:'1',color:'#52D9A0',audio:'uno'},{texto:'¡YA!',color:'#52D9A0',audio:'ya',esYa:true}];
+    let i=0;
+    function sig(){
+      if(i>=pasos.length){overlay.style.display='none';iniciarJuego();return;}
+      const p=pasos[i];numEl.className=p.esYa?'countdown-ya':'countdown-numero';numEl.style.color=p.color;numEl.textContent=p.texto;numEl.style.animation='none';numEl.offsetHeight;numEl.style.animation='';reproducir(p.audio);i++;setTimeout(sig,900);
+    }
+    sig();
+  }
+
+  // =============================================
+  // JUEGO
+  // =============================================
+  function iniciarJuego(){
+    juegoActivo=true;gestosJugados=0;gestosCorrectos=0;
+    gestoActualIdx=0;
+    mostrarSiguienteGesto();
+    iniciarTimerLim();
+  }
+
+  function mostrarSiguienteGesto(){
+    if(!juegoActivo)return;
+    if(gestoActualIdx>=gestosNivel.length){
+      gestosNivel=[...GESTOS[nivelActual]||GESTOS[1]].sort(()=>Math.random()-0.5);
+      gestoActualIdx=0;
+    }
+    const gesto=gestosNivel[gestoActualIdx];
+    document.getElementById('gestoEmoji').textContent=gesto.emoji;
+    document.getElementById('gestoNombre').textContent=gesto.nombre;
+    document.getElementById('gestoWrap').style.animation='none';
+    document.getElementById('gestoWrap').offsetHeight;
+    document.getElementById('gestoWrap').style.animation='aparecer 0.4s ease';
+
+    mostrarPupi(gesto.instruccion);
+    _hablar(gesto.instruccion,1.1);
+
+    timerGesto=TIEMPO_GESTO;
+    tiempoDetectando=0;
+    actualizarTimerCirculo();
+    gestoActivo=true;
+
+    intervaloGesto=setInterval(()=>{
+      timerGesto-=0.1;
+      actualizarTimerCirculo();
+      if(timerGesto<=0){
+        clearInterval(intervaloGesto);
+        gestoActivo=false;
+        falloGesto();
+      }
+    },100);
+  }
+
+  function analizarGesto(){
+    if(!ultimosLandmarks||!gestoActivo)return;
+    const gesto=gestosNivel[gestoActualIdx];
+    const detectado=gesto.detectar(ultimosLandmarks);
+
+    if(detectado){
+      tiempoDetectando+=100;
+      const pct=Math.min(tiempoDetectando/TIEMPO_CONFIRMACION*100,100);
+      document.getElementById('progresoDetBarra').style.width=pct+'%';
+      if(tiempoDetectando>=TIEMPO_CONFIRMACION){
+        clearInterval(intervaloGesto);
+        gestoActivo=false;
+        aciertoGesto();
+      }
+    }else{
+      tiempoDetectando=Math.max(0,tiempoDetectando-50);
+      document.getElementById('progresoDetBarra').style.width=(tiempoDetectando/TIEMPO_CONFIRMACION*100)+'%';
+    }
+  }
+
+  function aciertoGesto(){
+    gestosCorrectos++;gestosJugados++;
+    puntaje+=(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+    document.getElementById('puntaje').textContent=puntaje;
+    mostrarFeedback(true);
+    reproducir('bien');
+    mostrarPupi('¡Genial! ✨');
+    document.getElementById('progresoDetBarra').style.width='0%';
+
+    if(gestosCorrectos>=GESTOS_POR_CELEBRACION){
+      setTimeout(mostrarCelebracion,1000);
+    }else{
+      gestoActualIdx++;
+      setTimeout(mostrarSiguienteGesto,1200);
+    }
+  }
+
+  function falloGesto(){
+    gestosJugados++;
+    mostrarFeedback(false);
+    reproducir('upps');
+    mostrarPupi('¡Upps! Intentá el siguiente 🤔');
+    document.getElementById('progresoDetBarra').style.width='0%';
+    gestoActualIdx++;
+    setTimeout(mostrarSiguienteGesto,1200);
+  }
+
+  function mostrarFeedback(ok){
+    const overlay=document.getElementById('feedbackOverlay');
+    const emoji=document.getElementById('feedbackEmoji');
+    emoji.className=ok?'feedback-ok':'feedback-fail';
+    emoji.textContent=ok?'✅':'❌';
+    overlay.classList.add('visible');
+    setTimeout(()=>overlay.classList.remove('visible'),900);
+  }
+
+  function actualizarTimerCirculo(){
+    const pct=timerGesto/TIEMPO_GESTO;
+    const offset=CIRCUNFERENCIA*(1-pct);
+    document.getElementById('timerArco').style.strokeDashoffset=offset;
+    document.getElementById('timerNum').textContent=Math.ceil(timerGesto);
+    const wrap=document.getElementById('timerCirculoWrap');
+    if(timerGesto<=2)wrap.classList.add('urgente');
+    else wrap.classList.remove('urgente');
+  }
+
+  function mostrarPupi(t){document.getElementById('pupiMsg').textContent=t;}
+
+  // =============================================
+  // DETECTORES DE GESTOS con MediaPipe landmarks
+  // Los puntos clave de la cara están documentados en:
+  // https://mediapipe.dev/solutions/face_mesh
+  // =============================================
+
+  // Distancia entre dos puntos normalizados
+  function dist(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2+(a.z-b.z)**2);}
+  // Altura de la cara (referencia para normalizar)
+  function alturaFace(lm){return dist(lm[10],lm[152]);}
+
+  // SONRISA — las comisuras de la boca se alejan horizontalmente
+  function detectarSonrisa(lm){
+    const altF=alturaFace(lm);
+    const anchoLabios=dist(lm[61],lm[291]);  // comisuras
+    const ratio=anchoLabios/altF;
+    return ratio>0.38; // umbral calibrado
+  }
+
+  // BOCA ABIERTA — distancia entre labio sup e inf
+  function detectarBocaAbierta(lm){
+    const altF=alturaFace(lm);
+    const apertura=dist(lm[13],lm[14]); // labio sup interior - labio inf interior
+    const ratio=apertura/altF;
+    return ratio>0.06;
+  }
+
+  // GUIÑO — un ojo cerrado, el otro abierto
+  function detectarGuino(lm){
+    const altOjoIzq=dist(lm[159],lm[145]); // ojo izquierdo
+    const altOjoDer=dist(lm[386],lm[374]); // ojo derecho
+    const altF=alturaFace(lm);
+    const ratioIzq=altOjoIzq/altF;
+    const ratioDer=altOjoDer/altF;
+    // Un ojo muy cerrado y el otro normal
+    return (ratioIzq<0.012&&ratioDer>0.018)||(ratioDer<0.012&&ratioIzq>0.018);
+  }
+
+  // LENGUA — la lengua baja del labio inferior
+  // Usamos el punto de la punta de la lengua (17) vs labio inferior (14)
+  function detectarLengua(lm){
+    const labioInf=lm[17]; // punto bajo del labio inf
+    const mentonSup=lm[18];
+    // La lengua estira el labio inferior hacia abajo
+    const altF=alturaFace(lm);
+    const distLabMenton=dist(lm[17],lm[152]);
+    const ratio=distLabMenton/altF;
+    // También: boca abierta
+    const bocaAbierta=detectarBocaAbierta(lm);
+    return bocaAbierta&&ratio>0.35;
+  }
+
+  // CEÑO FRUNCIDO — las cejas bajan y se acercan
+  function detectarCeno(lm){
+    const altF=alturaFace(lm);
+    // Distancia horizontal entre cejas internas
+    const distCejas=dist(lm[55],lm[285]); // puntos internos de cejas
+    const ratio=distCejas/altF;
+    // Cejas bajas respecto al ojo
+    const altCejaIzq=Math.abs(lm[66].y-lm[159].y); // ceja vs ojo izq
+    const ratioAlt=altCejaIzq/altF;
+    return ratio<0.2&&ratioAlt<0.05;
+  }
+
+  // CEJAS ARRIBA — las cejas suben
+  function detectarCejasArriba(lm){
+    const altF=alturaFace(lm);
+    const altCejaIzq=Math.abs(lm[66].y-lm[159].y);
+    const altCejaDer=Math.abs(lm[296].y-lm[386].y);
+    const ratioIzq=altCejaIzq/altF;
+    const ratioDer=altCejaDer/altF;
+    return ratioIzq>0.09&&ratioDer>0.09;
+  }
+
+  // TROMPITA — labios fruncidos (ancho pequeño, alto relativamente grande)
+  function detectarTrompita(lm){
+    const altF=alturaFace(lm);
+    const anchoLabios=dist(lm[61],lm[291]);
+    const altoLabios=dist(lm[0],lm[17]);
+    const ratioAncho=anchoLabios/altF;
+    const ratioAlto=altoLabios/altF;
+    return ratioAncho<0.28&&ratioAlto>0.04;
+  }
+
+  // =============================================
+  // CELEBRACIÓN
+  // =============================================
+  function mostrarCelebracion(){
+    const frases=[{texto:'¡EXCELENTE!',audio:'excelente'},{texto:'¡QUÉ BIEN!',audio:'que_bien'},{texto:'¡INCREÍBLE!',audio:'increible'}];
+    const f=frases[Math.floor(Math.random()*frases.length)];
+    const xp=gestosCorrectos*(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+    document.getElementById('celEmoji').textContent='🎭';
+    document.getElementById('celTitulo').textContent=f.texto;
+    document.getElementById('celXP').textContent='+'+xp+' XP ⚡';
+    document.getElementById('celebracion').style.display='flex';
+    lanzarConfeti();reproducir(f.audio);
+    guardarProgreso();
+  }
+
+  function cerrarCelebracion(){
+    document.getElementById('celebracion').style.display='none';
+    gestosCorrectos=0;gestosJugados=0;
+    gestosNivel=[...GESTOS[nivelActual]||GESTOS[1]].sort(()=>Math.random()-0.5);
+    gestoActualIdx=0;
+    mostrarSiguienteGesto();
+  }
+
+  // =============================================
+  // TIMER LÍMITE
+  // =============================================
+  function iniciarTimerLim(){
+    if(!tiempoLimiteSegundos)return;
+    intervaloTimerLim=setInterval(()=>{
+      tiempoRestante--;actualizarTimerLim();
+      if(tiempoRestante<=0){
+        clearInterval(intervaloTimerLim);juegoActivo=false;
+        clearInterval(intervaloGesto);
+        document.getElementById('finOverlay').style.display='flex';
+        reproducir('excelente');
+      }
+    },1000);
+  }
+  function actualizarTimerLim(){
+    const m=Math.floor(tiempoRestante/60),s=tiempoRestante%60;
+    document.getElementById('timerLimTexto').textContent=m+':'+(s<10?'0':'')+s;
+  }
+
+  function lanzarConfeti(){
+    const confeti=document.getElementById('confeti');confeti.style.display='block';confeti.innerHTML='';
+    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+    for(let i=0;i<80;i++){const p=document.createElement('div');p.className='confeti-pieza';p.style.left=Math.random()*100+'vw';p.style.top='-10px';p.style.background=cols[Math.floor(Math.random()*cols.length)];p.style.animationDelay=Math.random()*1+'s';p.style.width=(Math.random()*10+6)+'px';p.style.height=(Math.random()*10+6)+'px';confeti.appendChild(p);}
+    setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},2500);
+  }
+
+  function avanzarPin(el,sigId){if(el.value.length===1){const s=document.getElementById(sigId);if(s)s.focus();}}
+  function verificarPin(){
+    const ing=['p1','p2','p3','p4'].map(id=>document.getElementById(id).value).join('');
+    const pin=hijo.pin?hijo.pin.toString():'';
+    if(!pin||ing===pin){window.location.href='perfiles.html';}
+    else{document.getElementById('pinError').style.display='block';['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).value='');document.getElementById('p1').focus();}
+  }
+
+  async function guardarProgreso(){
+    try{await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));}catch(e){}
+  }
+
+  function salir(){
+    juegoActivo=false;
+    clearInterval(intervaloGesto);clearInterval(intervaloTimerLim);
+    if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());
+    if(faceMesh)faceMesh.close();
+    window.speechSynthesis?.cancel();
+    window.location.href='bienvenida.html';
+  }
+</script>
+</body>
+</html>

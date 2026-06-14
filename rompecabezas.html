@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TEAbrazo — Rompecabezas</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:#1a1a2e;font-family:'Nunito',sans-serif;width:100vw;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+  .fondo{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#2a1a5e,#1a1a2e);z-index:0;pointer-events:none;}
+  .estrella-f{position:absolute;border-radius:50%;background:white;animation:titilar var(--dur) ease-in-out infinite;}
+  @keyframes titilar{0%,100%{opacity:0}50%{opacity:var(--op)}}
+
+  .header-juego{position:relative;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#ffffff18;backdrop-filter:blur(12px);flex-shrink:0;}
+  .btn-salir-juego{background:#ffffff18;border:2px solid #ffffff28;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:white;cursor:pointer;}
+  .header-centro{display:flex;align-items:center;gap:10px;}
+  .nivel-badge{display:flex;align-items:center;gap:6px;background:#ffffff18;border:2px solid #ffffff28;border-radius:50px;padding:6px 14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:white;}
+  .nivel-emoji-b{font-size:18px;animation:bounce 2s ease-in-out infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .puntaje-wrap{display:flex;align-items:center;gap:6px;background:#FFCC3B22;border:2px solid #FFCC3B44;border-radius:50px;padding:6px 14px;}
+  .puntaje-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#FFCC3B;}
+  .timer-wrap{background:#A78BFA22;border:2px solid #A78BFA44;border-radius:50px;padding:6px 12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#C4A8FF;display:none;}
+  .timer-wrap.urgente{color:#FF7E6B;border-color:#FF7E6B55;animation:pulsar-t 1s ease-in-out infinite;}
+  @keyframes pulsar-t{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+  .area-principal{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 16px 8px;overflow:hidden;position:relative;z-index:10;gap:8px;}
+  .puzzle-nombre{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(16px,4.5vw,22px);color:white;text-align:center;text-shadow:0 2px 8px #00000044;}
+
+  .tablero-grid{display:grid;gap:3px;background:#ffffff22;border-radius:16px;padding:3px;border:3px solid #ffffff22;box-shadow:0 8px 32px #00000044;flex-shrink:0;}
+  .celda{position:relative;overflow:hidden;border-radius:8px;background:#ffffff11;}
+  .celda canvas{display:block;border-radius:6px;}
+  .celda.hueco{background:#ffffff18;border:2px dashed #A78BFA;animation:hueco-glow 2s ease-in-out infinite;}
+  @keyframes hueco-glow{0%,100%{box-shadow:inset 0 0 0 0 #A78BFA33;border-color:#A78BFA}50%{box-shadow:inset 0 0 12px 2px #A78BFA33;border-color:#FFCC3B}}
+  .celda.hueco.drag-over{background:#FFCC3B22;border-color:#FFCC3B;transform:scale(1.04);}
+  .celda.resuelto{animation:pop-celda 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop-celda{0%{transform:scale(0.7)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+
+  .piezas-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;}
+  .piezas-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:rgba(255,255,255,0.7);}
+  .piezas-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+  .pieza-drag{border-radius:12px;cursor:grab;border:3px solid #A78BFA;box-shadow:0 4px 16px #A78BFA44;transition:transform 0.15s;user-select:none;touch-action:none;animation:aparecer 0.3s ease forwards;opacity:0;transform:scale(0.8);flex-shrink:0;overflow:hidden;}
+  @keyframes aparecer{to{opacity:1;transform:scale(1)}}
+  .pieza-drag.arrastrando{transform:scale(1.1);box-shadow:0 8px 28px #FFCC3B66;border-color:#FFCC3B;cursor:grabbing;}
+  .pieza-drag.usada{opacity:0;pointer-events:none;}
+
+  .pieza-fantasma{position:fixed;pointer-events:none;z-index:1000;border-radius:12px;border:3px solid #FFCC3B;box-shadow:0 8px 28px #FFCC3B55;opacity:0.92;transform:translate(-50%,-50%) scale(1.08);overflow:hidden;}
+
+  .pupi-panel{display:flex;align-items:flex-end;gap:10px;width:100%;flex-shrink:0;}
+  .pupi-emoji{font-size:clamp(34px,9vw,46px);animation:pupi-bounce 2s ease-in-out infinite;filter:drop-shadow(0 3px 8px #00000055);flex-shrink:0;}
+  @keyframes pupi-bounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(3deg)}}
+  .pupi-burbuja{background:white;border-radius:18px 18px 18px 4px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(13px,3.8vw,15px);color:#333;max-width:240px;box-shadow:0 3px 16px #00000055;line-height:1.4;}
+
+  .countdown-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#1a1a2eee;}
+  .countdown-numero{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(120px,35vw,200px);animation:num-pop 0.6s cubic-bezier(0.34,1.56,0.64,1);line-height:1;}
+  .countdown-ya{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(60px,18vw,100px);color:#FFCC3B;animation:num-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes num-pop{from{transform:scale(0.2) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+
+  .celebracion-overlay{position:fixed;inset:0;background:#00000077;z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
+  .celebracion-card{background:white;border-radius:32px;padding:36px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:340px;animation:pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop-in{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+  .cel-emoji{font-size:64px;}
+  .cel-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(24px,7vw,30px);color:#333;text-align:center;}
+  .cel-xp{background:linear-gradient(135deg,#FFCC3B,#FF7E6B);border-radius:50px;padding:10px 24px;font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:white;}
+  .btn-cel{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:20px;padding:16px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:white;cursor:pointer;}
+  .btn-cel:active{transform:scale(0.97);}
+  .btn-cel-sec{background:#F0F7FF;border:none;border-radius:16px;padding:12px;width:100%;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;}
+
+  .fin-overlay{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#5BBFEA,#A78BFA);}
+  .fin-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(48px,15vw,80px);color:white;text-align:center;animation:flotar-fin 3s ease-in-out infinite;}
+  @keyframes flotar-fin{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .fin-sub{font-family:'Nunito',sans-serif;font-weight:700;font-size:18px;color:rgba(255,255,255,0.85);text-align:center;}
+  .fin-pupi{font-size:80px;animation:pupi-bounce 2s ease-in-out infinite;}
+  .fin-pin-wrap{background:white;border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:320px;}
+  .fin-pin-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:#555;text-align:center;}
+  .fin-pin-input{display:flex;gap:10px;justify-content:center;}
+  .fin-pin-digito{width:56px;height:64px;border:3px solid #E0EFFF;border-radius:16px;background:#F0F7FF;text-align:center;font-family:'Nunito',sans-serif;font-weight:900;font-size:28px;color:#333;outline:none;}
+  .fin-pin-digito:focus{border-color:#5BBFEA;}
+  .fin-pin-error{font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;display:none;}
+  .btn-fin-desbloquear{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:18px;padding:14px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:white;cursor:pointer;}
+
+  .confeti{position:fixed;inset:0;pointer-events:none;z-index:700;display:none;}
+  .confeti-pieza{position:absolute;border-radius:2px;animation:caer 1.8s ease-in forwards;}
+  @keyframes caer{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  .footer{position:relative;z-index:100;background:#ffffff11;border-top:1px solid #ffffff18;padding:5px 20px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  .footer-marca{font-family:'Nunito',sans-serif;font-weight:700;font-size:10px;color:#5BBFEA;}
+  .footer-marca a{color:#5BBFEA;text-decoration:none;}
+  .footer-legal{font-family:'Nunito Sans',sans-serif;font-size:9px;color:#555;text-align:center;}
+</style>
+</head>
+<body>
+<div class="fondo" id="fondo"></div>
+<div class="confeti" id="confeti"></div>
+
+<div class="countdown-overlay" id="countdownOverlay">
+  <div style="font-size:clamp(60px,18vw,90px);">🐙</div>
+  <div id="countdownNumero" class="countdown-numero" style="color:#A78BFA;">3</div>
+</div>
+
+<div class="celebracion-overlay" id="celebracion">
+  <div class="celebracion-card">
+    <div class="cel-emoji" id="celEmoji">🎉</div>
+    <div class="cel-titulo" id="celTitulo">¡EXCELENTE!</div>
+    <div class="cel-xp" id="celXP">+20 XP ⚡</div>
+    <button class="btn-cel" onclick="cerrarCelebracion()">¡Otro rompecabezas! 🧩</button>
+    <button class="btn-cel-sec" onclick="salir()">Volver al inicio</button>
+  </div>
+</div>
+
+<div class="fin-overlay" id="finOverlay">
+  <div class="fin-pupi">🐙</div>
+  <div class="fin-titulo">¡GRACIAS!</div>
+  <div class="fin-sub">¡Jugaste genial hoy! 🌟</div>
+  <div class="fin-pin-wrap">
+    <div class="fin-pin-label">🔐 Ingresá el PIN para salir</div>
+    <div class="fin-pin-input">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p1" oninput="avanzarPin(this,'p2')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p2" oninput="avanzarPin(this,'p3')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p3" oninput="avanzarPin(this,'p4')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p4" oninput="verificarPin()">
+    </div>
+    <div class="fin-pin-error" id="pinError">❌ PIN incorrecto.</div>
+    <button class="btn-fin-desbloquear" onclick="verificarPin()">Desbloquear 🔓</button>
+  </div>
+</div>
+
+<div class="header-juego">
+  <button class="btn-salir-juego" onclick="salir()">← Salir</button>
+  <div class="header-centro">
+    <div class="nivel-badge"><span class="nivel-emoji-b" id="nivelEmoji">🥚</span><span id="nivelNombre">Huevo</span></div>
+    <div class="timer-wrap" id="timerWrap">⏱️ <span id="timerTexto">--:--</span></div>
+  </div>
+  <div class="puntaje-wrap">⭐ <span class="puntaje-texto" id="puntaje">0</span></div>
+</div>
+
+<div class="area-principal" id="areaPrincipal">
+  <div class="pupi-panel">
+    <span class="pupi-emoji">🐙</span>
+    <div class="pupi-burbuja" id="pupiTexto">¡Armemos el rompecabezas! 🧩</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
+  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados.</div>
+</div>
+
+<script>
+  const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
+  const {createClient}=supabase;
+  const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  const IMAGENES=[
+    { nombre:'Perro feliz', emoji:'🐶', fondo:'#FFF8E7',
+      dibujar:(ctx,w,h)=>{
+        ctx.fillStyle='#87CEEB';ctx.fillRect(0,0,w,h*0.6);
+        ctx.fillStyle='#90EE90';ctx.fillRect(0,h*0.6,w,h*0.4);
+        ctx.textAlign='center';
+        ctx.font=`${w*0.18}px serif`;ctx.fillText('☀️',w*0.8,h*0.2);
+        ctx.fillText('☁️',w*0.25,h*0.15);
+        ctx.font=`${w*0.44}px serif`;ctx.fillText('🐶',w*0.5,h*0.72);
+        ctx.font=`${w*0.15}px serif`;ctx.fillText('🎾',w*0.15,h*0.88);ctx.fillText('🦴',w*0.82,h*0.88);
+      }
+    },
+    { nombre:'Jardín', emoji:'🌻', fondo:'#E8F5E9',
+      dibujar:(ctx,w,h)=>{
+        ctx.fillStyle='#87CEEB';ctx.fillRect(0,0,w,h*0.55);
+        ctx.fillStyle='#7CFC00';ctx.fillRect(0,h*0.55,w,h*0.45);
+        ctx.textAlign='center';
+        ctx.font=`${w*0.18}px serif`;ctx.fillText('☀️',w*0.5,h*0.18);ctx.fillText('☁️',w*0.2,h*0.12);ctx.fillText('☁️',w*0.75,h*0.1);
+        ctx.font=`${w*0.28}px serif`;ctx.fillText('🌻',w*0.25,h*0.75);ctx.fillText('🌷',w*0.5,h*0.78);ctx.fillText('🌹',w*0.75,h*0.75);
+        ctx.font=`${w*0.14}px serif`;ctx.fillText('🐝',w*0.5,h*0.42);ctx.fillText('🦋',w*0.78,h*0.5);
+      }
+    },
+    { nombre:'Playa', emoji:'🏖️', fondo:'#E3F2FD',
+      dibujar:(ctx,w,h)=>{
+        ctx.fillStyle='#87CEEB';ctx.fillRect(0,0,w,h*0.5);
+        ctx.fillStyle='#1E90FF';ctx.fillRect(0,h*0.5,w,h*0.25);
+        ctx.fillStyle='#F4A460';ctx.fillRect(0,h*0.75,w,h*0.25);
+        ctx.textAlign='center';
+        ctx.font=`${w*0.18}px serif`;ctx.fillText('☀️',w*0.8,h*0.18);ctx.fillText('🌴',w*0.15,h*0.55);ctx.fillText('⛵',w*0.65,h*0.45);
+        ctx.font=`${w*0.14}px serif`;ctx.fillText('🐚',w*0.3,h*0.9);ctx.fillText('🦀',w*0.6,h*0.88);ctx.fillText('⭐',w*0.8,h*0.92);ctx.fillText('🐠',w*0.45,h*0.6);
+      }
+    },
+    { nombre:'Gato y luna', emoji:'😺', fondo:'#1a0a3a',
+      dibujar:(ctx,w,h)=>{
+        ctx.fillStyle='#2C1654';ctx.fillRect(0,0,w,h);
+        ctx.textAlign='center';
+        ctx.font=`${w*0.12}px serif`;ctx.fillText('🌙',w*0.8,h*0.18);ctx.fillText('⭐',w*0.2,h*0.12);ctx.fillText('✨',w*0.5,h*0.1);ctx.fillText('⭐',w*0.6,h*0.25);
+        ctx.font=`${w*0.42}px serif`;ctx.fillText('😺',w*0.5,h*0.68);
+        ctx.font=`${w*0.14}px serif`;ctx.fillText('🧶',w*0.18,h*0.88);ctx.fillText('🐟',w*0.82,h*0.88);
+      }
+    },
+    { nombre:'Granja', emoji:'🐄', fondo:'#F1F8E9',
+      dibujar:(ctx,w,h)=>{
+        ctx.fillStyle='#87CEEB';ctx.fillRect(0,0,w,h*0.5);
+        ctx.fillStyle='#90EE90';ctx.fillRect(0,h*0.5,w,h*0.5);
+        ctx.textAlign='center';
+        ctx.font=`${w*0.18}px serif`;ctx.fillText('☀️',w*0.15,h*0.18);ctx.fillText('☁️',w*0.6,h*0.12);
+        ctx.font=`${w*0.22}px serif`;ctx.fillText('🏡',w*0.78,h*0.6);
+        ctx.font=`${w*0.28}px serif`;ctx.fillText('🐄',w*0.3,h*0.75);
+        ctx.font=`${w*0.14}px serif`;ctx.fillText('🐔',w*0.65,h*0.82);ctx.fillText('🌾',w*0.12,h*0.85);ctx.fillText('🌾',w*0.88,h*0.85);
+      }
+    },
+    { nombre:'Espacio', emoji:'🚀', fondo:'#0d0d2b',
+      dibujar:(ctx,w,h)=>{
+        ctx.fillStyle='#0d0d2b';ctx.fillRect(0,0,w,h);
+        ctx.textAlign='center';
+        ctx.font=`${w*0.08}px serif`;
+        [[0.1,0.1],[0.3,0.05],[0.7,0.08],[0.9,0.15],[0.5,0.2],[0.15,0.35],[0.85,0.3],[0.4,0.4],[0.75,0.45]].forEach(([x,y])=>{ctx.globalAlpha=0.6+Math.random()*0.4;ctx.fillText('⭐',w*x,h*y);});
+        ctx.globalAlpha=1;
+        ctx.font=`${w*0.16}px serif`;ctx.fillText('🌍',w*0.2,h*0.32);ctx.fillText('🌙',w*0.78,h*0.22);
+        ctx.font=`${w*0.32}px serif`;ctx.fillText('🚀',w*0.5,h*0.65);
+        ctx.font=`${w*0.14}px serif`;ctx.fillText('🪐',w*0.75,h*0.78);ctx.fillText('☄️',w*0.2,h*0.82);
+      }
+    },
+    { nombre:'Cocina', emoji:'🍳', fondo:'#FFF3E0',
+      dibujar:(ctx,w,h)=>{
+        ctx.fillStyle='#FFE0B2';ctx.fillRect(0,0,w,h);
+        ctx.fillStyle='#D7CCC8';ctx.fillRect(0,h*0.75,w,h*0.25);
+        ctx.textAlign='center';
+        ctx.font=`${w*0.28}px serif`;ctx.fillText('🍳',w*0.25,h*0.45);ctx.fillText('🫕',w*0.72,h*0.45);
+        ctx.font=`${w*0.15}px serif`;ctx.fillText('🧂',w*0.5,h*0.28);ctx.fillText('🍅',w*0.15,h*0.82);ctx.fillText('🧅',w*0.38,h*0.82);ctx.fillText('🫙',w*0.62,h*0.82);ctx.fillText('🍴',w*0.85,h*0.82);
+      }
+    },
+    { nombre:'Cuarto de juegos', emoji:'🧸', fondo:'#E8EAF6',
+      dibujar:(ctx,w,h)=>{
+        ctx.fillStyle='#E8EAF6';ctx.fillRect(0,0,w,h);
+        ctx.fillStyle='#BBDEFB';ctx.fillRect(0,h*0.75,w,h*0.25);
+        ctx.textAlign='center';
+        ctx.font=`${w*0.28}px serif`;ctx.fillText('🧸',w*0.22,h*0.5);ctx.fillText('🎮',w*0.75,h*0.45);
+        ctx.font=`${w*0.15}px serif`;ctx.fillText('🎲',w*0.5,h*0.28);ctx.fillText('🪀',w*0.12,h*0.82);ctx.fillText('🎯',w*0.38,h*0.82);ctx.fillText('🧩',w*0.62,h*0.82);ctx.fillText('🎪',w*0.85,h*0.82);
+      }
+    },
+  ];
+
+  const NIVELES_CONFIG={
+    1:{emoji:'🥚',nombre:'Huevo',        cols:2,rows:2,total:4, huecos:1, xpPor:15},
+    2:{emoji:'🐣',nombre:'Pollito',       cols:3,rows:3,total:9, huecos:3, xpPor:22},
+    3:{emoji:'🐤',nombre:'Pollito grande',cols:4,rows:4,total:16,huecos:6, xpPor:30},
+  };
+
+  let vocesGrabadas={};
+  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
+  let audioActual=null;
+  function reproducir(id){
+    const tts={'excelente':'¡Excelente!','que_bien':'¡Qué bien!','increible':'¡Increíble!','bien':'¡Bien!','upps':'¡Upps!','tres':'Tres','dos':'Dos','uno':'Uno','ya':'¡Ya!'};
+    if(audioActual){audioActual.pause();audioActual.currentTime=0;}
+    const audio=new Audio(vocesGrabadas[id]||('audio/'+id+'.mp3'));
+    audioActual=audio;
+    audio.onerror=()=>{if(tts[id])_hablar(tts[id]);};
+    audio.play().catch(()=>audio.onerror());
+  }
+  function _hablar(t){if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();const m=new SpeechSynthesisUtterance(t);m.lang='es-AR';m.rate=1.0;m.pitch=1.7;window.speechSynthesis.speak(m);}
+
+  let hijo=null,nivelActual=1,puntaje=0,juegoActivo=false;
+  let tiempoLimiteSegundos=0,tiempoRestante=0,intervaloTimer=null;
+  let imagenActual=null,imagenesUsadas=[];
+  let huecosIndices=[],piezasColocadas=new Set();
+  let piezaArrastrando=null,fantasmaEl=null,imagenCanvas=null;
+
+  window.addEventListener('load',()=>{
+    crearEstrellas();
+    const hijoData=sessionStorage.getItem('hijoActual');
+    if(!hijoData){window.location.href='perfiles.html';return;}
+    hijo=JSON.parse(hijoData);
+    puntaje=hijo.xp_total||0;
+    nivelActual=hijo.nivel||1;
+    document.getElementById('puntaje').textContent=puntaje;
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    document.getElementById('nivelEmoji').textContent=nc.emoji;
+    document.getElementById('nivelNombre').textContent=nc.nombre;
+    if(hijo.tiempo_limite&&hijo.tiempo_limite>0){tiempoLimiteSegundos=hijo.tiempo_limite*60;tiempoRestante=tiempoLimiteSegundos;document.getElementById('timerWrap').style.display='flex';actualizarTimerDisplay();}
+    setTimeout(()=>mostrarCountdown(),300);
+  });
+
+  function crearEstrellas(){
+    const f=document.getElementById('fondo');
+    for(let i=0;i<40;i++){const s=document.createElement('div');s.className='estrella-f';const sz=Math.random()*2.5+0.5;s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${Math.random()*4+2}s;--op:${Math.random()*0.5+0.1};animation-delay:${Math.random()*4}s`;f.appendChild(s);}
+  }
+
+  function mostrarCountdown(){
+    const overlay=document.getElementById('countdownOverlay'),numEl=document.getElementById('countdownNumero');
+    overlay.style.display='flex';
+    const pasos=[{texto:'3',color:'#FF7E6B',audio:'tres'},{texto:'2',color:'#FFCC3B',audio:'dos'},{texto:'1',color:'#52D9A0',audio:'uno'},{texto:'¡YA!',color:'#A78BFA',audio:'ya',esYa:true}];
+    let i=0;
+    function sig(){if(i>=pasos.length){overlay.style.display='none';iniciarJuego();return;}const p=pasos[i];numEl.className=p.esYa?'countdown-ya':'countdown-numero';numEl.style.color=p.color;numEl.textContent=p.texto;numEl.style.animation='none';numEl.offsetHeight;numEl.style.animation='';reproducir(p.audio);i++;setTimeout(sig,900);}
+    sig();
+  }
+
+  function iniciarJuego(){juegoActivo=true;nuevoPuzzle();iniciarTimer();}
+
+  function elegirImagen(){
+    const d=IMAGENES.filter(i=>!imagenesUsadas.includes(i.nombre));
+    if(d.length===0)imagenesUsadas=[];
+    const arr=d.length>0?d:IMAGENES;
+    const img=arr[Math.floor(Math.random()*arr.length)];
+    imagenesUsadas.push(img.nombre);return img;
+  }
+
+  function nuevoPuzzle(){
+    if(!juegoActivo)return;
+    piezaArrastrando=null;piezasColocadas=new Set();
+    imagenActual=elegirImagen();
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const area=document.getElementById('areaPrincipal');
+    const maxW=Math.min(area.clientWidth-32,320);
+    const maxH=area.clientHeight*0.48;
+    const tam=Math.floor(Math.min(maxW/nc.cols,maxH/nc.rows,76));
+    const W=tam*nc.cols,H=tam*nc.rows;
+
+    // Dibujar imagen completa
+    imagenCanvas=document.createElement('canvas');
+    imagenCanvas.width=W;imagenCanvas.height=H;
+    const ctx=imagenCanvas.getContext('2d');
+    ctx.fillStyle=imagenActual.fondo;ctx.fillRect(0,0,W,H);
+    imagenActual.dibujar(ctx,W,H);
+
+    // Huecos
+    const todos=[...Array(nc.total).keys()];
+    huecosIndices=[...todos].sort(()=>Math.random()-0.5).slice(0,nc.huecos);
+
+    renderPuzzle(nc,tam);
+    mostrarPupi('¡Armá el '+imagenActual.nombre+'! 🧩');
+    _hablar('Armá el '+imagenActual.nombre);
+  }
+
+  function renderPuzzle(nc,tam){
+    const area=document.getElementById('areaPrincipal');
+    const pupi=area.querySelector('.pupi-panel');
+    area.innerHTML='';
+
+    const nombre=document.createElement('div');
+    nombre.className='puzzle-nombre';
+    nombre.textContent='🧩 '+imagenActual.nombre;
+    area.appendChild(nombre);
+
+    const grid=document.createElement('div');
+    grid.className='tablero-grid';
+    grid.id='tableroGrid';
+    grid.style.gridTemplateColumns=`repeat(${nc.cols},${tam}px)`;
+    grid.style.gridTemplateRows=`repeat(${nc.rows},${tam}px)`;
+
+    for(let i=0;i<nc.total;i++){
+      const col=i%nc.cols,row=Math.floor(i/nc.cols);
+      const celda=document.createElement('div');
+      celda.className='celda';celda.id='celda_'+i;
+      celda.style.width=tam+'px';celda.style.height=tam+'px';celda.dataset.idx=i;
+      if(huecosIndices.includes(i)){
+        celda.classList.add('hueco');
+        celda.addEventListener('dragover',e=>{e.preventDefault();celda.classList.add('drag-over');});
+        celda.addEventListener('dragleave',()=>celda.classList.remove('drag-over'));
+        celda.addEventListener('drop',e=>{e.preventDefault();celda.classList.remove('drag-over');soltarEnCelda(i,col,row,tam);});
+      }else{
+        const c=document.createElement('canvas');c.width=tam;c.height=tam;
+        c.getContext('2d').drawImage(imagenCanvas,col*tam,row*tam,tam,tam,0,0,tam,tam);
+        celda.appendChild(c);
+      }
+      grid.appendChild(celda);
+    }
+    area.appendChild(grid);
+
+    // Piezas
+    const pw=document.createElement('div');pw.className='piezas-wrap';
+    const lbl=document.createElement('div');lbl.className='piezas-label';lbl.textContent='Arrastrá las piezas al lugar correcto 👆';
+    pw.appendChild(lbl);
+    const pr=document.createElement('div');pr.className='piezas-row';pr.id='piezasRow';
+
+    [...huecosIndices].sort(()=>Math.random()-0.5).forEach((idx,i)=>{
+      const col=idx%nc.cols,row=Math.floor(idx/nc.cols);
+      const p=document.createElement('div');
+      p.className='pieza-drag';p.id='pieza_'+idx;p.dataset.idx=idx;
+      p.style.width=tam+'px';p.style.height=tam+'px';p.style.animationDelay=(i*0.1)+'s';
+      p.draggable=true;
+      const c=document.createElement('canvas');c.width=tam;c.height=tam;
+      c.getContext('2d').drawImage(imagenCanvas,col*tam,row*tam,tam,tam,0,0,tam,tam);
+      p.appendChild(c);
+      p.addEventListener('dragstart',e=>{iniciarArrastre(idx,tam,p);e.dataTransfer.setData('text/plain',idx);});
+      p.addEventListener('dragend',terminarArrastre);
+      p.addEventListener('pointerdown',e=>{e.preventDefault();iniciarArrastre(idx,tam,p);moverFantasma(e.clientX,e.clientY,idx,nc.cols,tam);});
+      pr.appendChild(p);
+    });
+    pw.appendChild(pr);area.appendChild(pw);area.appendChild(pupi);
+
+    area.addEventListener('pointermove',onPointerMove);
+    area.addEventListener('pointerup',onPointerUp);
+    area.addEventListener('pointercancel',terminarArrastre);
+  }
+
+  function iniciarArrastre(idx,tam,el){piezaArrastrando={idx,tam,el};el.classList.add('arrastrando');}
+
+  function moverFantasma(x,y,idx,cols,tam){
+    if(!fantasmaEl){
+      fantasmaEl=document.createElement('div');fantasmaEl.className='pieza-fantasma';
+      fantasmaEl.style.width=tam+'px';fantasmaEl.style.height=tam+'px';
+      const fc=document.createElement('canvas');fc.width=tam;fc.height=tam;
+      const col=idx%cols,row=Math.floor(idx/cols);
+      fc.getContext('2d').drawImage(imagenCanvas,col*tam,row*tam,tam,tam,0,0,tam,tam);
+      fantasmaEl.appendChild(fc);document.body.appendChild(fantasmaEl);
+    }
+    fantasmaEl.style.left=x+'px';fantasmaEl.style.top=y+'px';
+  }
+
+  function onPointerMove(e){
+    if(!piezaArrastrando)return;
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    moverFantasma(e.clientX,e.clientY,piezaArrastrando.idx,nc.cols,piezaArrastrando.tam);
+    document.querySelectorAll('.celda.hueco').forEach(c=>c.classList.remove('drag-over'));
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    if(el){const c=el.closest('.celda');if(c&&c.classList.contains('hueco'))c.classList.add('drag-over');}
+  }
+
+  function onPointerUp(e){
+    if(!piezaArrastrando)return;
+    document.querySelectorAll('.celda.hueco').forEach(c=>c.classList.remove('drag-over'));
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    if(el){const celda=el.closest('.celda');if(celda&&celda.classList.contains('hueco')){const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];const ci=parseInt(celda.dataset.idx);soltarEnCelda(ci,ci%nc.cols,Math.floor(ci/nc.cols),piezaArrastrando.tam);}}
+    terminarArrastre();
+  }
+
+  function terminarArrastre(){
+    if(piezaArrastrando&&piezaArrastrando.el)piezaArrastrando.el.classList.remove('arrastrando');
+    piezaArrastrando=null;
+    if(fantasmaEl){fantasmaEl.remove();fantasmaEl=null;}
+  }
+
+  function soltarEnCelda(ci,col,row,tam){
+    if(!piezaArrastrando||!juegoActivo)return;
+    const celda=document.getElementById('celda_'+ci);
+    if(!celda||!celda.classList.contains('hueco')||piezasColocadas.has(ci))return;
+    if(piezaArrastrando.idx===ci){
+      celda.classList.remove('hueco');celda.classList.add('resuelto');
+      const c=document.createElement('canvas');c.width=tam;c.height=tam;
+      c.getContext('2d').drawImage(imagenCanvas,col*tam,row*tam,tam,tam,0,0,tam,tam);
+      celda.appendChild(c);
+      piezasColocadas.add(ci);
+      const pe=document.getElementById('pieza_'+piezaArrastrando.idx);if(pe)pe.classList.add('usada');
+      puntaje+=Math.floor((NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor/huecosIndices.length);
+      document.getElementById('puntaje').textContent=puntaje;
+      reproducir('bien');mostrarPupi('¡Ahí va! ✨');
+      if(piezasColocadas.size>=huecosIndices.length)setTimeout(puzzleCompleto,700);
+    }else{
+      celda.style.animation='none';celda.offsetHeight;celda.style.animation='shake-celda 0.4s ease';
+      reproducir('upps');mostrarPupi('¡Upps! Ese no va ahí 🤔');
+      setTimeout(()=>{celda.style.animation='';},500);
+    }
+  }
+
+  function puzzleCompleto(){
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const frases=[{texto:'¡EXCELENTE!',audio:'excelente'},{texto:'¡QUÉ BIEN!',audio:'que_bien'},{texto:'¡INCREÍBLE!',audio:'increible'}];
+    const f=frases[Math.floor(Math.random()*frases.length)];
+    document.getElementById('celEmoji').textContent=imagenActual.emoji;
+    document.getElementById('celTitulo').textContent=f.texto;
+    document.getElementById('celXP').textContent='+'+nc.xpPor+' XP ⚡';
+    document.getElementById('celebracion').style.display='flex';
+    lanzarConfeti();reproducir(f.audio);guardarProgreso();
+  }
+
+  function cerrarCelebracion(){document.getElementById('celebracion').style.display='none';nuevoPuzzle();}
+  function mostrarPupi(t){document.getElementById('pupiTexto').textContent=t;}
+
+  function iniciarTimer(){
+    if(!tiempoLimiteSegundos)return;
+    intervaloTimer=setInterval(()=>{
+      tiempoRestante--;actualizarTimerDisplay();
+      if(tiempoRestante<=60)document.getElementById('timerWrap').classList.add('urgente');
+      if(tiempoRestante<=0){clearInterval(intervaloTimer);juegoActivo=false;document.getElementById('finOverlay').style.display='flex';reproducir('excelente');}
+    },1000);
+  }
+  function actualizarTimerDisplay(){const m=Math.floor(tiempoRestante/60),s=tiempoRestante%60;document.getElementById('timerTexto').textContent=m+':'+(s<10?'0':'')+s;}
+
+  function lanzarConfeti(){
+    const confeti=document.getElementById('confeti');confeti.style.display='block';confeti.innerHTML='';
+    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+    for(let i=0;i<80;i++){const p=document.createElement('div');p.className='confeti-pieza';p.style.left=Math.random()*100+'vw';p.style.top='-10px';p.style.background=cols[Math.floor(Math.random()*cols.length)];p.style.animationDelay=Math.random()*1+'s';p.style.width=(Math.random()*10+6)+'px';p.style.height=(Math.random()*10+6)+'px';confeti.appendChild(p);}
+    setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},2500);
+  }
+
+  function avanzarPin(el,sigId){if(el.value.length===1){const s=document.getElementById(sigId);if(s)s.focus();}}
+  function verificarPin(){
+    const ing=['p1','p2','p3','p4'].map(id=>document.getElementById(id).value).join('');
+    const pin=hijo.pin?hijo.pin.toString():'';
+    if(!pin||ing===pin){window.location.href='perfiles.html';}
+    else{document.getElementById('pinError').style.display='block';['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).value='');document.getElementById('p1').focus();}
+  }
+  async function guardarProgreso(){try{await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));}catch(e){}}
+  function salir(){juegoActivo=false;clearInterval(intervaloTimer);window.speechSynthesis?.cancel();window.location.href='bienvenida.html';}
+
+  const st=document.createElement('style');
+  st.textContent='@keyframes shake-celda{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}';
+  document.head.appendChild(st);
+</script>
+</body>
+</html>
