@@ -106,7 +106,7 @@
 <!-- Cuenta regresiva -->
 
 <!-- Intro instrucciones -->
-<div id="introOverlay" style="position:fixed;inset:0;z-index:350;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#0d0d2b,#1a1a4e);">
+<div id="introOverlay" style="position:fixed;inset:0;z-index:350;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#0d0d2b,#1a1a4e);">
   <div id="introEmoji" style="font-size:clamp(72px,20vw,110px);animation:intro-bounce 1s ease-in-out infinite;filter:drop-shadow(0 8px 24px #5BBFEA44);"></div>
   <div id="introTitulo" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(22px,6vw,32px);color:white;text-align:center;text-shadow:0 2px 12px #00000055;"></div>
   <div style="display:flex;align-items:flex-end;gap:12px;max-width:360px;width:100%;">
@@ -160,6 +160,14 @@
   const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
   const {createClient}=supabase;
   const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+  function _hablar(texto,rate=1.0){
+    if(!('speechSynthesis' in window))return;
+    window.speechSynthesis.cancel();
+    const msg=new SpeechSynthesisUtterance(texto);
+    msg.lang='es-AR';msg.rate=rate;msg.pitch=1.8;
+    window.speechSynthesis.speak(msg);
+  }
+
 
   const COLORES=[
     {nombre:'rojo',    hex:'#EE1111',sombra:'#EE111166',borde:'#FF5555'},
@@ -183,15 +191,20 @@
   function mostrarIntro(onDone){
     const overlay=document.getElementById('introOverlay');
     if(!overlay){onDone();return;}
-    document.getElementById('introEmoji').textContent='🫧';
-    document.getElementById('introTitulo').textContent='¡Burbujas mágicas!';
+    // Setear contenido
+    const emojiEl=document.getElementById('introEmoji');
+    const tituloEl=document.getElementById('introTitulo');
+    const textoEl=document.getElementById('introTexto');
+    if(emojiEl)emojiEl.textContent='🫧';
+    if(tituloEl)tituloEl.textContent='¡Burbujas mágicas!';
     const texto=INSTRUCCIONES_JUEGO[nivelActual]||INSTRUCCIONES_JUEGO[1];
-    document.getElementById('introTexto').textContent=texto;
+    if(textoEl)textoEl.textContent=texto;
+    // Mostrar overlay
     overlay.style.display='flex';
-    // Guardar callback para cuando toque Listo
+    // Guardar callback
     window._introDone=onDone;
-    // Narrar
-    setTimeout(()=>_hablar(texto),400);
+    // Narrar con delay para que el navegador pinte primero
+    setTimeout(()=>_hablar(texto,1.0),600);
   }
 
   function cerrarIntro(){

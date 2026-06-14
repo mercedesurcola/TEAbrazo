@@ -96,7 +96,7 @@
 
 
 <!-- Intro instrucciones -->
-<div id="introOverlay" style="position:fixed;inset:0;z-index:350;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#0d0d2b,#1a1a4e);">
+<div id="introOverlay" style="position:fixed;inset:0;z-index:350;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#0d0d2b,#1a1a4e);">
   <div id="introEmoji" style="font-size:clamp(72px,20vw,110px);animation:intro-bounce 1s ease-in-out infinite;filter:drop-shadow(0 8px 24px #5BBFEA44);"></div>
   <div id="introTitulo" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(22px,6vw,32px);color:white;text-align:center;text-shadow:0 2px 12px #00000055;"></div>
   <div style="display:flex;align-items:flex-end;gap:12px;max-width:360px;width:100%;">
@@ -169,6 +169,33 @@
   const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
   const {createClient}=supabase;
   const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  const INSTRUCCIONES_JUEGO={
+    1:"¡Arrastrá la pieza al lugar que le falta a la imagen!",
+    2:"¡Completá la imagen arrastrando las piezas!",
+    3:"¡Armá toda la imagen con las piezas!",
+  };
+  function mostrarIntro(onDone){
+    const overlay=document.getElementById('introOverlay');
+    if(!overlay){onDone();return;}
+    const emojiEl=document.getElementById('introEmoji');
+    const tituloEl=document.getElementById('introTitulo');
+    const textoEl=document.getElementById('introTexto');
+    if(emojiEl)emojiEl.textContent='🧩';
+    if(tituloEl)tituloEl.textContent='¡Rompecabezas!';
+    const texto=INSTRUCCIONES_JUEGO[nivelActual]||INSTRUCCIONES_JUEGO[1];
+    if(textoEl)textoEl.textContent=texto;
+    overlay.style.display='flex';
+    window._introDone=onDone;
+    setTimeout(()=>_hablar(texto,1.0),600);
+  }
+  function cerrarIntro(){
+    const overlay=document.getElementById('introOverlay');
+    if(overlay)overlay.style.display='none';
+    window.speechSynthesis&&window.speechSynthesis.cancel();
+    if(window._introDone)window._introDone();
+  }
+
 
   const IMAGENES=[
     { nombre:'Perro feliz', emoji:'🐶', fondo:'#FFF8E7',
