@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TEAbrazo — Ingresar</title>
+<link rel="icon" type="image/png" href="TEAbrazo.png">
+<link rel="apple-touch-icon" href="TEAbrazo.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5BBFEA">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TEAbrazo">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -212,9 +219,62 @@
   }
   document.addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
 </script>
+<!-- Banner PWA -->
+<div id="pwaBanner" style="display:none;position:fixed;bottom:70px;left:16px;right:16px;background:white;border-radius:20px;padding:14px 18px;box-shadow:0 8px 32px #5BBFEA33;z-index:200;display:none;flex-direction:column;gap:10px;border:2px solid #5BBFEA22;">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="TEAbrazo.png" style="width:44px;height:44px;border-radius:12px;filter:drop-shadow(0 2px 6px #5BBFEA33);">
+    <div>
+      <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;color:#333;">Instalá TEAbrazo</div>
+      <div style="font-family:'Nunito Sans',sans-serif;font-size:12px;color:#888;">Acceso rápido desde tu pantalla de inicio</div>
+    </div>
+    <button onclick="document.getElementById('pwaBanner').style.display='none'" style="background:none;border:none;font-size:18px;color:#aaa;cursor:pointer;margin-left:auto;">✕</button>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button onclick="instalarPWA()" id="btnInstalar" style="flex:1;background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:14px;padding:10px;font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;color:white;cursor:pointer;">📲 Instalar</button>
+    <button onclick="document.getElementById('pwaBanner').style.display='none'" style="background:#F0F7FF;border:none;border-radius:14px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#888;cursor:pointer;">Ahora no</button>
+  </div>
+</div>
+
 <div style="position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #E0EFFF;padding:6px 20px;display:flex;flex-direction:column;align-items:center;gap:2px;z-index:50;">
   <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:11px;color:#5BBFEA;">Un producto de <a href="https://www.cusol.com.ar" target="_blank" style="color:#5BBFEA;text-decoration:none;">cusol.com.ar</a></div>
   <div style="font-family:'Nunito Sans',sans-serif;font-size:9px;color:#aaa;text-align:center;">© 2025 Cusol. Todos los derechos reservados. TEAbrazo es una herramienta de apoyo y no reemplaza la intervención profesional.</div>
 </div>
+<script>
+  // PWA Install Prompt
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',(e)=>{
+    e.preventDefault();
+    deferredPrompt=e;
+    // Mostrar banner automáticamente si no lo instaló antes
+    if(!localStorage.getItem('pwa_installed')){
+      setTimeout(()=>{
+        const banner=document.getElementById('pwaBanner');
+        if(banner)banner.style.display='flex';
+      },2000);
+    }
+  });
+
+  function instalarPWA(){
+    if(!deferredPrompt)return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(r=>{
+      if(r.outcome==='accepted'){
+        localStorage.setItem('pwa_installed','1');
+        document.getElementById('pwaBanner').style.display='none';
+      }
+      deferredPrompt=null;
+    });
+  }
+
+  // Botón manual de instalación (para cuando ya pasó el evento)
+  function mostrarBannerInstalacion(){
+    const banner=document.getElementById('pwaBanner');
+    if(deferredPrompt&&banner){
+      banner.style.display='flex';
+    }else{
+      alert('Para instalar TEAbrazo:\n1. Tocá los 3 puntitos del navegador ⋮\n2. Seleccioná "Añadir a pantalla de inicio"');
+    }
+  }
+</script>
 </body>
 </html>

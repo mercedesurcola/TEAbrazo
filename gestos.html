@@ -477,7 +477,18 @@
     document.getElementById('gestoWrap').style.animation='aparecer 0.4s ease';
 
     mostrarPupi(gesto.instruccion);
-    _hablar(gesto.instruccion,1.1);
+    // Usar voz grabada del gesto si existe, sino TTS
+    const archivoGesto='gesto_'+gestosNivel[gestoActualIdx===0?0:gestoActualIdx].emoji.codePointAt(0).toString(16);
+    const idVozGesto='gesto_'+['sonrei','boca','lengua','guino','ceno','cejas','trompita'][
+      ['😊','😮','😛','😉','😠','🤨','😗'].indexOf(gesto.emoji)
+    ];
+    if(vocesGrabadas[idVozGesto]){
+      if(audioActual){audioActual.pause();audioActual.currentTime=0;}
+      audioActual=new Audio(vocesGrabadas[idVozGesto]);
+      audioActual.play().catch(()=>{});
+    }else{
+      _hablar(gesto.instruccion,1.1);
+    }
 
     timerGesto=TIEMPO_GESTO;
     tiempoDetectando=0;

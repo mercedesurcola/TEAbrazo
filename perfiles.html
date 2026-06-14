@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TEAbrazo — ¿Quién juega hoy?</title>
+<link rel="icon" type="image/png" href="TEAbrazo.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5BBFEA">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -170,6 +173,10 @@
   <div class="config-panel">
     <div class="config-titulo">⚙️ Voces de Pupi</div>
     <p style="font-family:'Nunito Sans',sans-serif;font-size:11px;color:#aaa;text-align:center;margin-top:-8px;">Si no grabás, se usa la voz por defecto</p>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <button onclick="exportarVoces()" style="background:#52D9A0;border:none;border-radius:12px;padding:8px 16px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:white;cursor:pointer;">⬆️ Exportar voces</button>
+      <label style="background:#5BBFEA;border:none;border-radius:12px;padding:8px 16px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:white;cursor:pointer;">⬇️ Importar voces<input type="file" accept=".json" onchange="importarVoces(event)" style="display:none;"></label>
+    </div>
 
     <!-- Solapas -->
     <div class="solapas">
@@ -177,6 +184,7 @@
       <button class="solapa" onclick="cambiarSolapa('burbujas')">🫧 Burbujas</button>
       <button class="solapa" onclick="cambiarSolapa('animales')">🐾 Animales</button>
       <button class="solapa" onclick="cambiarSolapa('emociones')">😊 Emociones</button>
+      <button class="solapa" onclick="cambiarSolapa('gestos')">🎭 Gestos</button>
     </div>
 
     <!-- Contenido Burbujas -->
@@ -201,6 +209,12 @@
       <div class="voces-grid" id="vocesGridEmociones"></div>
     </div>
 
+    <!-- Contenido Gestos -->
+    <div class="solapa-contenido" id="tab-gestos" style="display:none;">
+      <div class="seccion-titulo">🎭 Instrucciones de gestos</div>
+      <div class="voces-grid" id="vocesGridGestos"></div>
+    </div>
+
     <!-- Contenido General -->
     <div class="solapa-contenido" id="tab-general">
       <div class="seccion-titulo">🐙 Pupi</div>
@@ -217,6 +231,7 @@
     <div class="logo-texto">TEA<span>brazo</span></div>
     <div class="header-btns">
       <button class="btn-config" onclick="abrirConfig()">⚙️ Voces</button>
+      <button id="btnInstalarApp" onclick="mostrarBannerInstalacion()" style="display:none;background:white;border:2px solid #5BBFEA;border-radius:14px;padding:8px 12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#5BBFEA;cursor:pointer;">📲 Instalar</button>
       <button class="btn-salir" onclick="salir()">Salir 👋</button>
     </div>
   </div>
@@ -298,6 +313,15 @@
       {id:'nombre_gallo',   label:'Nombre: Gallo 🐓'},
       {id:'nombre_chancho', label:'Nombre: Chancho 🐷'},
       {id:'nombre_caballo', label:'Nombre: Caballo 🐴'},
+    ],
+    vocesGridGestos: [
+      {id:'gesto_sonrei',      label:'Sonreí 😊'},
+      {id:'gesto_boca',        label:'Abrí la boca 😮'},
+      {id:'gesto_lengua',      label:'Sacá la lengua 😛'},
+      {id:'gesto_guino',       label:'Guiñá un ojo 😉'},
+      {id:'gesto_ceno',        label:'Fruncí el ceño 😠'},
+      {id:'gesto_cejas',       label:'Levantá las cejas 🤨'},
+      {id:'gesto_trompita',    label:'Hacé trompita 😗'},
     ],
     vocesGridEmociones: [
       {id:'emocion_alegria',    label:'Alegría 😊'},
@@ -494,7 +518,7 @@
 
   function abrirConfig(){
     // Secciones normales
-    const seccionesNormales=['vocesGridCelebracion','vocesGridColores','vocesGridCountdown','vocesGridPupi','vocesGridEmociones'];
+    const seccionesNormales=['vocesGridCelebracion','vocesGridColores','vocesGridCountdown','vocesGridPupi','vocesGridEmociones','vocesGridGestos'];
     seccionesNormales.forEach(gridId=>{
       const voces=VOCES_SECCIONES[gridId];
       if(!voces)return;
@@ -630,12 +654,63 @@
     setTimeout(()=>{if(errorDiv)errorDiv.style.display='none';},6000);
   }
 
+  function exportarVoces(){
+    try{
+      const datos=JSON.stringify(vocesGrabadas,null,2);
+      const blob=new Blob([datos],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download='teabrazo_voces.json';a.click();
+      URL.revokeObjectURL(url);
+    }catch(e){alert('Error al exportar voces.');}
+  }
+
+  function importarVoces(event){
+    const file=event.target.files[0];
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=(e)=>{
+      try{
+        const datos=JSON.parse(e.target.result);
+        // Validar que es un objeto de voces
+        if(typeof datos!=='object'||Array.isArray(datos)){alert('Archivo inválido.');return;}
+        // Mergear con las voces existentes
+        Object.assign(vocesGrabadas,datos);
+        localStorage.setItem('voces_teabrazo',JSON.stringify(vocesGrabadas));
+        alert('✅ Voces importadas correctamente. Ya podés usarlas.');
+        cerrarConfig();
+      }catch(err){alert('Error al importar. Verificá que el archivo sea válido.');}
+    };
+    reader.readAsText(file);
+  }
+
   function reproducirVoz(id){
     const src=vocesGrabadas[id]||('audio/'+id+'.mp3');
     new Audio(src).play().catch(()=>{});
   }
 
   async function salir(){await sb.auth.signOut();window.location.href='index.html';}
+
+  // PWA
+  let deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',(e)=>{
+    e.preventDefault();deferredPrompt=e;
+    const btn=document.getElementById('btnInstalarApp');
+    if(btn)btn.style.display='block';
+  });
+  function mostrarBannerInstalacion(){
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(r=>{
+        if(r.outcome==='accepted')localStorage.setItem('pwa_installed','1');
+        deferredPrompt=null;
+        const btn=document.getElementById('btnInstalarApp');
+        if(btn)btn.style.display='none';
+      });
+    }else{
+      alert('Para instalar TEAbrazo:\n1. Tocá los 3 puntitos ⋮\n2. Seleccioná "Añadir a pantalla de inicio"');
+    }
+  }
 </script>
 </body>
 </html>
