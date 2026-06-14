@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TEAbrazo — Números y Conjuntos</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:#F0F7FF;font-family:'Nunito',sans-serif;width:100vw;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+
+  .burbuja{position:fixed;border-radius:50%;opacity:0.10;animation:flotar 6s ease-in-out infinite;z-index:0;pointer-events:none;}
+  .b1{width:180px;height:180px;background:#5BBFEA;top:-50px;left:-50px;}
+  .b2{width:130px;height:130px;background:#FFCC3B;top:8%;right:-20px;animation-delay:1s;}
+  .b3{width:90px;height:90px;background:#52D9A0;bottom:20%;left:5px;animation-delay:2s;}
+  .b4{width:110px;height:110px;background:#A78BFA;bottom:-20px;right:15%;animation-delay:0.5s;}
+  @keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+
+  /* Header */
+  .header-juego{position:relative;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:white;box-shadow:0 2px 12px #5BBFEA15;flex-shrink:0;}
+  .btn-salir-juego{background:#F0F7FF;border:2px solid #E0EFFF;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#5BBFEA;cursor:pointer;}
+  .header-centro{display:flex;align-items:center;gap:10px;}
+  .nivel-badge{display:flex;align-items:center;gap:6px;background:#F0F7FF;border-radius:50px;padding:6px 14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#555;}
+  .nivel-emoji-b{font-size:18px;animation:bounce 2s ease-in-out infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .puntaje-wrap{display:flex;align-items:center;gap:6px;background:#FFCC3B22;border:2px solid #FFCC3B44;border-radius:50px;padding:6px 14px;}
+  .puntaje-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#F0A500;}
+  .timer-wrap{background:#A78BFA22;border:2px solid #A78BFA44;border-radius:50px;padding:6px 12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#7C5CDB;display:none;}
+  .timer-wrap.urgente{color:#FF7E6B;border-color:#FF7E6B55;animation:pulsar-t 1s ease-in-out infinite;}
+  @keyframes pulsar-t{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+  /* Área principal */
+  .area-principal{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:12px 16px 10px;overflow:hidden;position:relative;z-index:10;gap:10px;}
+
+  /* Zona del número para arrastrar */
+  .numero-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .consigna-txt{font-family:'Nunito',sans-serif;font-weight:800;font-size:clamp(14px,4vw,18px);color:#555;text-align:center;}
+  .numero-drag{
+    width:clamp(90px,22vw,120px);
+    height:clamp(90px,22vw,120px);
+    background:linear-gradient(135deg,#5BBFEA,#A78BFA);
+    border-radius:28px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Nunito',sans-serif;font-weight:900;
+    font-size:clamp(48px,14vw,72px);
+    color:white;
+    cursor:grab;
+    box-shadow:0 8px 28px #5BBFEA44;
+    border:4px solid #ffffff44;
+    user-select:none;
+    touch-action:none;
+    animation:numero-pulsar 2s ease-in-out infinite;
+    transition:transform 0.15s;
+  }
+  @keyframes numero-pulsar{0%,100%{transform:scale(1) rotate(-2deg)}50%{transform:scale(1.05) rotate(2deg)}}
+  .numero-drag.arrastrando{
+    animation:none;
+    transform:scale(1.1) rotate(0deg);
+    box-shadow:0 12px 36px #A78BFA66;
+    cursor:grabbing;
+  }
+  .numero-drag.usada{opacity:0;pointer-events:none;transition:opacity 0.3s;}
+
+  /* Fantasma del número */
+  .numero-fantasma{
+    position:fixed;pointer-events:none;z-index:1000;
+    background:linear-gradient(135deg,#5BBFEA,#A78BFA);
+    border-radius:28px;border:4px solid #ffffff44;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Nunito',sans-serif;font-weight:900;color:white;
+    box-shadow:0 12px 36px #A78BFA66;
+    opacity:0.9;transform:translate(-50%,-50%) scale(1.05);
+  }
+
+  /* Grid de imágenes/opciones */
+  .opciones-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;}
+  .opciones-grid{display:grid;gap:10px;width:100%;}
+  .opciones-3{grid-template-columns:repeat(3,1fr);}
+  .opciones-4{grid-template-columns:repeat(4,1fr);}
+
+  .opcion-card{
+    background:white;border-radius:20px;padding:8px 6px;
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    border:4px solid transparent;
+    box-shadow:0 3px 14px #00000008;
+    transition:all 0.2s;
+    animation:aparecer 0.3s ease forwards;opacity:0;
+    position:relative;
+  }
+  @keyframes aparecer{to{opacity:1}}
+  .opcion-card.drag-over{
+    border-color:#5BBFEA;background:#E8F5FF;
+    transform:scale(1.05);
+    box-shadow:0 6px 24px #5BBFEA44;
+  }
+  .opcion-card.correcta{
+    border-color:#52D9A0;background:#F0FFF8;
+    animation:pop-ok 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes pop-ok{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+  .opcion-card.incorrecta{
+    border-color:#FF7E6B;background:#FFF0EE;
+    animation:shake-card 0.4s ease;
+  }
+  @keyframes shake-card{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+  /* Canvas de la imagen con emojis */
+  .opcion-canvas{border-radius:12px;display:block;}
+  .opcion-cantidad{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(12px,3.5vw,16px);color:#555;}
+
+  /* Pupi */
+  .pupi-panel{display:flex;align-items:flex-end;gap:10px;width:100%;flex-shrink:0;}
+  .pupi-emoji{font-size:clamp(34px,9vw,46px);animation:pupi-bounce 2s ease-in-out infinite;filter:drop-shadow(0 3px 8px #00000022);flex-shrink:0;}
+  @keyframes pupi-bounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(3deg)}}
+  .pupi-burbuja{background:white;border-radius:18px 18px 18px 4px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(13px,3.8vw,15px);color:#333;max-width:240px;box-shadow:0 3px 16px #00000015;line-height:1.4;}
+
+  /* Intro */
+  @keyframes intro-bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.05)}}
+  @keyframes pupi-intro{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+  @keyframes btn-llamar{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+
+  /* Countdown */
+  .countdown-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#F0F7FFee;}
+  .countdown-numero{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(120px,35vw,200px);animation:num-pop 0.6s cubic-bezier(0.34,1.56,0.64,1);line-height:1;}
+  .countdown-ya{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(60px,18vw,100px);color:#52D9A0;animation:num-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes num-pop{from{transform:scale(0.2) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+
+  /* Celebración */
+  .celebracion-overlay{position:fixed;inset:0;background:#00000066;z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
+  .celebracion-card{background:white;border-radius:32px;padding:36px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:340px;animation:pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop-in{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+  .cel-emoji{font-size:64px;}
+  .cel-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(24px,7vw,30px);color:#333;text-align:center;}
+  .cel-xp{background:linear-gradient(135deg,#FFCC3B,#FF7E6B);border-radius:50px;padding:10px 24px;font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:white;}
+  .btn-cel{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:20px;padding:16px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:white;cursor:pointer;}
+  .btn-cel:active{transform:scale(0.97);}
+  .btn-cel-sec{background:#F0F7FF;border:none;border-radius:16px;padding:12px;width:100%;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;}
+
+  /* Fin tiempo */
+  .fin-overlay{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#5BBFEA,#A78BFA);}
+  .fin-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(48px,15vw,80px);color:white;text-align:center;animation:flotar-fin 3s ease-in-out infinite;}
+  @keyframes flotar-fin{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .fin-sub{font-family:'Nunito',sans-serif;font-weight:700;font-size:18px;color:rgba(255,255,255,0.85);text-align:center;}
+  .fin-pupi{font-size:80px;}
+  .fin-pin-wrap{background:white;border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:320px;}
+  .fin-pin-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:#555;text-align:center;}
+  .fin-pin-input{display:flex;gap:10px;justify-content:center;}
+  .fin-pin-digito{width:56px;height:64px;border:3px solid #E0EFFF;border-radius:16px;background:#F0F7FF;text-align:center;font-family:'Nunito',sans-serif;font-weight:900;font-size:28px;color:#333;outline:none;}
+  .fin-pin-digito:focus{border-color:#5BBFEA;}
+  .fin-pin-error{font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;display:none;}
+  .btn-fin-desbloquear{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:18px;padding:14px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:white;cursor:pointer;}
+
+  .confeti{position:fixed;inset:0;pointer-events:none;z-index:700;display:none;}
+  .confeti-pieza{position:absolute;border-radius:2px;animation:caer 1.8s ease-in forwards;}
+  @keyframes caer{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  .footer{position:relative;z-index:100;background:white;border-top:1px solid #E0EFFF;padding:5px 20px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  .footer-marca{font-family:'Nunito',sans-serif;font-weight:700;font-size:10px;color:#5BBFEA;}
+  .footer-marca a{color:#5BBFEA;text-decoration:none;}
+  .footer-legal{font-family:'Nunito Sans',sans-serif;font-size:9px;color:#aaa;text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="burbuja b1"></div><div class="burbuja b2"></div>
+<div class="burbuja b3"></div><div class="burbuja b4"></div>
+<div class="confeti" id="confeti"></div>
+
+<!-- Intro instrucciones -->
+<div id="introOverlay" style="position:fixed;inset:0;z-index:350;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#0d0d2b,#1a1a4e);">
+  <div id="introEmoji" style="font-size:clamp(72px,20vw,110px);animation:intro-bounce 1s ease-in-out infinite;filter:drop-shadow(0 8px 24px #5BBFEA44);">🔢</div>
+  <div id="introTitulo" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(22px,6vw,32px);color:white;text-align:center;text-shadow:0 2px 12px #00000055;">¡Números y conjuntos!</div>
+  <div style="display:flex;align-items:flex-end;gap:12px;max-width:360px;width:100%;">
+    <div style="font-size:clamp(44px,12vw,64px);animation:pupi-intro 2s ease-in-out infinite;flex-shrink:0;">🐙</div>
+    <div id="introTexto" style="background:white;border-radius:20px 20px 20px 4px;padding:14px 18px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(15px,4.5vw,19px);color:#333;box-shadow:0 4px 20px #00000033;line-height:1.4;flex:1;"></div>
+  </div>
+  <button onclick="cerrarIntro()" style="background:linear-gradient(135deg,#52D9A0,#5BBFEA);border:none;border-radius:28px;padding:20px 0;width:100%;max-width:320px;font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(20px,6vw,26px);color:white;cursor:pointer;box-shadow:0 8px 24px #52D9A044;animation:btn-llamar 2s ease-in-out infinite;">¡Listo! 🚀</button>
+</div>
+
+<div class="countdown-overlay" id="countdownOverlay">
+  <div style="font-size:clamp(60px,18vw,90px);">🐙</div>
+  <div id="countdownNumero" class="countdown-numero" style="color:#5BBFEA;">3</div>
+</div>
+
+<div class="celebracion-overlay" id="celebracion">
+  <div class="celebracion-card">
+    <div class="cel-emoji">🔢</div>
+    <div class="cel-titulo" id="celTitulo">¡EXCELENTE!</div>
+    <div class="cel-xp" id="celXP">+10 XP ⚡</div>
+    <button class="btn-cel" onclick="cerrarCelebracion()">¡Seguir jugando! 🚀</button>
+    <button class="btn-cel-sec" onclick="salir()">Volver al inicio</button>
+  </div>
+</div>
+
+<div class="fin-overlay" id="finOverlay">
+  <div class="fin-pupi">🐙</div>
+  <div class="fin-titulo">¡GRACIAS!</div>
+  <div class="fin-sub">¡Jugaste genial hoy! 🌟</div>
+  <div class="fin-pin-wrap">
+    <div class="fin-pin-label">🔐 Ingresá el PIN para salir</div>
+    <div class="fin-pin-input">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p1" oninput="avanzarPin(this,'p2')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p2" oninput="avanzarPin(this,'p3')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p3" oninput="avanzarPin(this,'p4')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p4" oninput="verificarPin()">
+    </div>
+    <div class="fin-pin-error" id="pinError">❌ PIN incorrecto.</div>
+    <button class="btn-fin-desbloquear" onclick="verificarPin()">Desbloquear 🔓</button>
+  </div>
+</div>
+
+<div class="header-juego">
+  <button class="btn-salir-juego" onclick="salir()">← Salir</button>
+  <div class="header-centro">
+    <div class="nivel-badge"><span class="nivel-emoji-b" id="nivelEmoji">🥚</span><span id="nivelNombre">Huevo</span></div>
+    <div class="timer-wrap" id="timerWrap">⏱️ <span id="timerTexto">--:--</span></div>
+  </div>
+  <div class="puntaje-wrap">⭐ <span class="puntaje-texto" id="puntaje">0</span></div>
+</div>
+
+<div class="area-principal" id="areaPrincipal">
+  <div class="pupi-panel">
+    <span class="pupi-emoji">🐙</span>
+    <div class="pupi-burbuja" id="pupiTexto">¡Arrastrá el número! 🔢</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
+  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados.</div>
+</div>
+
+<script>
+  const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
+  const {createClient}=supabase;
+  const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  // =============================================
+  // INTRO
+  // =============================================
+  const INSTRUCCIONES_JUEGO={
+    1:'¡Arrastrá el número al grupo que tenga esa cantidad!',
+    2:'¡Encontrá el grupo que tiene exactamente ese número de cosas!',
+    3:'¡Uní el número con el conjunto correcto!',
+  };
+  function mostrarIntro(onDone){
+    const overlay=document.getElementById('introOverlay');
+    if(!overlay){onDone();return;}
+    const texto=INSTRUCCIONES_JUEGO[nivelActual]||INSTRUCCIONES_JUEGO[1];
+    document.getElementById('introTexto').textContent=texto;
+    overlay.style.display='flex';
+    window._introDone=onDone;
+    setTimeout(()=>_hablar(texto,1.0),600);
+  }
+  function cerrarIntro(){
+    document.getElementById('introOverlay').style.display='none';
+    window.speechSynthesis&&window.speechSynthesis.cancel();
+    if(window._introDone)window._introDone();
+  }
+
+  // =============================================
+  // AUDIO
+  // =============================================
+  let vocesGrabadas={};
+  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
+  let audioActual=null,audioQueue=[],reproduciendo=false;
+
+  function reproducir(id,forzar=true){
+    if(forzar){audioQueue=[];reproduciendo=false;if(audioActual){audioActual.pause();audioActual.currentTime=0;audioActual=null;}_reproducirAhora(id);}
+    else{audioQueue.push(id);if(!reproduciendo)_procesarCola();}
+  }
+  function _reproducirAhora(id){
+    const tts={excelente:'¡Excelente!',que_bien:'¡Qué bien!',increible:'¡Increíble!',bien:'¡Bien!',upps:'¡Upps!',tres:'Tres',dos:'Dos',uno:'Uno',ya:'¡Ya!'};
+    const src=vocesGrabadas[id]||('audio/'+id+'.mp3');
+    const audio=new Audio(src);
+    audioActual=audio;reproduciendo=true;
+    audio.onended=()=>{reproduciendo=false;audioActual=null;_procesarCola();};
+    audio.onerror=()=>{reproduciendo=false;audioActual=null;if(tts[id])_hablar(tts[id],()=>_procesarCola());else _procesarCola();};
+    audio.play().catch(()=>audio.onerror());
+  }
+  function _procesarCola(){if(audioQueue.length>0&&!reproduciendo){const item=audioQueue.shift();if(item)_reproducirAhora(item);}}
+  function _hablar(texto,rate=1.0,onEnd){
+    if(!('speechSynthesis' in window)){if(onEnd)onEnd();return;}
+    window.speechSynthesis.cancel();
+    const msg=new SpeechSynthesisUtterance(texto);
+    msg.lang='es-AR';msg.rate=rate;msg.pitch=1.8;
+    msg.onend=()=>{reproduciendo=false;if(onEnd)onEnd();};
+    msg.onerror=()=>{reproduciendo=false;if(onEnd)onEnd();};
+    reproduciendo=true;
+    window.speechSynthesis.speak(msg);
+  }
+
+  // =============================================
+  // CONJUNTOS — emoji + nombre para dibujar en canvas
+  // =============================================
+  const CONJUNTOS=[
+    {emoji:'🌳',nombre:'árbol'},
+    {emoji:'🏠',nombre:'casa'},
+    {emoji:'🐶',nombre:'perro'},
+    {emoji:'⭐',nombre:'estrella'},
+    {emoji:'🍎',nombre:'manzana'},
+    {emoji:'🚗',nombre:'auto'},
+    {emoji:'🐱',nombre:'gato'},
+    {emoji:'🌸',nombre:'flor'},
+    {emoji:'🎈',nombre:'globo'},
+    {emoji:'🐟',nombre:'pez'},
+    {emoji:'🦋',nombre:'mariposa'},
+    {emoji:'🍕',nombre:'pizza'},
+    {emoji:'🌙',nombre:'luna'},
+    {emoji:'🐸',nombre:'sapo'},
+    {emoji:'🎀',nombre:'moño'},
+  ];
+
+  const NIVELES_CONFIG={
+    1:{emoji:'🥚',nombre:'Huevo',        rangoMax:5,  cantOpciones:3, xpPor:8},
+    2:{emoji:'🐣',nombre:'Pollito',       rangoMax:10, cantOpciones:4, xpPor:12},
+    3:{emoji:'🐤',nombre:'Pollito grande',rangoMax:15, cantOpciones:4, xpPor:16},
+  };
+  const RONDAS_POR_CELEBRACION=5;
+
+  // =============================================
+  // ESTADO
+  // =============================================
+  let hijo=null,nivelActual=1,puntaje=0;
+  let rondasJugadas=0,rondasCorrectas=0,juegoActivo=false;
+  let tiempoLimiteSegundos=0,tiempoRestante=0,intervaloTimer=null;
+  let numeroActual=0,conjuntoActual=null;
+  let numerosUsados=[];
+  let arrastrando=null,fantasmaEl=null;
+  let esperandoRespuesta=false;
+
+  // =============================================
+  // INICIO
+  // =============================================
+  window.addEventListener('load',()=>{
+    const hijoData=sessionStorage.getItem('hijoActual');
+    if(!hijoData){window.location.href='perfiles.html';return;}
+    hijo=JSON.parse(hijoData);
+    puntaje=hijo.xp_total||0;
+    nivelActual=hijo.nivel||1;
+    document.getElementById('puntaje').textContent=puntaje;
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    document.getElementById('nivelEmoji').textContent=nc.emoji;
+    document.getElementById('nivelNombre').textContent=nc.nombre;
+    if(hijo.tiempo_limite&&hijo.tiempo_limite>0){
+      tiempoLimiteSegundos=hijo.tiempo_limite*60;tiempoRestante=tiempoLimiteSegundos;
+      document.getElementById('timerWrap').style.display='flex';actualizarTimerDisplay();
+    }
+    mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
+  });
+
+  // =============================================
+  // COUNTDOWN
+  // =============================================
+  function mostrarCountdown(){
+    const overlay=document.getElementById('countdownOverlay'),numEl=document.getElementById('countdownNumero');
+    overlay.style.display='flex';
+    const pasos=[{texto:'3',color:'#FF7E6B',audio:'tres'},{texto:'2',color:'#FFCC3B',audio:'dos'},{texto:'1',color:'#52D9A0',audio:'uno'},{texto:'¡YA!',color:'#5BBFEA',audio:'ya',esYa:true}];
+    let i=0;
+    function sig(){if(i>=pasos.length){overlay.style.display='none';iniciarJuego();return;}const p=pasos[i];numEl.className=p.esYa?'countdown-ya':'countdown-numero';numEl.style.color=p.color;numEl.textContent=p.texto;numEl.style.animation='none';numEl.offsetHeight;numEl.style.animation='';reproducir(p.audio);i++;setTimeout(sig,900);}
+    sig();
+  }
+
+  // =============================================
+  // JUEGO
+  // =============================================
+  function iniciarJuego(){
+    juegoActivo=true;rondasJugadas=0;rondasCorrectas=0;numerosUsados=[];
+    nuevaRonda();iniciarTimer();
+  }
+
+  function elegirNumero(){
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const disponibles=[];
+    for(let i=1;i<=nc.rangoMax;i++){if(!numerosUsados.includes(i))disponibles.push(i);}
+    if(disponibles.length===0){numerosUsados=[];for(let i=1;i<=nc.rangoMax;i++)disponibles.push(i);}
+    const n=disponibles[Math.floor(Math.random()*disponibles.length)];
+    numerosUsados.push(n);return n;
+  }
+
+  function nuevaRonda(){
+    if(!juegoActivo)return;
+    esperandoRespuesta=false;
+    arrastrando=null;
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+
+    numeroActual=elegirNumero();
+    // Elegir conjunto para este número
+    const idxConjunto=Math.floor(Math.random()*CONJUNTOS.length);
+    conjuntoActual=CONJUNTOS[idxConjunto];
+
+    // Generar opciones: correcta + incorrectas
+    const cantOpciones=nc.cantOpciones;
+    const correctaIdx=Math.floor(Math.random()*cantOpciones);
+    const opciones=[];
+    const cantidadesUsadas=new Set([numeroActual]);
+
+    for(let i=0;i<cantOpciones;i++){
+      if(i===correctaIdx){
+        opciones.push({cantidad:numeroActual,correcto:true});
+      }else{
+        // Generar cantidad incorrecta cercana pero diferente
+        let cant;
+        let intentos=0;
+        do{
+          const delta=Math.floor(Math.random()*4)+1;
+          cant=Math.random()<0.5?numeroActual+delta:Math.max(1,numeroActual-delta);
+          cant=Math.max(1,Math.min(nc.rangoMax+4,cant));
+          intentos++;
+        }while(cantidadesUsadas.has(cant)&&intentos<20);
+        cantidadesUsadas.add(cant);
+        opciones.push({cantidad:cant,correcto:false});
+      }
+    }
+
+    renderRonda(nc,opciones);
+    mostrarPupi('¿Cuál grupo tiene '+numeroActual+' '+conjuntoActual.nombre+'s?');
+    setTimeout(()=>{
+      _hablar('Arrastrá el número '+numeroActual+' al grupo correcto',1.0);
+      esperandoRespuesta=true;
+    },400);
+  }
+
+  // =============================================
+  // RENDER
+  // =============================================
+  function renderRonda(nc,opciones){
+    const area=document.getElementById('areaPrincipal');
+    const pupi=area.querySelector('.pupi-panel');
+    area.innerHTML='';
+
+    // Consigna + número para arrastrar
+    const numWrap=document.createElement('div');
+    numWrap.className='numero-wrap';
+    const cons=document.createElement('div');
+    cons.className='consigna-txt';
+    cons.textContent='Arrastrá el número al grupo correcto 👇';
+    numWrap.appendChild(cons);
+
+    const numDiv=document.createElement('div');
+    numDiv.className='numero-drag';
+    numDiv.id='numeroDrag';
+    numDiv.textContent=numeroActual;
+    numDiv.draggable=true;
+
+    // Desktop drag
+    numDiv.addEventListener('dragstart',e=>{iniciarArrastre(numDiv);e.dataTransfer.setData('text/plain','numero');});
+    numDiv.addEventListener('dragend',()=>terminarArrastre());
+
+    // Touch drag
+    numDiv.addEventListener('pointerdown',e=>{e.preventDefault();iniciarArrastre(numDiv);moverFantasma(e.clientX,e.clientY);});
+
+    numWrap.appendChild(numDiv);
+    area.appendChild(numWrap);
+
+    // Grid de opciones
+    const opWrap=document.createElement('div');
+    opWrap.className='opciones-wrap';
+
+    const grid=document.createElement('div');
+    grid.className='opciones-grid '+(nc.cantOpciones===3?'opciones-3':'opciones-4');
+
+    // Calcular tamaño del canvas
+    const area2=document.getElementById('areaPrincipal')||document.body;
+    const maxW=Math.min((window.innerWidth-48)/nc.cantOpciones,110);
+    const tamCanvas=Math.floor(maxW);
+
+    opciones.forEach((op,i)=>{
+      const card=document.createElement('div');
+      card.className='opcion-card';
+      card.style.animationDelay=(i*0.08)+'s';
+      card.dataset.correcto=op.correcto?'1':'0';
+      card.dataset.cantidad=op.cantidad;
+
+      // Canvas con emojis
+      const canvas=document.createElement('canvas');
+      canvas.className='opcion-canvas';
+      canvas.width=tamCanvas;canvas.height=tamCanvas;
+      dibujarConjunto(canvas,op.cantidad,conjuntoActual.emoji);
+      card.appendChild(canvas);
+
+      // Cantidad como número pequeño
+      const cantLabel=document.createElement('div');
+      cantLabel.className='opcion-cantidad';
+      cantLabel.textContent=op.cantidad+' '+conjuntoActual.nombre+(op.cantidad===1?'':'s');
+      card.appendChild(cantLabel);
+
+      // Drop events desktop
+      card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('drag-over');});
+      card.addEventListener('dragleave',()=>card.classList.remove('drag-over'));
+      card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag-over');soltarEnOpcion(card,op);});
+
+      grid.appendChild(card);
+    });
+
+    opWrap.appendChild(grid);
+    area.appendChild(opWrap);
+    area.appendChild(pupi);
+
+    // Eventos touch globales
+    area.addEventListener('pointermove',onPointerMove);
+    area.addEventListener('pointerup',onPointerUp);
+    area.addEventListener('pointercancel',terminarArrastre);
+  }
+
+  // =============================================
+  // DIBUJAR CONJUNTO EN CANVAS
+  // =============================================
+  function dibujarConjunto(canvas,cantidad,emoji){
+    const ctx=canvas.getContext('2d');
+    const w=canvas.width,h=canvas.height;
+    ctx.clearRect(0,0,w,h);
+
+    // Fondo suave
+    ctx.fillStyle='#F8FBFF';
+    ctx.beginPath();ctx.roundRect(0,0,w,h,12);ctx.fill();
+
+    // Calcular layout de emojis
+    const cols=cantidad<=4?2:cantidad<=9?3:4;
+    const rows=Math.ceil(cantidad/cols);
+    const padding=6;
+    const cellW=(w-padding*2)/cols;
+    const cellH=(h-padding*2)/rows;
+    const fontSize=Math.floor(Math.min(cellW,cellH)*0.72);
+
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.font=`${fontSize}px serif`;
+
+    for(let i=0;i<cantidad;i++){
+      const col=i%cols;
+      const row=Math.floor(i/cols);
+      const x=padding+col*cellW+cellW/2;
+      const y=padding+row*cellH+cellH/2;
+      ctx.fillText(emoji,x,y);
+    }
+  }
+
+  // =============================================
+  // ARRASTRE
+  // =============================================
+  function iniciarArrastre(el){
+    if(!esperandoRespuesta)return;
+    arrastrando=el;
+    el.classList.add('arrastrando');
+  }
+
+  function moverFantasma(x,y){
+    if(!arrastrando)return;
+    if(!fantasmaEl){
+      fantasmaEl=document.createElement('div');
+      fantasmaEl.className='numero-fantasma';
+      const s=document.getElementById('numeroDrag');
+      const tam=s?s.offsetWidth:90;
+      fantasmaEl.style.width=tam+'px';fantasmaEl.style.height=tam+'px';
+      fantasmaEl.style.fontSize=Math.floor(tam*0.6)+'px';
+      fantasmaEl.textContent=numeroActual;
+      document.body.appendChild(fantasmaEl);
+    }
+    fantasmaEl.style.left=x+'px';fantasmaEl.style.top=y+'px';
+  }
+
+  function onPointerMove(e){
+    if(!arrastrando)return;
+    moverFantasma(e.clientX,e.clientY);
+    document.querySelectorAll('.opcion-card').forEach(c=>c.classList.remove('drag-over'));
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    if(el){const c=el.closest('.opcion-card');if(c)c.classList.add('drag-over');}
+  }
+
+  function onPointerUp(e){
+    if(!arrastrando)return;
+    document.querySelectorAll('.opcion-card').forEach(c=>c.classList.remove('drag-over'));
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    if(el){
+      const card=el.closest('.opcion-card');
+      if(card){
+        const correcto=card.dataset.correcto==='1';
+        const cantidad=parseInt(card.dataset.cantidad);
+        soltarEnOpcion(card,{correcto,cantidad});
+      }
+    }
+    terminarArrastre();
+  }
+
+  function terminarArrastre(){
+    if(arrastrando)arrastrando.classList.remove('arrastrando');
+    arrastrando=null;
+    if(fantasmaEl){fantasmaEl.remove();fantasmaEl=null;}
+  }
+
+  // =============================================
+  // RESPUESTA
+  // =============================================
+  function soltarEnOpcion(card,op){
+    if(!esperandoRespuesta||!juegoActivo)return;
+    esperandoRespuesta=false;
+
+    // Bloquear todas
+    document.querySelectorAll('.opcion-card').forEach(c=>{c.style.pointerEvents='none';});
+
+    if(op.correcto){
+      card.classList.add('correcta');
+      // Ocultar número
+      const numEl=document.getElementById('numeroDrag');
+      if(numEl)numEl.classList.add('usada');
+
+      puntaje+=(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+      document.getElementById('puntaje').textContent=puntaje;
+      rondasJugadas++;rondasCorrectas++;
+
+      mostrarPupi('¡'+numeroActual+' '+conjuntoActual.nombre+'s! ✅');
+      reproducir('bien');
+      audioQueue.push('__tts__'+numeroActual);
+      if(!reproduciendo)_procesarCola();
+
+      lanzarMiniConfeti();
+
+      if(rondasJugadas>=RONDAS_POR_CELEBRACION){setTimeout(mostrarCelebracion,1500);}
+      else{setTimeout(nuevaRonda,1800);}
+
+    }else{
+      card.classList.add('incorrecta');
+      mostrarPupi('¡Upps! Ese tiene '+op.cantidad+', buscá el '+numeroActual+' 🤔');
+      reproducir('upps');
+      setTimeout(()=>{
+        card.classList.remove('incorrecta');
+        document.querySelectorAll('.opcion-card').forEach(c=>{c.style.pointerEvents='auto';});
+        esperandoRespuesta=true;
+      },1500);
+    }
+  }
+
+  function mostrarPupi(t){document.getElementById('pupiTexto').textContent=t;}
+
+  function lanzarMiniConfeti(){
+    const confeti=document.getElementById('confeti');confeti.style.display='block';confeti.innerHTML='';
+    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+    for(let i=0;i<40;i++){const p=document.createElement('div');p.className='confeti-pieza';p.style.left=Math.random()*100+'vw';p.style.top='-10px';p.style.background=cols[Math.floor(Math.random()*cols.length)];p.style.animationDelay=Math.random()*0.5+'s';p.style.width=(Math.random()*8+4)+'px';p.style.height=(Math.random()*8+4)+'px';confeti.appendChild(p);}
+    setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},1800);
+  }
+
+  // TTS fallback para cola
+  function _procesarColaConTTS(){
+    if(audioQueue.length>0&&!reproduciendo){
+      const item=audioQueue.shift();
+      if(item&&item.startsWith('__tts__'))_hablar(item.replace('__tts__',''),1.0,()=>{reproduciendo=false;});
+      else if(item)_reproducirAhora(item);
+    }
+  }
+
+  // Override _procesarCola para manejar __tts__
+  const _procesarColaOrig=_procesarCola;
+
+  // =============================================
+  // CELEBRACIÓN
+  // =============================================
+  function mostrarCelebracion(){
+    const frases=[{texto:'¡EXCELENTE!',audio:'excelente'},{texto:'¡QUÉ BIEN!',audio:'que_bien'},{texto:'¡INCREÍBLE!',audio:'increible'}];
+    const f=frases[Math.floor(Math.random()*frases.length)];
+    const xp=rondasCorrectos*(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+    document.getElementById('celTitulo').textContent=f.texto;
+    document.getElementById('celXP').textContent='+'+rondasCorrectos*(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor+' XP ⚡';
+    document.getElementById('celebracion').style.display='flex';
+    lanzarConfeti();reproducir(f.audio);guardarProgreso();
+  }
+
+  // Fix: usar rondasCorrectas no rondasCorrectos
+  function mostrarCelebracion(){
+    const frases=[{texto:'¡EXCELENTE!',audio:'excelente'},{texto:'¡QUÉ BIEN!',audio:'que_bien'},{texto:'¡INCREÍBLE!',audio:'increible'}];
+    const f=frases[Math.floor(Math.random()*frases.length)];
+    const xp=rondasCorrectas*(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+    document.getElementById('celTitulo').textContent=f.texto;
+    document.getElementById('celXP').textContent='+'+xp+' XP ⚡';
+    document.getElementById('celebracion').style.display='flex';
+    lanzarConfeti();reproducir(f.audio);guardarProgreso();
+  }
+
+  function cerrarCelebracion(){
+    document.getElementById('celebracion').style.display='none';
+    rondasJugados=0;rondasCorrectas=0;numerosUsados=[];
+    nuevaRonda();
+  }
+
+  // Fix: rondasJugados → rondasJugadas
+  function cerrarCelebracion(){
+    document.getElementById('celebracion').style.display='none';
+    rondasJugadas=0;rondasCorrectas=0;numerosUsados=[];
+    nuevaRonda();
+  }
+
+  function lanzarConfeti(){
+    const confeti=document.getElementById('confeti');confeti.style.display='block';confeti.innerHTML='';
+    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+    for(let i=0;i<80;i++){const p=document.createElement('div');p.className='confeti-pieza';p.style.left=Math.random()*100+'vw';p.style.top='-10px';p.style.background=cols[Math.floor(Math.random()*cols.length)];p.style.animationDelay=Math.random()*1+'s';p.style.width=(Math.random()*10+6)+'px';p.style.height=(Math.random()*10+6)+'px';confeti.appendChild(p);}
+    setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},2500);
+  }
+
+  // =============================================
+  // TIMER
+  // =============================================
+  function iniciarTimer(){
+    if(!tiempoLimiteSegundos)return;
+    intervaloTimer=setInterval(()=>{
+      tiempoRestante--;actualizarTimerDisplay();
+      if(tiempoRestante<=60)document.getElementById('timerWrap').classList.add('urgente');
+      if(tiempoRestante<=0){clearInterval(intervaloTimer);juegoActivo=false;document.getElementById('finOverlay').style.display='flex';reproducir('excelente');}
+    },1000);
+  }
+  function actualizarTimerDisplay(){const m=Math.floor(tiempoRestante/60),s=tiempoRestante%60;document.getElementById('timerTexto').textContent=m+':'+(s<10?'0':'')+s;}
+  function avanzarPin(el,sigId){if(el.value.length===1){const s=document.getElementById(sigId);if(s)s.focus();}}
+  function verificarPin(){
+    const ing=['p1','p2','p3','p4'].map(id=>document.getElementById(id).value).join('');
+    const pin=hijo.pin?hijo.pin.toString():'';
+    if(!pin||ing===pin){window.location.href='perfiles.html';}
+    else{document.getElementById('pinError').style.display='block';['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).value='');document.getElementById('p1').focus();}
+  }
+  async function guardarProgreso(){
+    try{await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));}catch(e){}
+  }
+  function salir(){juegoActivo=false;clearInterval(intervaloTimer);window.speechSynthesis?.cancel();window.location.href='bienvenida.html';}
+
+  // Soporte roundRect para navegadores viejos
+  if(!CanvasRenderingContext2D.prototype.roundRect){
+    CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+      this.beginPath();this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath();return this;
+    };
+  }
+</script>
+</body>
+</html>
