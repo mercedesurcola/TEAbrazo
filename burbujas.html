@@ -14,12 +14,7 @@
   .estrella-fondo { position: absolute; border-radius: 50%; background: white; opacity: 0; animation: titilar var(--dur) ease-in-out infinite; }
   @keyframes titilar { 0%,100%{opacity:0;transform:scale(0.8)} 50%{opacity:var(--op);transform:scale(1)} }
 
-  .header-juego {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px;
-    background: linear-gradient(180deg, #0a1628ee 0%, transparent 100%);
-  }
+  .header-juego { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: linear-gradient(180deg, #0a1628ee 0%, transparent 100%); }
   .btn-salir-juego { background: #ffffff22; border: 2px solid #ffffff33; border-radius: 14px; padding: 8px 14px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 14px; color: white; cursor: pointer; }
   .puntaje-wrap { display: flex; align-items: center; gap: 6px; background: #ffffff22; border: 2px solid #ffffff33; border-radius: 50px; padding: 6px 14px; }
   .puntaje-texto { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 18px; color: #FFCC3B; }
@@ -29,42 +24,22 @@
 
   .area-juego { position: fixed; inset: 0; z-index: 10; }
 
-  .burbuja {
-    position: absolute; border-radius: 50%; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px; user-select: none; touch-action: manipulation;
-    box-shadow: inset -4px -4px 12px rgba(0,0,0,0.2), inset 2px 2px 8px rgba(255,255,255,0.4);
-    animation: subir linear forwards;
-  }
-  .burbuja::before {
-    content: ''; position: absolute; top: 15%; left: 20%;
-    width: 30%; height: 20%; background: rgba(255,255,255,0.5);
-    border-radius: 50%; transform: rotate(-30deg);
-  }
-  @keyframes subir {
-    0% { transform: translateY(0) translateX(0); opacity: 0; }
-    5% { opacity: 1; } 90% { opacity: 1; }
-    100% { transform: translateY(calc(-100vh - 120px)) translateX(var(--drift)); opacity: 0; }
-  }
+  .burbuja { position: absolute; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 22px; user-select: none; touch-action: manipulation; box-shadow: inset -4px -4px 12px rgba(0,0,0,0.2), inset 2px 2px 8px rgba(255,255,255,0.4); animation: subir linear forwards; }
+  .burbuja::before { content: ''; position: absolute; top: 15%; left: 20%; width: 30%; height: 20%; background: rgba(255,255,255,0.5); border-radius: 50%; transform: rotate(-30deg); }
+  @keyframes subir { 0%{transform:translateY(0) translateX(0);opacity:0} 5%{opacity:1} 90%{opacity:1} 100%{transform:translateY(calc(-100vh - 120px)) translateX(var(--drift));opacity:0} }
 
-  .explosion { position: absolute; pointer-events: none; z-index: 50; border-radius: 50%; animation: explotar 0.6s ease forwards; }
-  @keyframes explotar { 0%{transform:scale(0);opacity:1} 50%{transform:scale(2.5);opacity:0.8} 100%{transform:scale(4);opacity:0} }
   .particula { position: absolute; border-radius: 50%; animation: volar-particula 0.7s ease forwards; }
   @keyframes volar-particula { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0} }
-
-  /* Anillo de feedback */
   .anillo-ok { position: absolute; border-radius: 50%; border: 4px solid #52D9A0; pointer-events: none; z-index: 51; animation: anillo 0.5s ease forwards; }
   .anillo-error { position: absolute; border-radius: 50%; border: 4px solid #FF4444; pointer-events: none; z-index: 51; animation: anillo 0.5s ease forwards; }
   @keyframes anillo { 0%{transform:scale(1);opacity:1} 100%{transform:scale(2.5);opacity:0} }
 
-  /* Poli */
   .poli-panel { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: flex-end; padding: 0 16px 16px; gap: 10px; pointer-events: none; }
   .poli-emoji { font-size: clamp(40px, 12vw, 56px); animation: poli-bounce 2s ease-in-out infinite; filter: drop-shadow(0 4px 12px #00000044); flex-shrink: 0; }
   @keyframes poli-bounce { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-8px) rotate(3deg)} }
   .poli-burbuja-texto { background: white; border-radius: 20px 20px 20px 4px; padding: 12px 16px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: clamp(13px, 4vw, 16px); color: #333; max-width: 220px; box-shadow: 0 4px 20px #00000033; line-height: 1.4; animation: aparecer-txt 0.3s ease; }
   @keyframes aparecer-txt { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
-  /* Celebración */
   .celebracion-overlay { position: fixed; inset: 0; background: #00000066; z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
   .celebracion-card { background: white; border-radius: 32px; padding: 36px 28px; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 340px; animation: pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1); }
   @keyframes pop-in { from{transform:scale(0.7);opacity:0} to{transform:scale(1);opacity:1} }
@@ -94,14 +69,14 @@
   <div class="consigna-card" id="consignaCard">¡Tocá cualquier burbuja! 🫧</div>
 </div>
 
-<div class="poli-panel" id="poliPanel">
+<div class="poli-panel">
   <span class="poli-emoji">🐙</span>
   <div class="poli-burbuja-texto" id="poliTexto">¡Hola! Soy Poli 🐙</div>
 </div>
 
 <div class="celebracion-overlay" id="celebracion">
   <div class="celebracion-card">
-    <div class="cel-emoji" id="celEmoji">🎉</div>
+    <div class="cel-emoji">🎉</div>
     <div class="cel-titulo" id="celTitulo">¡EXCELENTE!</div>
     <div class="cel-xp" id="celXP">+10 XP ⚡</div>
     <button class="btn-cel" onclick="cerrarCelebracion()">¡Seguir jugando! 🚀</button>
@@ -115,16 +90,69 @@
   const { createClient } = supabase;
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  // =============================================
+  // AUDIO — usa MP3 grabados, fallback a síntesis
+  // =============================================
+  const AUDIO_BASE = 'audio/';
+  let audioActual = null;
+
+  function reproducir(archivo) {
+    try {
+      if (audioActual) { audioActual.pause(); audioActual.currentTime = 0; }
+      audioActual = new Audio(AUDIO_BASE + archivo + '.mp3');
+      audioActual.play().catch(() => {});
+    } catch(e) {}
+  }
+
+  function sonidoBurbuja(correcto) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const bufferSize = ctx.sampleRate * 0.15;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = correcto ? 1800 : 400;
+      filter.Q.value = 8;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(correcto ? 0.4 : 0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      source.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+      source.start();
+    } catch(e) {}
+  }
+
+  // =============================================
+  // CONFIG POR NIVEL
+  // =============================================
   const CONFIG_NIVEL = {
-    1: { consigna: '¡Tocá cualquier burbuja! 🫧', colorObjetivo: null, velocidad: 13, tamMin: 75, tamMax: 115, xpPor: 5,
-         frasesPoli: ['¡BIEN!','¡GENIAL!','¡SÍ!','¡ASÍ!','¡BRAVO!'],
-         introduccion: '¡Hola! Soy Poli. ¡Tocá las burbujas!' },
-    2: { consigna: '¡Tocá la burbuja ROJA! 🔴', colorObjetivo: 'rojo', velocidad: 10, tamMin: 65, tamMax: 95, xpPor: 8,
-         frasesPoli: ['¡ROJO!','¡BIEN!','¡GENIAL!','¡SÍ!'],
-         introduccion: '¡Tocá solo la burbuja ROJA!' },
-    3: { consigna: '¡Tocá el color que digo! 🔊', colorObjetivo: 'dinamico', velocidad: 8, tamMin: 55, tamMax: 85, xpPor: 12,
-         frasesPoli: ['¡EXCELENTE!','¡GENIAL!','¡SÍ!','¡QUÉ BIEN!'],
-         introduccion: '¡Tocá el color que yo diga!' }
+    1: {
+      consigna: '¡Tocá cualquier burbuja! 🫧',
+      colorObjetivo: null, velocidad: 13, tamMin: 75, tamMax: 115, xpPor: 5,
+      audiosCorrecto: ['bien','genial','si','bravo','excelente'],
+      audioError: null,
+      introAudio: 'hola',
+      introTexto: '¡Hola! Soy Poli 🐙'
+    },
+    2: {
+      consigna: '¡Tocá la burbuja ROJA! 🔴',
+      colorObjetivo: 'rojo', velocidad: 10, tamMin: 65, tamMax: 95, xpPor: 8,
+      audiosCorrecto: ['bien','genial','excelente','que_bien'],
+      audioError: 'esa_no',
+      introAudio: 'hola',
+      introTexto: '¡Tocá solo la ROJA! 🔴'
+    },
+    3: {
+      consigna: '¡Tocá el color que digo! 🔊',
+      colorObjetivo: 'dinamico', velocidad: 8, tamMin: 55, tamMax: 85, xpPor: 12,
+      audiosCorrecto: ['excelente','increible','genial','que_bien'],
+      audioError: 'esa_no',
+      introAudio: 'hola',
+      introTexto: '¡Tocá el color que yo diga! 🐙'
+    }
   };
 
   const COLORES = [
@@ -140,7 +168,6 @@
   let puntaje = 0, burbujaCorrectas = 0;
   let intervaloBurbujas = null, burbujasEnPantalla = [];
   let juegoActivo = false, colorAnunciado = null;
-  let audioCtx = null;
 
   // =============================================
   // INICIO
@@ -155,9 +182,10 @@
     config = CONFIG_NIVEL[nivelActual] || CONFIG_NIVEL[1];
     document.getElementById('consignaCard').textContent = config.consigna;
     document.getElementById('puntaje').textContent = puntaje;
+
     setTimeout(() => {
-      mostrarPoli(config.introduccion);
-      hablar(config.introduccion);
+      mostrarPoli(config.introTexto);
+      reproducir(config.introAudio);
       setTimeout(iniciarJuego, 2500);
     }, 500);
   });
@@ -171,73 +199,6 @@
       s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${Math.random()*4+2}s;--op:${Math.random()*0.5+0.2};animation-delay:${Math.random()*4}s`;
       fondo.appendChild(s);
     }
-  }
-
-  // =============================================
-  // AUDIO
-  // =============================================
-  function getAudioCtx() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    return audioCtx;
-  }
-
-  function sonidoBurbuja(correcto) {
-    try {
-      const ctx = getAudioCtx();
-      // Sonido de burbuja: ruido filtrado con envelope rápido
-      const bufferSize = ctx.sampleRate * 0.15;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.value = correcto ? 1800 : 400;
-      filter.Q.value = 8;
-
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(correcto ? 0.4 : 0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-
-      source.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      source.start();
-
-      // Si es correcto: acorde de celebración
-      if (correcto) {
-        setTimeout(() => tonoCorto(880, 0.08), 80);
-        setTimeout(() => tonoCorto(1046, 0.08), 160);
-      }
-    } catch(e) {}
-  }
-
-  function tonoCorto(freq, dur) {
-    try {
-      const ctx = getAudioCtx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(); osc.stop(ctx.currentTime + dur);
-    } catch(e) {}
-  }
-
-  function hablar(texto) {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const msg = new SpeechSynthesisUtterance(texto);
-    msg.lang = 'es-AR';
-    msg.rate = 1.15;   // un poco más rápido = más infantil/alegre
-    msg.pitch = 1.9;   // tono muy alto = voz de caricatura
-    msg.volume = 1;
-    window.speechSynthesis.speak(msg);
   }
 
   // =============================================
@@ -267,28 +228,17 @@
     const b = document.createElement('div');
     b.className = 'burbuja';
     b.dataset.color = colorData.nombre;
-    b.style.cssText = `
-      width:${tam}px;height:${tam}px;left:${posX}px;top:${posY}px;
-      background:radial-gradient(circle at 35% 35%, ${colorData.hex}ee, ${colorData.hex}77);
-      box-shadow:0 0 24px ${colorData.sombra},inset -4px -4px 12px rgba(0,0,0,0.15),inset 2px 2px 8px rgba(255,255,255,0.45);
-      --drift:${drift}px;animation-duration:${dur}s;
-    `;
+    b.style.cssText = `width:${tam}px;height:${tam}px;left:${posX}px;top:${posY}px;background:radial-gradient(circle at 35% 35%, ${colorData.hex}ee, ${colorData.hex}77);box-shadow:0 0 24px ${colorData.sombra},inset -4px -4px 12px rgba(0,0,0,0.15),inset 2px 2px 8px rgba(255,255,255,0.45);--drift:${drift}px;animation-duration:${dur}s;`;
 
     if (nivelActual === 1) {
       const emojis = ['🌟','⭐','✨','💫','🌈','🎈'];
       b.textContent = emojis[Math.floor(Math.random() * emojis.length)];
     }
 
-    const tocar = (e) => { e.preventDefault(); e.stopPropagation(); tocarBurbuja(b, colorData); };
-    b.addEventListener('pointerdown', tocar);
-
+    b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); tocarBurbuja(b, colorData); });
     area.appendChild(b);
     burbujasEnPantalla.push(b);
-
-    b.addEventListener('animationend', () => {
-      b.remove();
-      burbujasEnPantalla = burbujasEnPantalla.filter(x => x !== b);
-    });
+    b.addEventListener('animationend', () => { b.remove(); burbujasEnPantalla = burbujasEnPantalla.filter(x => x !== b); });
   }
 
   function tocarBurbuja(b, colorData) {
@@ -298,25 +248,21 @@
     explotar(rect, colorData.hex, esCorrecta);
     b.remove();
     burbujasEnPantalla = burbujasEnPantalla.filter(x => x !== b);
+    sonidoBurbuja(esCorrecta);
 
     if (esCorrecta) {
       burbujaCorrectas++;
       puntaje += config.xpPor;
       document.getElementById('puntaje').textContent = puntaje;
-      const frase = config.frasesPoli[Math.floor(Math.random() * config.frasesPoli.length)];
-      mostrarPoli(frase + ' 🎉');
-      hablar(frase);
-      sonidoBurbuja(true);
-      if (burbujaCorrectas > 0 && burbujaCorrectas % 5 === 0) {
-        setTimeout(mostrarCelebracion, 400);
-      }
-    } else {
-      sonidoBurbuja(false);
-      if (nivelActual > 1) {
-        const msg = nivelActual === 3 && colorAnunciado ? '¡' + colorAnunciado.toUpperCase() + '!' : '¡LA ROJA!';
-        mostrarPoli('¡Esa no! ' + msg + ' 🔴');
-        hablar('¡Esa no!');
-      }
+      const audios = config.audiosCorrecto;
+      const audio = audios[Math.floor(Math.random() * audios.length)];
+      const textos = { bien:'¡BIEN! 🎉', genial:'¡GENIAL! ⭐', si:'¡SÍ! 🌟', bravo:'¡BRAVO! 🎊', excelente:'¡EXCELENTE! 🏆', que_bien:'¡QUÉ BIEN! 💫', increible:'¡INCREÍBLE! 🔥' };
+      mostrarPoli(textos[audio] || '¡BIEN! 🎉');
+      reproducir(audio);
+      if (burbujaCorrectas > 0 && burbujaCorrectas % 5 === 0) setTimeout(mostrarCelebracion, 400);
+    } else if (nivelActual > 1) {
+      mostrarPoli('¡Esa no! 🔴');
+      reproducir('esa_no');
     }
   }
 
@@ -329,11 +275,11 @@
 
   function anunciarColor() {
     if (!juegoActivo) return;
-    const colores = ['rojo','azul','verde','amarillo'];
-    colorAnunciado = colores[Math.floor(Math.random() * colores.length)];
-    const emojis = { rojo:'🔴',azul:'🔵',verde:'🟢',amarillo:'🟡' };
+    const cols = ['rojo','azul','verde','amarillo'];
+    colorAnunciado = cols[Math.floor(Math.random() * cols.length)];
+    const emojis = { rojo:'🔴', azul:'🔵', verde:'🟢', amarillo:'🟡' };
     mostrarPoli(emojis[colorAnunciado] + ' ¡' + colorAnunciado.toUpperCase() + '!');
-    hablar(colorAnunciado);
+    reproducir(colorAnunciado === 'rojo' ? 'la_roja' : colorAnunciado);
     document.getElementById('consignaCard').textContent = '¡Tocá la ' + colorAnunciado + '! ' + emojis[colorAnunciado];
     setTimeout(() => { if (juegoActivo) anunciarColor(); }, 5000);
   }
@@ -346,37 +292,28 @@
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const size = rect.width;
-
-    // Anillo
     const anillo = document.createElement('div');
     anillo.className = correcto ? 'anillo-ok' : 'anillo-error';
     anillo.style.cssText = `left:${cx-size/2}px;top:${cy-size/2}px;width:${size}px;height:${size}px;`;
     area.appendChild(anillo);
     setTimeout(() => anillo.remove(), 600);
-
     if (!correcto) return;
-
-    // Partículas
-    const particColors = ['#FFCC3B','#52D9A0','#5BBFEA','#A78BFA','#FF7E6B', color];
+    const cols = ['#FFCC3B','#52D9A0','#5BBFEA','#A78BFA','#FF7E6B', color];
     for (let i = 0; i < 14; i++) {
       const p = document.createElement('div');
       p.className = 'particula';
       const ang = (i / 14) * Math.PI * 2;
       const dist = 50 + Math.random() * 70;
       const s = Math.random() * 12 + 6;
-      p.style.cssText = `left:${cx-s/2}px;top:${cy-s/2}px;width:${s}px;height:${s}px;background:${particColors[Math.floor(Math.random()*particColors.length)]};--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;`;
+      p.style.cssText = `left:${cx-s/2}px;top:${cy-s/2}px;width:${s}px;height:${s}px;background:${cols[Math.floor(Math.random()*cols.length)]};--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;`;
       area.appendChild(p);
       setTimeout(() => p.remove(), 800);
     }
   }
 
-  // =============================================
-  // POLI
-  // =============================================
   function mostrarPoli(texto) {
     const el = document.getElementById('poliTexto');
-    el.style.animation = 'none';
-    el.offsetHeight;
+    el.style.animation = 'none'; el.offsetHeight;
     el.style.animation = 'aparecer-txt 0.3s ease';
     el.textContent = texto;
   }
@@ -387,15 +324,17 @@
   function mostrarCelebracion() {
     juegoActivo = false;
     clearInterval(intervaloBurbujas);
-    const frasesCel = ['¡EXCELENTE!','¡QUÉ BIEN!','¡GENIAL!','¡INCREÍBLE!'];
-    const frase = frasesCel[Math.floor(Math.random() * frasesCel.length)];
-    const xpGanado = burbujaCorrectas * config.xpPor;
-    document.getElementById('celEmoji').textContent = '🎉';
-    document.getElementById('celTitulo').textContent = frase;
-    document.getElementById('celXP').textContent = '+' + xpGanado + ' XP ⚡';
+    const frases = [
+      { texto: '¡EXCELENTE!', audio: 'excelente' },
+      { texto: '¡QUÉ BIEN!',  audio: 'que_bien' },
+      { texto: '¡INCREÍBLE!', audio: 'increible' },
+    ];
+    const f = frases[Math.floor(Math.random() * frases.length)];
+    document.getElementById('celTitulo').textContent = f.texto;
+    document.getElementById('celXP').textContent = '+' + (burbujaCorrectas * config.xpPor) + ' XP ⚡';
     document.getElementById('celebracion').style.display = 'flex';
     lanzarConfeti();
-    hablar(frase);
+    reproducir(f.audio);
     guardarProgreso();
   }
 
@@ -408,15 +347,14 @@
       if (juegoActivo && burbujasEnPantalla.length < 7) crearBurbuja();
     }, 1600);
     mostrarPoli('¡Seguimos! 🐙');
-    hablar('¡SEGUIMOS!');
+    reproducir('seguimos');
   }
 
   async function guardarProgreso() {
     try {
       const nuevoNivel = puntaje >= 150 ? 3 : puntaje >= 50 ? 2 : 1;
       await sb.from('children').update({ xp_total: puntaje, nivel: nuevoNivel }).eq('id', hijo.id);
-      hijo.xp_total = puntaje;
-      sessionStorage.setItem('hijoActual', JSON.stringify(hijo));
+      hijo.xp_total = puntaje; sessionStorage.setItem('hijoActual', JSON.stringify(hijo));
     } catch(e) {}
   }
 
@@ -430,7 +368,7 @@
       p.style.left = Math.random()*100+'vw'; p.style.top='-10px';
       p.style.background = cols[Math.floor(Math.random()*cols.length)];
       p.style.animationDelay = Math.random()*1+'s';
-      p.style.width = (Math.random()*10+6)+'px'; p.style.height=(Math.random()*10+6)+'px';
+      p.style.width=(Math.random()*10+6)+'px'; p.style.height=(Math.random()*10+6)+'px';
       confeti.appendChild(p);
     }
     setTimeout(() => { confeti.style.display='none'; confeti.innerHTML=''; }, 2500);
@@ -439,7 +377,6 @@
   function salir() {
     juegoActivo = false;
     clearInterval(intervaloBurbujas);
-    window.speechSynthesis.cancel();
     window.location.href = 'bienvenida.html';
   }
 </script>
