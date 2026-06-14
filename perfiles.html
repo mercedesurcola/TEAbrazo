@@ -7,103 +7,127 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #F0F7FF; font-family: 'Nunito Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 32px 20px 60px; position: relative; overflow-x: hidden; }
-  .burbuja { position: fixed; border-radius: 50%; opacity: 0.12; animation: flotar 6s ease-in-out infinite; z-index: 0; }
-  .b1 { width: 200px; height: 200px; background: #5BBFEA; top: -50px; left: -50px; }
-  .b2 { width: 150px; height: 150px; background: #FFCC3B; top: 10%; right: -30px; animation-delay: 1s; }
-  .b3 { width: 100px; height: 100px; background: #52D9A0; bottom: 15%; left: 10px; animation-delay: 2s; }
-  .b4 { width: 120px; height: 120px; background: #A78BFA; bottom: -30px; right: 20%; animation-delay: 0.5s; }
-  @keyframes flotar { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#F0F7FF;font-family:'Nunito Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:28px 20px 80px;position:relative;overflow-x:hidden;}
+  .burbuja{position:fixed;border-radius:50%;opacity:0.12;animation:flotar 6s ease-in-out infinite;z-index:0;pointer-events:none;}
+  .b1{width:200px;height:200px;background:#5BBFEA;top:-50px;left:-50px;}
+  .b2{width:150px;height:150px;background:#FFCC3B;top:10%;right:-30px;animation-delay:1s;}
+  .b3{width:100px;height:100px;background:#52D9A0;bottom:15%;left:10px;animation-delay:2s;}
+  .b4{width:120px;height:120px;background:#A78BFA;bottom:-30px;right:20%;animation-delay:0.5s;}
+  @keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
 
-  .contenedor { z-index: 10; width: 100%; max-width: 480px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  .contenedor{z-index:10;width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;gap:22px;}
+  .header{width:100%;display:flex;align-items:center;justify-content:space-between;}
+  .logo-img{height:44px;animation:flotar 3s ease-in-out infinite;filter:drop-shadow(0 4px 12px #5BBFEA33);}
+  .header-btns{display:flex;gap:8px;}
+  .logo-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:26px;color:#5BBFEA;}
+  .logo-texto span{color:#A78BFA;}
+  .btn-config{background:white;border:2px solid #5BBFEA;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#5BBFEA;cursor:pointer;}
+  .btn-salir{background:white;border:2px solid #FF7E6B;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#FF7E6B;cursor:pointer;}
+  .titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:26px;color:#333;text-align:center;}
 
-  .header { width: 100%; display: flex; align-items: center; justify-content: space-between; }
-  .logo-img { height: 48px; animation: flotar 3s ease-in-out infinite; filter: drop-shadow(0 4px 12px #5BBFEA33); }
-  .btn-salir { background: white; border: 2px solid #FF7E6B; border-radius: 14px; padding: 8px 16px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 14px; color: #FF7E6B; cursor: pointer; }
-  .btn-salir:active { background: #FFF0EE; }
+  .grid-perfiles{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%;}
+  .tarjeta-perfil{background:white;border-radius:22px;padding:18px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 4px 20px #5BBFEA15;cursor:pointer;border:3px solid transparent;animation:aparecer 0.4s ease forwards;opacity:0;transform:translateY(20px);position:relative;}
+  @keyframes aparecer{to{opacity:1;transform:translateY(0)}}
+  .tarjeta-perfil:active{transform:scale(0.96);border-color:#5BBFEA;}
+  .btn-eliminar-hijo{position:absolute;top:8px;right:8px;background:#FFF0EE;border:none;border-radius:10px;padding:4px 8px;font-size:13px;cursor:pointer;color:#FF7E6B;font-family:'Nunito',sans-serif;font-weight:700;}
+  .btn-editar-hijo{position:absolute;top:8px;right:36px;background:#F0F7FF;border:none;border-radius:10px;padding:4px 8px;font-size:13px;cursor:pointer;color:#5BBFEA;font-family:'Nunito',sans-serif;font-weight:700;}
+  .avatar-circulo{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;}
+  .perfil-nombre{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#333;text-align:center;}
+  .perfil-nivel{display:flex;align-items:center;gap:4px;background:#F0F7FF;border-radius:50px;padding:3px 10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;color:#555;}
+  .perfil-xp{font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;color:#FFCC3B;}
+  .perfil-tiempo{font-size:11px;color:#A78BFA;font-family:'Nunito',sans-serif;font-weight:600;}
 
-  .titulo { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 28px; color: #333; text-align: center; }
+  .tarjeta-agregar{background:white;border-radius:22px;padding:24px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 4px 20px #5BBFEA15;cursor:pointer;border:3px dashed #C5E8F7;transition:all 0.2s;}
+  .tarjeta-agregar:active{border-color:#5BBFEA;background:#F0F7FF;}
+  .agregar-icono{width:68px;height:68px;border-radius:50%;background:#F0F7FF;display:flex;align-items:center;justify-content:center;font-size:30px;}
+  .agregar-texto{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#5BBFEA;text-align:center;}
 
-  .grid-perfiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; width: 100%; }
+  .cargando{display:flex;flex-direction:column;align-items:center;gap:14px;padding:40px;}
+  .spinner{width:40px;height:40px;border:4px solid #E0EFFF;border-top-color:#5BBFEA;border-radius:50%;animation:girar 0.8s linear infinite;}
+  @keyframes girar{to{transform:rotate(360deg)}}
+  .cargando-texto{font-family:'Nunito',sans-serif;font-weight:700;color:#5BBFEA;font-size:15px;}
 
-  .tarjeta-perfil { background: white; border-radius: 24px; padding: 20px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; box-shadow: 0 4px 20px #5BBFEA15; cursor: pointer; border: 3px solid transparent; animation: aparecer 0.4s ease forwards; opacity: 0; transform: translateY(20px); position: relative; }
-  @keyframes aparecer { to { opacity: 1; transform: translateY(0); } }
-  .tarjeta-perfil:active { transform: scale(0.96); border-color: #5BBFEA; }
+  /* MODALES */
+  .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#00000055;z-index:200;display:none;align-items:flex-end;justify-content:center;}
+  .modal{background:white;border-radius:28px 28px 0 0;padding:28px 22px 44px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;animation:subir 0.3s ease;max-height:90vh;overflow-y:auto;}
+  @keyframes subir{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:#333;text-align:center;}
+  .campo{display:flex;flex-direction:column;gap:7px;}
+  .campo label{font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#555;}
+  .campo input{background:#F0F7FF;border:2px solid #E0EFFF;border-radius:14px;padding:14px 16px;font-family:'Nunito Sans',sans-serif;font-size:15px;color:#333;outline:none;width:100%;}
+  .campo input:focus{border-color:#5BBFEA;}
+  .avatares{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .avatar-opcion{width:46px;height:46px;border-radius:50%;background:#F0F7FF;border:3px solid transparent;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:all 0.15s;}
+  .avatar-opcion.seleccionado{border-color:#5BBFEA;background:#E0F4FF;transform:scale(1.15);}
+  .niveles-selector{display:flex;gap:8px;justify-content:center;}
+  .nivel-opcion{flex:1;background:#F0F7FF;border:3px solid transparent;border-radius:16px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all 0.2s;}
+  .nivel-opcion.seleccionado{border-color:#5BBFEA;background:#E0F4FF;}
+  .nivel-opcion-animal{font-size:28px;}
+  .nivel-opcion-nombre{font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;color:#444;text-align:center;}
+  .fila-2{display:flex;gap:10px;}
+  .fila-2 .campo{flex:1;}
+  .btn-guardar{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:18px;padding:16px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:white;cursor:pointer;}
+  .btn-guardar:active{transform:scale(0.97);}
+  .btn-guardar:disabled{opacity:0.6;}
+  .btn-cancelar{background:#F0F7FF;border:none;border-radius:14px;padding:12px;width:100%;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;}
+  .error{background:#FFF0EE;border:2px solid #FF7E6B;border-radius:12px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;text-align:center;display:none;}
 
-  .btn-editar-nivel { position: absolute; top: 10px; right: 10px; background: #F0F7FF; border: none; border-radius: 10px; padding: 4px 8px; font-size: 14px; cursor: pointer; color: #5BBFEA; font-family: 'Nunito', sans-serif; font-weight: 700; }
-  .btn-editar-nivel:active { background: #E0EFFF; }
+  /* CONFIG */
+  .config-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#00000055;z-index:300;display:none;align-items:flex-end;justify-content:center;}
+  .config-panel{background:white;border-radius:28px 28px 0 0;padding:28px 22px 44px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:18px;animation:subir 0.3s ease;max-height:92vh;overflow-y:auto;}
+  .config-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:#333;text-align:center;}
+  .seccion-titulo{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#5BBFEA;border-bottom:2px solid #E0EFFF;padding-bottom:6px;margin-top:4px;}
+  .voces-grid{display:flex;flex-direction:column;gap:8px;}
+  .voz-fila{display:flex;align-items:center;gap:8px;background:#F0F7FF;border-radius:12px;padding:9px 12px;}
+  .voz-label{font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#444;flex:1;min-width:0;}
+  .estado-voz{font-size:11px;color:#888;font-family:'Nunito Sans',sans-serif;white-space:nowrap;}
+  .btn-grabar{background:white;border:2px solid #FF7E6B;border-radius:10px;padding:5px 10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:11px;color:#FF7E6B;cursor:pointer;white-space:nowrap;}
+  .btn-grabar.grabando{background:#FF7E6B;color:white;animation:pulsar-btn 1s ease-in-out infinite;}
+  @keyframes pulsar-btn{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  .btn-play{background:white;border:2px solid #52D9A0;border-radius:10px;padding:5px 8px;font-size:13px;cursor:pointer;display:none;}
 
-  .avatar-circulo { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; animation: pulsar 3s ease-in-out infinite; }
-  @keyframes pulsar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  /* Solapas */
+  .solapas{display:flex;gap:6px;border-bottom:2px solid #E0EFFF;padding-bottom:0;}
+  .solapa{flex:1;background:transparent;border:none;border-bottom:3px solid transparent;padding:8px 4px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#888;cursor:pointer;border-radius:0;transition:all 0.2s;margin-bottom:-2px;}
+  .solapa.activa{color:#5BBFEA;border-bottom-color:#5BBFEA;background:transparent;}
+  .solapa-contenido{display:flex;flex-direction:column;gap:10px;}
 
-  .perfil-nombre { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 17px; color: #333; text-align: center; }
-  .perfil-nivel { display: flex; align-items: center; gap: 4px; background: #F0F7FF; border-radius: 50px; padding: 4px 10px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 13px; color: #555; }
-  .perfil-xp { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 12px; color: #FFCC3B; }
+  /* Fila animal doble columna */
+  .voz-fila-animal{background:#F0F7FF;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;}
+  .voz-fila-animal-titulo{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#333;}
+  .voz-fila-animal-cols{display:flex;gap:8px;}
+  .voz-col{flex:1;background:white;border-radius:10px;padding:7px 8px;display:flex;align-items:center;gap:6px;}
+  .voz-col-label{font-family:'Nunito',sans-serif;font-weight:700;font-size:11px;color:#777;flex:1;}
 
-  .tarjeta-agregar { background: white; border-radius: 24px; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; box-shadow: 0 4px 20px #5BBFEA15; cursor: pointer; border: 3px dashed #C5E8F7; transition: all 0.2s; }
-  .tarjeta-agregar:active { border-color: #5BBFEA; background: #F0F7FF; }
-  .agregar-icono { width: 72px; height: 72px; border-radius: 50%; background: #F0F7FF; display: flex; align-items: center; justify-content: center; font-size: 32px; }
-  .agregar-texto { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px; color: #5BBFEA; text-align: center; }
+  /* Secciones próximamente */
+  .proximas-wrap{width:100%;max-width:480px;display:flex;flex-direction:column;gap:12px;z-index:10;}
+  .proximas-titulo{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#aaa;text-transform:uppercase;letter-spacing:1px;text-align:center;}
+  .proxima-card{background:white;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 12px #00000008;opacity:0.6;position:relative;overflow:hidden;}
+  .proxima-card::after{content:'Próximamente';position:absolute;right:16px;background:#F0F7FF;border-radius:50px;padding:4px 12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;color:#5BBFEA;}
+  .proxima-emoji{font-size:32px;flex-shrink:0;}
+  .proxima-info{display:flex;flex-direction:column;gap:2px;}
+  .proxima-nombre{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#333;}
+  .proxima-desc{font-family:'Nunito Sans',sans-serif;font-size:12px;color:#888;}
 
-  .vacio { display: none; flex-direction: column; align-items: center; gap: 16px; padding: 40px 20px; text-align: center; }
-  .vacio-emoji { font-size: 60px; }
-  .vacio-texto { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 20px; color: #555; }
-
-  .cargando { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 40px; }
-  .spinner { width: 40px; height: 40px; border: 4px solid #E0EFFF; border-top-color: #5BBFEA; border-radius: 50%; animation: girar 0.8s linear infinite; }
-  @keyframes girar { to { transform: rotate(360deg); } }
-  .cargando-texto { font-family: 'Nunito', sans-serif; font-weight: 700; color: #5BBFEA; font-size: 16px; }
-
-  /* Modal */
-  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #00000055; z-index: 200; display: none; align-items: flex-end; justify-content: center; }
-  .modal { background: white; border-radius: 28px 28px 0 0; padding: 32px 24px 48px; width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 18px; animation: subir 0.3s ease; }
-  @keyframes subir { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .modal-titulo { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 22px; color: #333; text-align: center; }
-
-  .campo { display: flex; flex-direction: column; gap: 8px; }
-  .campo label { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 15px; color: #555; }
-  .campo input { background: #F0F7FF; border: 2px solid #E0EFFF; border-radius: 16px; padding: 16px 18px; font-family: 'Nunito Sans', sans-serif; font-size: 16px; color: #333; outline: none; transition: border-color 0.2s; width: 100%; }
-  .campo input:focus { border-color: #5BBFEA; }
-
-  .avatares { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-  .avatar-opcion { width: 48px; height: 48px; border-radius: 50%; background: #F0F7FF; border: 3px solid transparent; display: flex; align-items: center; justify-content: center; font-size: 26px; cursor: pointer; transition: all 0.15s; }
-  .avatar-opcion.seleccionado { border-color: #5BBFEA; background: #E0F4FF; transform: scale(1.15); }
-
-  /* Selector de nivel */
-  .niveles-selector { display: flex; gap: 10px; justify-content: center; }
-  .nivel-opcion {
-    flex: 1; background: #F0F7FF; border: 3px solid transparent; border-radius: 18px;
-    padding: 14px 8px; display: flex; flex-direction: column; align-items: center;
-    gap: 6px; cursor: pointer; transition: all 0.2s;
-  }
-  .nivel-opcion.seleccionado { border-color: #5BBFEA; background: #E0F4FF; }
-  .nivel-opcion:active { transform: scale(0.97); }
-  .nivel-opcion-animal { font-size: 32px; }
-  .nivel-opcion-nombre { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; color: #444; text-align: center; }
-  .nivel-opcion-desc { font-family: 'Nunito Sans', sans-serif; font-size: 11px; color: #888; text-align: center; line-height: 1.3; }
-
-  .btn-guardar { background: linear-gradient(135deg, #5BBFEA, #A78BFA); border: none; border-radius: 20px; padding: 18px; width: 100%; font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 6px 20px #5BBFEA44; }
-  .btn-guardar:active { transform: scale(0.97); }
-  .btn-guardar:disabled { opacity: 0.6; }
-  .btn-cancelar { background: #F0F7FF; border: none; border-radius: 16px; padding: 14px; width: 100%; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 16px; color: #888; cursor: pointer; }
-
-  .error { background: #FFF0EE; border: 2px solid #FF7E6B; border-radius: 14px; padding: 12px 16px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 14px; color: #FF7E6B; text-align: center; display: none; }
+  /* Footer */
+  .footer{position:fixed;bottom:0;left:0;right:0;z-index:50;background:white;border-top:1px solid #E0EFFF;padding:7px 20px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .footer-marca{font-family:'Nunito',sans-serif;font-weight:700;font-size:11px;color:#5BBFEA;}
+  .footer-marca a{color:#5BBFEA;text-decoration:none;}
+  .footer-legal{font-family:'Nunito Sans',sans-serif;font-size:9px;color:#aaa;text-align:center;}
 </style>
 </head>
 <body>
 <div class="burbuja b1"></div><div class="burbuja b2"></div><div class="burbuja b3"></div><div class="burbuja b4"></div>
 
-<!-- Modal agregar/editar hijo -->
+<!-- Modal hijo -->
 <div class="modal-overlay" id="modalHijo">
   <div class="modal">
     <div class="modal-titulo" id="modalTitulo">👶 Agregar hijo</div>
-
     <div class="campo" id="campoNombre">
       <label>📝 Nombre del niño</label>
       <input type="text" id="nuevoNombre" placeholder="¿Cómo se llama?">
     </div>
-
     <div class="campo" id="campoAvatar">
       <label>🎨 Elegí un avatar</label>
       <div class="avatares">
@@ -117,213 +141,450 @@
         <div class="avatar-opcion" onclick="elegirAvatar(this,'🐯')">🐯</div>
       </div>
     </div>
-
     <div class="campo">
       <label>🐣 Nivel de inicio</label>
       <div class="niveles-selector">
-        <div class="nivel-opcion seleccionado" onclick="elegirNivel(this, 1)">
-          <div class="nivel-opcion-animal">🥚</div>
-          <div class="nivel-opcion-nombre">Huevo</div>
-          <div class="nivel-opcion-desc">Emociones básicas</div>
-        </div>
-        <div class="nivel-opcion" onclick="elegirNivel(this, 2)">
-          <div class="nivel-opcion-animal">🐣</div>
-          <div class="nivel-opcion-nombre">Pollito</div>
-          <div class="nivel-opcion-desc">Situaciones con contexto</div>
-        </div>
-        <div class="nivel-opcion" onclick="elegirNivel(this, 3)">
-          <div class="nivel-opcion-animal">🐤</div>
-          <div class="nivel-opcion-nombre">Pollito grande</div>
-          <div class="nivel-opcion-desc">Emociones complejas</div>
-        </div>
+        <div class="nivel-opcion seleccionado" onclick="elegirNivel(this,1)"><div class="nivel-opcion-animal">🥚</div><div class="nivel-opcion-nombre">Huevo</div></div>
+        <div class="nivel-opcion" onclick="elegirNivel(this,2)"><div class="nivel-opcion-animal">🐣</div><div class="nivel-opcion-nombre">Pollito</div></div>
+        <div class="nivel-opcion" onclick="elegirNivel(this,3)"><div class="nivel-opcion-animal">🐤</div><div class="nivel-opcion-nombre">Pollito grande</div></div>
       </div>
     </div>
-
+    <div class="fila-2">
+      <div class="campo">
+        <label>⏱️ Tiempo límite (min)</label>
+        <input type="number" id="tiempoLimite" placeholder="vacío = sin límite" min="1" max="120">
+      </div>
+      <div class="campo">
+        <label>🔐 PIN (4 dígitos)</label>
+        <input type="number" id="pinHijo" placeholder="ej: 1234" maxlength="4">
+      </div>
+    </div>
     <div class="error" id="errorModal"></div>
     <button class="btn-guardar" id="btnGuardar" onclick="guardarHijo()">✅ Guardar</button>
     <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
   </div>
 </div>
 
+<!-- Config padre -->
+<div class="config-overlay" id="configOverlay">
+  <div class="config-panel">
+    <div class="config-titulo">⚙️ Voces de Pupi</div>
+    <p style="font-family:'Nunito Sans',sans-serif;font-size:11px;color:#aaa;text-align:center;margin-top:-8px;">Si no grabás, se usa la voz por defecto</p>
+
+    <!-- Solapas -->
+    <div class="solapas">
+      <button class="solapa activa" onclick="cambiarSolapa('general')">🐙 General</button>
+      <button class="solapa" onclick="cambiarSolapa('burbujas')">🫧 Burbujas</button>
+      <button class="solapa" onclick="cambiarSolapa('animales')">🐾 Animales</button>
+      <button class="solapa" onclick="cambiarSolapa('emociones')">😊 Emociones</button>
+    </div>
+
+    <!-- Contenido Burbujas -->
+    <div class="solapa-contenido" id="tab-burbujas" style="display:none;">
+      <div class="seccion-titulo">🎨 Colores</div>
+      <div class="voces-grid" id="vocesGridColores"></div>
+      <div class="seccion-titulo">⏱️ Cuenta regresiva</div>
+      <div class="voces-grid" id="vocesGridCountdown"></div>
+      <div class="seccion-titulo">🎉 Celebración</div>
+      <div class="voces-grid" id="vocesGridCelebracion"></div>
+    </div>
+
+    <!-- Contenido Animales -->
+    <div class="solapa-contenido" id="tab-animales" style="display:none;">
+      <p style="font-family:'Nunito Sans',sans-serif;font-size:11px;color:#aaa;text-align:center;">Grabá el sonido Y el nombre en la misma fila</p>
+      <div class="voces-grid" id="vocesGridAnimales"></div>
+    </div>
+
+    <!-- Contenido Emociones -->
+    <div class="solapa-contenido" id="tab-emociones" style="display:none;">
+      <div class="seccion-titulo">😊 Nombres de emociones</div>
+      <div class="voces-grid" id="vocesGridEmociones"></div>
+    </div>
+
+    <!-- Contenido General -->
+    <div class="solapa-contenido" id="tab-general">
+      <div class="seccion-titulo">🐙 Pupi</div>
+      <div class="voces-grid" id="vocesGridPupi"></div>
+    </div>
+
+    <button class="btn-guardar" style="margin-top:8px;" onclick="cerrarConfig()">✅ Listo</button>
+    <button class="btn-cancelar" onclick="cerrarConfig()">Cerrar</button>
+  </div>
+</div>
+
 <div class="contenedor">
   <div class="header">
-    <img class="logo-img" src="TEAbrazo.png" alt="TEAbrazo">
-    <button class="btn-salir" onclick="salir()">Salir 👋</button>
+    <div class="logo-texto">TEA<span>brazo</span></div>
+    <div class="header-btns">
+      <button class="btn-config" onclick="abrirConfig()">⚙️ Voces</button>
+      <button class="btn-salir" onclick="salir()">Salir 👋</button>
+    </div>
   </div>
   <div class="titulo">¿Quién juega hoy? 🎮</div>
   <div class="cargando" id="cargando"><div class="spinner"></div><div class="cargando-texto">Cargando perfiles...</div></div>
-  <div class="vacio" id="vacio"><div class="vacio-emoji">👶</div><div class="vacio-texto">¡Agregá tu primer hijo!</div></div>
   <div class="grid-perfiles" id="gridPerfiles" style="display:none;"></div>
 </div>
 
-<script>
-  const SUPABASE_URL = 'https://oyuriwnxioylyetchbbz.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
-  const { createClient } = supabase;
-  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+<div class="proximas-wrap" style="padding:0 20px 16px;">
+  <div class="proximas-titulo">En desarrollo 🚀</div>
+  <div class="proxima-card">
+    <div class="proxima-emoji">👨‍👩‍👧‍👦</div>
+    <div class="proxima-info">
+      <div class="proxima-nombre">Comunidad</div>
+      <div class="proxima-desc">Conectate con otras familias</div>
+    </div>
+  </div>
+  <div class="proxima-card">
+    <div class="proxima-emoji">🩺</div>
+    <div class="proxima-info">
+      <div class="proxima-nombre">Especialistas</div>
+      <div class="proxima-desc">Consultá con profesionales del área</div>
+    </div>
+  </div>
+</div>
 
-  const COLORES = ['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
-  const NIVELES = {
-    1: { animal: '🥚', nombre: 'Huevo', xpInicio: 0 },
-    2: { animal: '🐣', nombre: 'Pollito', xpInicio: 50 },
-    3: { animal: '🐤', nombre: 'Pollito grande', xpInicio: 150 }
+<div class="footer">
+  <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
+  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados. TEAbrazo es una herramienta de apoyo y no reemplaza la intervención profesional.</div>
+</div>
+
+<script>
+  const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
+  const {createClient}=supabase;
+  const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  const COLORES_PERFIL=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+  const NIVELES={1:{animal:'🥚',nombre:'Huevo',xpInicio:0},2:{animal:'🐣',nombre:'Pollito',xpInicio:50},3:{animal:'🐤',nombre:'Pollito grande',xpInicio:150}};
+
+  // TODAS las voces organizadas por sección
+  const VOCES_SECCIONES = {
+    vocesGridCelebracion: [
+      {id:'excelente', label:'¡EXCELENTE!'},
+      {id:'que_bien',  label:'¡QUÉ BIEN!'},
+      {id:'increible', label:'¡INCREÍBLE!'},
+      {id:'bien',      label:'¡BIEN!'},
+      {id:'genial',    label:'¡GENIAL!'},
+      {id:'si',        label:'¡SÍ!'},
+      {id:'bravo',     label:'¡BRAVO!'},
+    ],
+    vocesGridColores: [
+      {id:'rojo',      label:'Rojo 🔴'},
+      {id:'amarillo',  label:'Amarillo 🟡'},
+      {id:'verde',     label:'Verde 🟢'},
+      {id:'azul',      label:'Azul 🔵'},
+      {id:'violeta',   label:'Violeta 🟣'},
+      {id:'blanco',    label:'Blanco ⚪'},
+    ],
+    vocesGridCountdown: [
+      {id:'tres',  label:'¡TRES!'},
+      {id:'dos',   label:'¡DOS!'},
+      {id:'uno',   label:'¡UNO!'},
+      {id:'ya',    label:'¡YA!'},
+    ],
+    vocesGridPupi: [
+      {id:'saludo_bienvenida', label:'Saludo bienvenida ("¡Hola! Soy Pupi")'},
+      {id:'hola',     label:'Inicio de juego'},
+      {id:'upps',     label:'¡UPPS!'},
+      {id:'seguimos', label:'¡SEGUIMOS!'},
+      {id:'vamos',    label:'¡VAMOS!'},
+    ],
+    vocesGridAnimalesNombre: [
+      {id:'nombre_perro',   label:'Nombre: Perro 🐶'},
+      {id:'nombre_gato',    label:'Nombre: Gato 🐱'},
+      {id:'nombre_vaca',    label:'Nombre: Vaca 🐄'},
+      {id:'nombre_sapo',    label:'Nombre: Sapo 🐸'},
+      {id:'nombre_leon',    label:'Nombre: León 🦁'},
+      {id:'nombre_gallo',   label:'Nombre: Gallo 🐓'},
+      {id:'nombre_chancho', label:'Nombre: Chancho 🐷'},
+      {id:'nombre_caballo', label:'Nombre: Caballo 🐴'},
+    ],
+    vocesGridEmociones: [
+      {id:'emocion_alegria',    label:'Alegría 😊'},
+      {id:'emocion_tristeza',   label:'Tristeza 😢'},
+      {id:'emocion_enojo',      label:'Enojo 😠'},
+      {id:'emocion_miedo',      label:'Miedo 😨'},
+      {id:'emocion_sorpresa',   label:'Sorpresa 😲'},
+      {id:'emocion_entusiasmo', label:'Entusiasmo 🤩'},
+    ],
+    vocesGridAnimalesSonido: [
+      {id:'animal_perro',   label:'Sonido: Perro 🐶 (guau guau)'},
+      {id:'animal_gato',    label:'Sonido: Gato 🐱 (miau miau)'},
+      {id:'animal_vaca',    label:'Sonido: Vaca 🐄 (muuu)'},
+      {id:'animal_sapo',    label:'Sonido: Sapo 🐸 (croac croac)'},
+      {id:'animal_leon',    label:'Sonido: León 🦁 (grrr)'},
+      {id:'animal_gallo',   label:'Sonido: Gallo 🐓 (quiquiriquí)'},
+      {id:'animal_chancho', label:'Sonido: Chancho 🐷 (oink oink)'},
+      {id:'animal_caballo', label:'Sonido: Caballo 🐴 (hiiii)'},
+    ],
   };
 
-  let avatarSeleccionado = '🦋';
-  let nivelSeleccionado = 1;
-  let sesionActual = null;
-  let modoEdicion = false;
-  let hijoEditandoId = null;
+  let avatarSeleccionado='🦋', nivelSeleccionado=1;
+  let sesionActual=null, modoEdicion=false, hijoEditandoId=null;
+  let mediaRecorder=null, grabandoId=null, chunksAudio=[];
+  let vocesGrabadas={};
 
-  window.addEventListener('load', async () => {
-    try {
-      const { data: { session } } = await sb.auth.getSession();
-      if (!session) { window.location.href = 'index.html'; return; }
-      sesionActual = session;
+  window.addEventListener('load',async()=>{
+    try{
+      const{data:{session}}=await sb.auth.getSession();
+      if(!session){window.location.href='index.html';return;}
+      sesionActual=session;
+      vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');
       await cargarPerfiles();
-    } catch(e) { window.location.href = 'index.html'; }
+    }catch(e){window.location.href='index.html';}
   });
 
-  async function cargarPerfiles() {
-    document.getElementById('cargando').style.display = 'flex';
-    document.getElementById('gridPerfiles').style.display = 'none';
-    document.getElementById('vacio').style.display = 'none';
-    try {
-      const { data: hijos, error } = await sb.from('children').select('*').eq('padre_id', sesionActual.user.id).order('created_at', { ascending: true });
-      if (error) throw error;
-      document.getElementById('cargando').style.display = 'none';
-      if (!hijos || hijos.length === 0) { document.getElementById('vacio').style.display = 'flex'; renderAgregarBoton(true); return; }
+  // =============================================
+  // PERFILES
+  // =============================================
+  async function cargarPerfiles(){
+    document.getElementById('cargando').style.display='flex';
+    document.getElementById('gridPerfiles').style.display='none';
+    try{
+      const{data:hijos,error}=await sb.from('children').select('*').eq('padre_id',sesionActual.user.id).order('created_at',{ascending:true});
+      if(error)throw error;
+      document.getElementById('cargando').style.display='none';
+      if(!hijos||hijos.length===0){renderAgregarBoton(true);return;}
       renderPerfiles(hijos);
-    } catch(e) {
-      document.getElementById('cargando').style.display = 'none';
-      document.getElementById('vacio').style.display = 'flex';
-      renderAgregarBoton(true);
-    }
+    }catch(e){document.getElementById('cargando').style.display='none';renderAgregarBoton(true);}
   }
 
-  function renderPerfiles(hijos) {
-    const grid = document.getElementById('gridPerfiles');
-    grid.style.display = 'grid'; grid.innerHTML = '';
-    hijos.forEach((hijo, i) => {
-      const color = COLORES[i % COLORES.length];
-      const nivel = NIVELES[hijo.nivel] || NIVELES[1];
-      const t = document.createElement('div');
-      t.className = 'tarjeta-perfil';
-      t.style.animationDelay = (i * 0.1) + 's';
-      t.innerHTML = `
-        <button class="btn-editar-nivel" onclick="abrirEdicion(event, ${JSON.stringify(hijo).replace(/"/g, '&quot;')})">✏️ Nivel</button>
+  function renderPerfiles(hijos){
+    const grid=document.getElementById('gridPerfiles');
+    grid.style.display='grid';grid.innerHTML='';
+    hijos.forEach((hijo,i)=>{
+      const color=COLORES_PERFIL[i%COLORES_PERFIL.length];
+      const nivel=NIVELES[hijo.nivel]||NIVELES[1];
+      const tiempo=hijo.tiempo_limite?hijo.tiempo_limite+' min':'∞ libre';
+      const t=document.createElement('div');
+      t.className='tarjeta-perfil';
+      t.style.animationDelay=(i*0.1)+'s';
+      t.innerHTML=`
+        <button class="btn-editar-hijo" onclick="abrirEdicion(event,${JSON.stringify(hijo).replace(/"/g,'&quot;')})" style="right:36px">✏️</button>
+        <button class="btn-eliminar-hijo" onclick="confirmarEliminar(event,'${hijo.id}','${hijo.nombre}')">🗑️</button>
         <div class="avatar-circulo" style="background:${color}22;">${hijo.avatar_emoji||'🦋'}</div>
         <div class="perfil-nombre">${hijo.nombre}</div>
         <div class="perfil-nivel">${nivel.animal} ${nivel.nombre}</div>
-        <div class="perfil-xp">⚡ ${hijo.xp_total||0} XP</div>
+        <div class="perfil-tiempo">⏱️ ${tiempo}</div>
       `;
-      t.addEventListener('click', (e) => {
-        if (!e.target.closest('.btn-editar-nivel')) seleccionarHijo(hijo);
-      });
+      t.addEventListener('click',e=>{if(!e.target.closest('.btn-editar-hijo'))seleccionarHijo(hijo);});
       grid.appendChild(t);
     });
     renderAgregarBoton(false);
   }
 
-  function renderAgregarBoton(solo) {
-    const grid = document.getElementById('gridPerfiles');
-    if (solo) { grid.style.display = 'grid'; grid.innerHTML = ''; }
-    const a = document.createElement('div');
-    a.className = 'tarjeta-agregar';
-    a.innerHTML = '<div class="agregar-icono">➕</div><div class="agregar-texto">Agregar hijo</div>';
-    a.onclick = abrirCreacion;
+  function renderAgregarBoton(solo){
+    const grid=document.getElementById('gridPerfiles');
+    if(solo){grid.style.display='grid';grid.innerHTML='';}
+    const a=document.createElement('div');
+    a.className='tarjeta-agregar';
+    a.innerHTML='<div class="agregar-icono">➕</div><div class="agregar-texto">Agregar hijo</div>';
+    a.onclick=abrirCreacion;
     grid.appendChild(a);
   }
 
-  function seleccionarHijo(hijo) {
-    sessionStorage.setItem('hijoActual', JSON.stringify(hijo));
-    window.location.href = 'bienvenida.html';
+  function seleccionarHijo(hijo){
+    sessionStorage.setItem('hijoActual',JSON.stringify(hijo));
+    window.location.href='bienvenida.html';
   }
 
-  // Abrir modal para CREAR
-  function abrirCreacion() {
-    modoEdicion = false;
-    hijoEditandoId = null;
-    document.getElementById('modalTitulo').textContent = '👶 Agregar hijo';
-    document.getElementById('campoNombre').style.display = 'flex';
-    document.getElementById('campoAvatar').style.display = 'flex';
-    document.getElementById('nuevoNombre').value = '';
-    document.getElementById('errorModal').style.display = 'none';
-    // Reset avatar y nivel
-    avatarSeleccionado = '🦋';
-    nivelSeleccionado = 1;
-    document.querySelectorAll('.avatar-opcion').forEach((a,i) => a.classList.toggle('seleccionado', i===0));
-    document.querySelectorAll('.nivel-opcion').forEach((n,i) => n.classList.toggle('seleccionado', i===0));
-    document.getElementById('modalHijo').style.display = 'flex';
+  // =============================================
+  // MODAL HIJO
+  // =============================================
+  function abrirCreacion(){
+    modoEdicion=false;hijoEditandoId=null;
+    document.getElementById('modalTitulo').textContent='👶 Agregar hijo';
+    document.getElementById('campoNombre').style.display='flex';
+    document.getElementById('campoAvatar').style.display='flex';
+    document.getElementById('nuevoNombre').value='';
+    document.getElementById('tiempoLimite').value='';
+    document.getElementById('pinHijo').value='';
+    document.getElementById('errorModal').style.display='none';
+    avatarSeleccionado='🦋';nivelSeleccionado=1;
+    document.querySelectorAll('.avatar-opcion').forEach((a,i)=>a.classList.toggle('seleccionado',i===0));
+    document.querySelectorAll('.nivel-opcion').forEach((n,i)=>n.classList.toggle('seleccionado',i===0));
+    document.getElementById('modalHijo').style.display='flex';
   }
 
-  // Abrir modal para EDITAR nivel
-  function abrirEdicion(e, hijo) {
+  function abrirEdicion(e,hijo){
     e.stopPropagation();
-    modoEdicion = true;
-    hijoEditandoId = hijo.id;
-    document.getElementById('modalTitulo').textContent = '✏️ Cambiar nivel de ' + hijo.nombre;
-    document.getElementById('campoNombre').style.display = 'none';
-    document.getElementById('campoAvatar').style.display = 'none';
-    document.getElementById('errorModal').style.display = 'none';
-    // Marcar nivel actual
-    nivelSeleccionado = hijo.nivel || 1;
-    document.querySelectorAll('.nivel-opcion').forEach((n,i) => n.classList.toggle('seleccionado', i+1 === nivelSeleccionado));
-    document.getElementById('modalHijo').style.display = 'flex';
+    modoEdicion=true;hijoEditandoId=hijo.id;
+    document.getElementById('modalTitulo').textContent='✏️ Editar '+hijo.nombre;
+    document.getElementById('campoNombre').style.display='none';
+    document.getElementById('campoAvatar').style.display='none';
+    document.getElementById('tiempoLimite').value=hijo.tiempo_limite||'';
+    document.getElementById('pinHijo').value=hijo.pin||'';
+    document.getElementById('errorModal').style.display='none';
+    nivelSeleccionado=hijo.nivel||1;
+    document.querySelectorAll('.nivel-opcion').forEach((n,i)=>n.classList.toggle('seleccionado',i+1===nivelSeleccionado));
+    document.getElementById('modalHijo').style.display='flex';
   }
 
-  function elegirAvatar(el, emoji) {
-    document.querySelectorAll('.avatar-opcion').forEach(a => a.classList.remove('seleccionado'));
-    el.classList.add('seleccionado');
-    avatarSeleccionado = emoji;
-  }
+  function elegirAvatar(el,emoji){document.querySelectorAll('.avatar-opcion').forEach(a=>a.classList.remove('seleccionado'));el.classList.add('seleccionado');avatarSeleccionado=emoji;}
+  function elegirNivel(el,nivel){document.querySelectorAll('.nivel-opcion').forEach(n=>n.classList.remove('seleccionado'));el.classList.add('seleccionado');nivelSeleccionado=nivel;}
 
-  function elegirNivel(el, nivel) {
-    document.querySelectorAll('.nivel-opcion').forEach(n => n.classList.remove('seleccionado'));
-    el.classList.add('seleccionado');
-    nivelSeleccionado = nivel;
-  }
-
-  async function guardarHijo() {
-    const errorEl = document.getElementById('errorModal');
-    errorEl.style.display = 'none';
-    document.getElementById('btnGuardar').disabled = true;
-
-    try {
-      if (modoEdicion) {
-        // Solo actualizar nivel
-        const xpInicio = NIVELES[nivelSeleccionado].xpInicio;
-        const { error } = await sb.from('children')
-          .update({ nivel: nivelSeleccionado, xp_total: xpInicio })
-          .eq('id', hijoEditandoId);
-        if (error) throw error;
-      } else {
-        // Crear hijo nuevo
-        const nombre = document.getElementById('nuevoNombre').value.trim();
-        if (!nombre) { errorEl.textContent = '⚠️ Escribí el nombre del niño'; errorEl.style.display = 'block'; return; }
-        const xpInicio = NIVELES[nivelSeleccionado].xpInicio;
-        const { error } = await sb.from('children').insert({
-          padre_id: sesionActual.user.id,
-          nombre,
-          avatar_emoji: avatarSeleccionado,
-          nivel: nivelSeleccionado,
-          xp_total: xpInicio,
-          racha_dias: 0
-        });
-        if (error) throw error;
+  async function guardarHijo(){
+    const errorEl=document.getElementById('errorModal');
+    errorEl.style.display='none';
+    document.getElementById('btnGuardar').disabled=true;
+    const tiempoRaw=document.getElementById('tiempoLimite').value;
+    const pinRaw=document.getElementById('pinHijo').value.toString().trim();
+    const tiempo=tiempoRaw?parseInt(tiempoRaw):null;
+    const pin=pinRaw||null;
+    if(pin&&pin.length!==4){errorEl.textContent='⚠️ El PIN debe tener exactamente 4 dígitos';errorEl.style.display='block';document.getElementById('btnGuardar').disabled=false;return;}
+    try{
+      if(modoEdicion){
+        const{error}=await sb.from('children').update({nivel:nivelSeleccionado,xp_total:NIVELES[nivelSeleccionado].xpInicio,tiempo_limite:tiempo,pin}).eq('id',hijoEditandoId);
+        if(error)throw error;
+      }else{
+        const nombre=document.getElementById('nuevoNombre').value.trim();
+        if(!nombre){errorEl.textContent='⚠️ Escribí el nombre del niño';errorEl.style.display='block';document.getElementById('btnGuardar').disabled=false;return;}
+        const{error}=await sb.from('children').insert({padre_id:sesionActual.user.id,nombre,avatar_emoji:avatarSeleccionado,nivel:nivelSeleccionado,xp_total:NIVELES[nivelSeleccionado].xpInicio,racha_dias:0,tiempo_limite:tiempo,pin});
+        if(error)throw error;
       }
       cerrarModal();
       await cargarPerfiles();
-    } catch(e) {
-      errorEl.textContent = '❌ Error al guardar. Intentá de nuevo.';
-      errorEl.style.display = 'block';
-    } finally {
-      document.getElementById('btnGuardar').disabled = false;
+    }catch(e){errorEl.textContent='❌ Error al guardar. Intentá de nuevo.';errorEl.style.display='block';}
+    finally{document.getElementById('btnGuardar').disabled=false;}
+  }
+
+  function confirmarEliminar(e, id, nombre){
+    e.stopPropagation();
+    if(confirm('¿Seguro que querés eliminar a ' + nombre + '? Esta acción no se puede deshacer.')){
+      eliminarHijo(id);
     }
   }
 
-  function cerrarModal() { document.getElementById('modalHijo').style.display = 'none'; }
-  async function salir() { await sb.auth.signOut(); window.location.href = 'index.html'; }
+  async function eliminarHijo(id){
+    try{
+      const{error}=await sb.from('children').delete().eq('id',id);
+      if(error)throw error;
+      await cargarPerfiles();
+    }catch(e){alert('Error al eliminar. Intentá de nuevo.');}
+  }
+
+  function cerrarModal(){document.getElementById('modalHijo').style.display='none';}
+
+  // =============================================
+  // CONFIG VOCES
+  // =============================================
+  const ANIMALES_IDS=[
+    {id:'perro',emoji:'🐶',nombre:'Perro'},
+    {id:'gato',emoji:'🐱',nombre:'Gato'},
+    {id:'vaca',emoji:'🐄',nombre:'Vaca'},
+    {id:'sapo',emoji:'🐸',nombre:'Sapo'},
+    {id:'leon',emoji:'🦁',nombre:'León'},
+    {id:'gallo',emoji:'🐓',nombre:'Gallo'},
+    {id:'chancho',emoji:'🐷',nombre:'Chancho'},
+    {id:'caballo',emoji:'🐴',nombre:'Caballo'},
+  ];
+
+  function crearFilaVoz(v){
+    const tieneGrabacion=!!vocesGrabadas[v.id];
+    const fila=document.createElement('div');
+    fila.className='voz-fila';
+    fila.innerHTML=`
+      <span class="voz-label">${v.label}</span>
+      <span class="estado-voz" id="estado_${v.id}">${tieneGrabacion?'✅':'Default'}</span>
+      <button class="btn-play" id="play_${v.id}" onclick="reproducirVoz('${v.id}')" style="display:${tieneGrabacion?'block':'none'}">▶️</button>
+      <button class="btn-grabar" id="btn_${v.id}" onclick="toggleGrabacion('${v.id}')">${tieneGrabacion?'🔄':'🎙️'}</button>
+    `;
+    return fila;
+  }
+
+  function abrirConfig(){
+    // Secciones normales
+    const seccionesNormales=['vocesGridCelebracion','vocesGridColores','vocesGridCountdown','vocesGridPupi','vocesGridEmociones'];
+    seccionesNormales.forEach(gridId=>{
+      const voces=VOCES_SECCIONES[gridId];
+      if(!voces)return;
+      const grid=document.getElementById(gridId);
+      if(!grid)return;
+      grid.innerHTML='';
+      voces.forEach(v=>grid.appendChild(crearFilaVoz(v)));
+    });
+
+    // Animales en fila doble (sonido + nombre en misma línea)
+    const gridAnimales=document.getElementById('vocesGridAnimales');
+    if(gridAnimales){
+      gridAnimales.innerHTML='';
+      ANIMALES_IDS.forEach(a=>{
+        const idSonido='animal_'+a.id;
+        const idNombre='nombre_'+a.id;
+        const tieneS=!!vocesGrabadas[idSonido];
+        const tieneN=!!vocesGrabadas[idNombre];
+        const fila=document.createElement('div');
+        fila.className='voz-fila-animal';
+        fila.innerHTML=`
+          <div class="voz-fila-animal-titulo">${a.emoji} ${a.nombre}</div>
+          <div class="voz-fila-animal-cols">
+            <div class="voz-col">
+              <span class="voz-col-label">🔊 Sonido</span>
+              <button class="btn-play" id="play_${idSonido}" onclick="reproducirVoz('${idSonido}')" style="display:${tieneS?'block':'none'}">▶️</button>
+              <button class="btn-grabar ${tieneS?'':''}" id="btn_${idSonido}" onclick="toggleGrabacion('${idSonido}')">${tieneS?'🔄':'🎙️'}</button>
+            </div>
+            <div class="voz-col">
+              <span class="voz-col-label">🗣️ Nombre</span>
+              <button class="btn-play" id="play_${idNombre}" onclick="reproducirVoz('${idNombre}')" style="display:${tieneN?'block':'none'}">▶️</button>
+              <button class="btn-grabar" id="btn_${idNombre}" onclick="toggleGrabacion('${idNombre}')">${tieneN?'🔄':'🎙️'}</button>
+            </div>
+          </div>
+        `;
+        gridAnimales.appendChild(fila);
+      });
+    }
+
+    document.getElementById('configOverlay').style.display='flex';
+    cambiarSolapa('general');
+  }
+
+  function cambiarSolapa(nombre){
+    document.querySelectorAll('.solapa').forEach(s=>s.classList.remove('activa'));
+    document.querySelectorAll('.solapa-contenido').forEach(c=>c.style.display='none');
+    document.getElementById('tab-'+nombre).style.display='flex';
+    document.getElementById('tab-'+nombre).style.flexDirection='column';
+    document.getElementById('tab-'+nombre).style.gap='10px';
+    event.currentTarget.classList.add('activa');
+  }
+
+  function cerrarConfig(){document.getElementById('configOverlay').style.display='none';}
+
+  async function toggleGrabacion(id){
+    if(grabandoId===id){mediaRecorder.stop();return;}
+    if(grabandoId){mediaRecorder.stop();}
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      chunksAudio=[];grabandoId=id;
+      mediaRecorder=new MediaRecorder(stream);
+      mediaRecorder.ondataavailable=e=>chunksAudio.push(e.data);
+      mediaRecorder.onstop=()=>{
+        const blob=new Blob(chunksAudio,{type:'audio/webm'});
+        const reader=new FileReader();
+        reader.onload=()=>{
+          vocesGrabadas[id]=reader.result;
+          localStorage.setItem('voces_teabrazo',JSON.stringify(vocesGrabadas));
+          document.getElementById('estado_'+id).textContent='✅ Grabada';
+          document.getElementById('btn_'+id).textContent='🔄';
+          document.getElementById('btn_'+id).classList.remove('grabando');
+          document.getElementById('play_'+id).style.display='block';
+          grabandoId=null;
+        };
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach(t=>t.stop());
+      };
+      mediaRecorder.start();
+      document.getElementById('btn_'+id).textContent='⏹️';
+      document.getElementById('btn_'+id).classList.add('grabando');
+      document.getElementById('estado_'+id).textContent='🔴 Grabando...';
+    }catch(e){alert('No se pudo acceder al micrófono.');}
+  }
+
+  function reproducirVoz(id){
+    const src=vocesGrabadas[id]||('audio/'+id+'.mp3');
+    new Audio(src).play().catch(()=>{});
+  }
+
+  async function salir(){await sb.auth.signOut();window.location.href='index.html';}
 </script>
 </body>
 </html>

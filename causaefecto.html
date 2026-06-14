@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TEAbrazo — Causa y Efecto</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:#F0F7FF;font-family:'Nunito',sans-serif;width:100vw;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+
+  .burbuja{position:fixed;border-radius:50%;opacity:0.10;animation:flotar 6s ease-in-out infinite;z-index:0;pointer-events:none;}
+  .b1{width:180px;height:180px;background:#52D9A0;top:-50px;left:-50px;}
+  .b2{width:130px;height:130px;background:#FFCC3B;top:8%;right:-20px;animation-delay:1s;}
+  .b3{width:90px;height:90px;background:#5BBFEA;bottom:20%;left:5px;animation-delay:2s;}
+  .b4{width:110px;height:110px;background:#FF7E6B;bottom:-20px;right:15%;animation-delay:0.5s;}
+  @keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+
+  /* Header */
+  .header-juego{position:relative;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:white;box-shadow:0 2px 12px #5BBFEA15;flex-shrink:0;}
+  .btn-salir-juego{background:#F0F7FF;border:2px solid #E0EFFF;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#5BBFEA;cursor:pointer;}
+  .header-centro{display:flex;align-items:center;gap:10px;}
+  .nivel-badge{display:flex;align-items:center;gap:6px;background:#F0F7FF;border-radius:50px;padding:6px 14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#555;}
+  .nivel-emoji-badge{font-size:18px;animation:bounce 2s ease-in-out infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .puntaje-wrap{display:flex;align-items:center;gap:6px;background:#FFCC3B22;border:2px solid #FFCC3B44;border-radius:50px;padding:6px 14px;}
+  .puntaje-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#F0A500;}
+  .timer-wrap{background:#A78BFA22;border:2px solid #A78BFA44;border-radius:50px;padding:6px 12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#7C5CDB;display:none;}
+  .timer-wrap.urgente{color:#FF7E6B;border-color:#FF7E6B55;animation:pulsar-t 1s ease-in-out infinite;}
+  @keyframes pulsar-t{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+  /* Área principal */
+  .area-principal{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:12px 16px 10px;overflow:hidden;position:relative;z-index:10;gap:10px;}
+
+  /* Consigna */
+  .consigna-txt{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(16px,4.5vw,20px);color:#333;text-align:center;}
+
+  /* Zona CAUSAS (arriba) */
+  .zona-causas{display:flex;justify-content:center;gap:16px;width:100%;}
+
+  .causa-card{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    background:transparent;border-radius:22px;padding:14px 12px;
+    border:4px solid transparent;
+    cursor:pointer;
+    transition:all 0.2s;
+    animation:aparecer 0.35s ease forwards;opacity:0;transform:scale(0.9);
+    min-width:90px;
+  }
+  @keyframes aparecer{to{opacity:1;transform:scale(1)}}
+  .causa-card.seleccionada{border-color:#5BBFEA;background:#5BBFEA22;transform:scale(1.06);}
+  .causa-card.resuelta{border-color:#52D9A0;background:#52D9A022;pointer-events:none;opacity:0.7;}
+  .causa-emoji{font-size:clamp(44px,12vw,64px);line-height:1;}
+  .causa-nombre{font-family:'Nunito',sans-serif;font-weight:800;font-size:clamp(12px,3.5vw,15px);color:#555;text-align:center;}
+
+  /* Separador con flecha */
+  .separador{display:flex;align-items:center;justify-content:center;gap:8px;color:#5BBFEA;font-size:clamp(18px,5vw,24px);font-family:'Nunito',sans-serif;font-weight:800;}
+
+  /* Zona EFECTOS (abajo) */
+  .zona-efectos{display:flex;justify-content:center;gap:12px;width:100%;flex-wrap:wrap;}
+
+  .efecto-card{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    background:transparent;border-radius:22px;padding:12px 10px;
+    border:4px solid transparent;
+    cursor:pointer;
+    transition:all 0.2s;
+    animation:aparecer 0.35s ease forwards;opacity:0;transform:scale(0.9);
+    min-width:80px;
+  }
+  .efecto-card:active{transform:scale(0.92);}
+  .efecto-card.correcto{border-color:#52D9A0;background:#52D9A022;animation:pop-ok 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop-ok{0%{transform:scale(1)}50%{transform:scale(1.14)}100%{transform:scale(1)}}
+  .efecto-card.incorrecto{border-color:#FF7E6B;background:#FF7E6B22;animation:shake 0.4s ease;}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  .efecto-card.bloqueada{pointer-events:none;}
+  .efecto-card.atenuada{opacity:0.25;pointer-events:none;}
+  .efecto-card.resaltada{border-color:#FFCC3B;background:#FFFBEA;animation:resaltar 0.6s ease infinite alternate;}
+  @keyframes resaltar{from{box-shadow:0 0 0 0 #FFCC3B44}to{box-shadow:0 0 0 8px #FFCC3B22}}
+  .efecto-emoji{font-size:clamp(36px,10vw,52px);line-height:1;}
+  .efecto-nombre{font-family:'Nunito',sans-serif;font-weight:800;font-size:clamp(11px,3.2vw,14px);color:#555;text-align:center;}
+
+  /* Línea de conexión SVG */
+  .svg-conexiones{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;}
+
+  /* Pupi */
+  .pupi-panel{display:flex;align-items:flex-end;gap:10px;width:100%;flex-shrink:0;}
+  .pupi-emoji{font-size:clamp(34px,9vw,46px);animation:pupi-bounce 2s ease-in-out infinite;filter:drop-shadow(0 3px 8px #00000022);flex-shrink:0;}
+  @keyframes pupi-bounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(3deg)}}
+  .pupi-burbuja{background:white;border-radius:18px 18px 18px 4px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(13px,3.8vw,15px);color:#333;max-width:240px;box-shadow:0 3px 16px #00000015;line-height:1.4;}
+
+  /* Countdown */
+  .countdown-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#F0F7FFee;}
+  .countdown-numero{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(120px,35vw,200px);animation:num-pop 0.6s cubic-bezier(0.34,1.56,0.64,1);line-height:1;}
+  .countdown-ya{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(60px,18vw,100px);color:#52D9A0;animation:num-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes num-pop{from{transform:scale(0.2) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+
+  /* Celebración */
+  .celebracion-overlay{position:fixed;inset:0;background:#00000066;z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
+  .celebracion-card{background:white;border-radius:32px;padding:36px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:340px;animation:pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop-in{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+  .cel-emoji{font-size:64px;}
+  .cel-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(24px,7vw,30px);color:#333;text-align:center;}
+  .cel-xp{background:linear-gradient(135deg,#FFCC3B,#FF7E6B);border-radius:50px;padding:10px 24px;font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:white;}
+  .btn-cel{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:20px;padding:16px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:white;cursor:pointer;}
+  .btn-cel:active{transform:scale(0.97);}
+  .btn-cel-sec{background:#F0F7FF;border:none;border-radius:16px;padding:12px;width:100%;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;}
+
+  /* Fin tiempo */
+  .fin-overlay{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#5BBFEA,#A78BFA);}
+  .fin-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(48px,15vw,80px);color:white;text-align:center;animation:flotar-fin 3s ease-in-out infinite;}
+  @keyframes flotar-fin{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .fin-sub{font-family:'Nunito',sans-serif;font-weight:700;font-size:18px;color:rgba(255,255,255,0.85);text-align:center;}
+  .fin-pupi{font-size:80px;animation:pupi-bounce 2s ease-in-out infinite;}
+  .fin-pin-wrap{background:white;border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:320px;}
+  .fin-pin-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:#555;text-align:center;}
+  .fin-pin-input{display:flex;gap:10px;justify-content:center;}
+  .fin-pin-digito{width:56px;height:64px;border:3px solid #E0EFFF;border-radius:16px;background:#F0F7FF;text-align:center;font-family:'Nunito',sans-serif;font-weight:900;font-size:28px;color:#333;outline:none;}
+  .fin-pin-digito:focus{border-color:#5BBFEA;}
+  .fin-pin-error{font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;display:none;}
+  .btn-fin-desbloquear{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:18px;padding:14px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:white;cursor:pointer;}
+
+  .confeti{position:fixed;inset:0;pointer-events:none;z-index:700;display:none;}
+  .confeti-pieza{position:absolute;border-radius:2px;animation:caer 1.8s ease-in forwards;}
+  @keyframes caer{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  .footer{position:relative;z-index:100;background:white;border-top:1px solid #E0EFFF;padding:5px 20px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  .footer-marca{font-family:'Nunito',sans-serif;font-weight:700;font-size:10px;color:#5BBFEA;}
+  .footer-marca a{color:#5BBFEA;text-decoration:none;}
+  .footer-legal{font-family:'Nunito Sans',sans-serif;font-size:9px;color:#aaa;text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="burbuja b1"></div><div class="burbuja b2"></div>
+<div class="burbuja b3"></div><div class="burbuja b4"></div>
+<div class="confeti" id="confeti"></div>
+
+<div class="countdown-overlay" id="countdownOverlay">
+  <div style="font-size:clamp(60px,18vw,90px);">🐙</div>
+  <div id="countdownNumero" class="countdown-numero" style="color:#52D9A0;">3</div>
+</div>
+
+<div class="celebracion-overlay" id="celebracion">
+  <div class="celebracion-card">
+    <div class="cel-emoji">🎉</div>
+    <div class="cel-titulo" id="celTitulo">¡EXCELENTE!</div>
+    <div class="cel-xp" id="celXP">+10 XP ⚡</div>
+    <button class="btn-cel" onclick="cerrarCelebracion()">¡Seguir jugando! 🚀</button>
+    <button class="btn-cel-sec" onclick="salir()">Volver al inicio</button>
+  </div>
+</div>
+
+<div class="fin-overlay" id="finOverlay">
+  <div class="fin-pupi">🐙</div>
+  <div class="fin-titulo">¡GRACIAS!</div>
+  <div class="fin-sub">¡Jugaste genial hoy! 🌟</div>
+  <div class="fin-pin-wrap">
+    <div class="fin-pin-label">🔐 Ingresá el PIN para salir</div>
+    <div class="fin-pin-input">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p1" oninput="avanzarPin(this,'p2')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p2" oninput="avanzarPin(this,'p3')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p3" oninput="avanzarPin(this,'p4')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p4" oninput="verificarPin()">
+    </div>
+    <div class="fin-pin-error" id="pinError">❌ PIN incorrecto.</div>
+    <button class="btn-fin-desbloquear" onclick="verificarPin()">Desbloquear 🔓</button>
+  </div>
+</div>
+
+<div class="header-juego">
+  <button class="btn-salir-juego" onclick="salir()">← Salir</button>
+  <div class="header-centro">
+    <div class="nivel-badge">
+      <span class="nivel-emoji-badge" id="nivelEmoji">🥚</span>
+      <span id="nivelNombre">Huevo</span>
+    </div>
+    <div class="timer-wrap" id="timerWrap">⏱️ <span id="timerTexto">--:--</span></div>
+  </div>
+  <div class="puntaje-wrap">⭐ <span class="puntaje-texto" id="puntaje">0</span></div>
+</div>
+
+<div class="area-principal" id="areaPrincipal">
+  <!-- Se renderiza dinámicamente -->
+  <div class="pupi-panel">
+    <span class="pupi-emoji">🐙</span>
+    <div class="pupi-burbuja" id="pupiTexto">¿Qué pasa cuando...? 🤔</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
+  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados.</div>
+</div>
+
+<script>
+  const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
+  const {createClient}=supabase;
+  const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  // =============================================
+  // ESCENARIOS — causa, efecto correcto, incorrectos
+  // =============================================
+  const ESCENARIOS=[
+    // Naturaleza
+    {id:'nube',     causa:'☁️',causaN:'Nube',     efecto:'🌧️',efectoN:'Lluvia',    mal:[{e:'🍌',n:'Banana'},{e:'☀️',n:'Sol'},{e:'🍎',n:'Manzana'}]},
+    {id:'semilla',  causa:'🌱',causaN:'Semilla',  efecto:'🌻',efectoN:'Flor',      mal:[{e:'🍕',n:'Pizza'},{e:'🐸',n:'Sapo'},{e:'💧',n:'Agua'}]},
+    {id:'sol',      causa:'☀️',causaN:'Sol',      efecto:'🌡️',efectoN:'Calor',     mal:[{e:'❄️',n:'Frío'},{e:'🌧️',n:'Lluvia'},{e:'🍦',n:'Helado'}]},
+    {id:'viento',   causa:'💨',causaN:'Viento',   efecto:'🍃',efectoN:'Hojas',     mal:[{e:'🌊',n:'Olas'},{e:'🍄',n:'Hongo'},{e:'🎈',n:'Globo'}]},
+    // Animales
+    {id:'vaca',     causa:'🐄',causaN:'Vaca',     efecto:'🥛',efectoN:'Leche',     mal:[{e:'🍯',n:'Miel'},{e:'🧃',n:'Jugo'},{e:'🍕',n:'Pizza'}]},
+    {id:'gallina',  causa:'🐔',causaN:'Gallina',  efecto:'🥚',efectoN:'Huevo',     mal:[{e:'🍗',n:'Pollo'},{e:'🧀',n:'Queso'},{e:'🍞',n:'Pan'}]},
+    {id:'abeja',    causa:'🐝',causaN:'Abeja',    efecto:'🍯',efectoN:'Miel',      mal:[{e:'🌸',n:'Flor'},{e:'🧁',n:'Muffin'},{e:'🍋',n:'Limón'}]},
+    {id:'perro',    causa:'🐶',causaN:'Perro',    efecto:'🦴',efectoN:'Hueso',     mal:[{e:'🐟',n:'Pez'},{e:'🥕',n:'Zanahoria'},{e:'🍪',n:'Galleta'}]},
+    // Hogar
+    {id:'lampara',  causa:'💡',causaN:'Lámpara',  efecto:'✨',efectoN:'Luz',       mal:[{e:'🌙',n:'Luna'},{e:'💧',n:'Agua'},{e:'🔊',n:'Sonido'}]},
+    {id:'ducha',    causa:'🚿',causaN:'Ducha',    efecto:'💦',efectoN:'Agua',      mal:[{e:'🧴',n:'Jabón'},{e:'🪥',n:'Cepillo'},{e:'🌬️',n:'Viento'}]},
+    {id:'fuego',    causa:'🔥',causaN:'Fuego',    efecto:'🍳',efectoN:'Cocinar',   mal:[{e:'❄️',n:'Frío'},{e:'💧',n:'Agua'},{e:'🎵',n:'Música'}]},
+    {id:'musica',   causa:'🎵',causaN:'Música',   efecto:'💃',efectoN:'Bailar',    mal:[{e:'😴',n:'Dormir'},{e:'📚',n:'Libro'},{e:'🍎',n:'Manzana'}]},
+    // Cuerpo / acciones
+    {id:'aplausos', causa:'👏',causaN:'Aplaudir', efecto:'🔊',efectoN:'Sonido',    mal:[{e:'😴',n:'Dormir'},{e:'🍕',n:'Pizza'},{e:'💧',n:'Agua'}]},
+    {id:'correr',   causa:'🏃',causaN:'Correr',   efecto:'😓',efectoN:'Cansancio', mal:[{e:'😴',n:'Dormir'},{e:'😁',n:'Alegría'},{e:'🍎',n:'Manzana'}]},
+    {id:'comer',    causa:'🍎',causaN:'Comer',    efecto:'😋',efectoN:'Saciedad',  mal:[{e:'😢',n:'Tristeza'},{e:'😴',n:'Dormir'},{e:'🤸',n:'Saltar'}]},
+    {id:'dormir',   causa:'😴',causaN:'Dormir',   efecto:'⚡',efectoN:'Energía',   mal:[{e:'😓',n:'Cansancio'},{e:'😢',n:'Tristeza'},{e:'🍕',n:'Pizza'}]},
+  ];
+
+  // Nivel 1: 1 causa, 2 opciones (1 correcta + 1 incorrecta)
+  // Nivel 2: 2 causas, 4 opciones (2 correctas + 2 incorrectas)
+  // Nivel 3: 3 causas, 5 opciones (3 correctas + 2 incorrectas)
+  const NIVELES_CONFIG={
+    1:{emoji:'🥚',nombre:'Huevo',        xpPor:8,  cantCausas:1, cantIncorrectos:1},
+    2:{emoji:'🐣',nombre:'Pollito',       xpPor:11, cantCausas:2, cantIncorrectos:2},
+    3:{emoji:'🐤',nombre:'Pollito grande',xpPor:15, cantCausas:3, cantIncorrectos:2},
+  };
+  const RONDAS_POR_CELEBRACION=4;
+
+  // =============================================
+  // AUDIO
+  // =============================================
+  let vocesGrabadas={};
+  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
+  let audioActual=null, audioQueue=[], reproduciendo=false;
+
+  function reproducir(id,forzar=true){
+    if(forzar){
+      audioQueue=[];reproduciendo=false;
+      if(audioActual){audioActual.pause();audioActual.currentTime=0;audioActual=null;}
+      _reproducirAhora(id);
+    }else{audioQueue.push(id);if(!reproduciendo)_procesarCola();}
+  }
+
+  function _reproducirAhora(id){
+    const mapaTTS={
+      'excelente':'¡Excelente!','que_bien':'¡Qué bien!','increible':'¡Increíble!',
+      'bien':'¡Bien!','upps':'¡Upps!','tres':'Tres','dos':'Dos','uno':'Uno','ya':'¡Ya!',
+    };
+    const src=vocesGrabadas[id]||('audio/'+id+'.mp3');
+    const audio=new Audio(src);
+    audioActual=audio;reproduciendo=true;
+    audio.onended=()=>{reproduciendo=false;audioActual=null;_procesarCola();};
+    audio.onerror=()=>{
+      reproduciendo=false;audioActual=null;
+      if(mapaTTS[id])_hablar(mapaTTS[id],()=>_procesarCola());
+      else _procesarCola();
+    };
+    audio.play().catch(()=>audio.onerror());
+  }
+
+  function _procesarCola(){
+    if(audioQueue.length>0&&!reproduciendo){
+      const item=audioQueue.shift();
+      if(item&&item.startsWith('__tts__'))_hablar(item.replace('__tts__',''),()=>_procesarCola());
+      else if(item)_reproducirAhora(item);
+    }
+  }
+
+  function _hablar(texto,onEnd){
+    if(!('speechSynthesis' in window)){if(onEnd)onEnd();return;}
+    window.speechSynthesis.cancel();
+    const msg=new SpeechSynthesisUtterance(texto);
+    msg.lang='es-AR';msg.rate=1.0;msg.pitch=1.7;
+    msg.onend=()=>{reproduciendo=false;if(onEnd)onEnd();};
+    msg.onerror=()=>{reproduciendo=false;if(onEnd)onEnd();};
+    reproduciendo=true;
+    window.speechSynthesis.speak(msg);
+  }
+
+  // =============================================
+  // ESTADO
+  // =============================================
+  let hijo=null,nivelActual=1,puntaje=0;
+  let rondasJugadas=0,rondasCorrectas=0;
+  let juegoActivo=false;
+  let tiempoLimiteSegundos=0,tiempoRestante=0,intervaloTimer=null;
+  let escenariosRonda=[];    // causas de esta ronda
+  let pendientesUnir=[];     // ids de causas aún sin unir
+  let causaSeleccionada=null; // causa actualmente seleccionada
+
+  // =============================================
+  // INICIO
+  // =============================================
+  window.addEventListener('load',()=>{
+    const hijoData=sessionStorage.getItem('hijoActual');
+    if(!hijoData){window.location.href='perfiles.html';return;}
+    hijo=JSON.parse(hijoData);
+    puntaje=hijo.xp_total||0;
+    nivelActual=hijo.nivel||1;
+    document.getElementById('puntaje').textContent=puntaje;
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    document.getElementById('nivelEmoji').textContent=nc.emoji;
+    document.getElementById('nivelNombre').textContent=nc.nombre;
+    if(hijo.tiempo_limite&&hijo.tiempo_limite>0){
+      tiempoLimiteSegundos=hijo.tiempo_limite*60;
+      tiempoRestante=tiempoLimiteSegundos;
+      document.getElementById('timerWrap').style.display='flex';
+      actualizarTimerDisplay();
+    }
+    setTimeout(()=>mostrarCountdown(),300);
+  });
+
+  // =============================================
+  // COUNTDOWN
+  // =============================================
+  function mostrarCountdown(){
+    const overlay=document.getElementById('countdownOverlay');
+    const numEl=document.getElementById('countdownNumero');
+    overlay.style.display='flex';
+    const pasos=[
+      {texto:'3',color:'#FF7E6B',audio:'tres'},
+      {texto:'2',color:'#FFCC3B',audio:'dos'},
+      {texto:'1',color:'#52D9A0',audio:'uno'},
+      {texto:'¡YA!',color:'#5BBFEA',audio:'ya',esYa:true},
+    ];
+    let i=0;
+    function siguiente(){
+      if(i>=pasos.length){overlay.style.display='none';iniciarJuego();return;}
+      const p=pasos[i];
+      numEl.className=p.esYa?'countdown-ya':'countdown-numero';
+      numEl.style.color=p.color;numEl.textContent=p.texto;
+      numEl.style.animation='none';numEl.offsetHeight;numEl.style.animation='';
+      reproducir(p.audio);i++;setTimeout(siguiente,900);
+    }
+    siguiente();
+  }
+
+  // =============================================
+  // JUEGO
+  // =============================================
+  function iniciarJuego(){
+    juegoActivo=true;rondasJugadas=0;rondasCorrectas=0;
+    nuevaRonda();
+    iniciarTimer();
+  }
+
+  function nuevaRonda(){
+    if(!juegoActivo)return;
+    causaSeleccionada=null;
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+
+    // Elegir escenarios al azar sin repetir
+    const mezclados=[...ESCENARIOS].sort(()=>Math.random()-0.5);
+    escenariosRonda=mezclados.slice(0,nc.cantCausas);
+    pendientesUnir=[...escenariosRonda.map(e=>e.id)];
+
+    renderRonda();
+    const consignas={
+      1:'¡Tocá la nube y luego su efecto! 👆',
+      2:'¡Uní cada causa con su efecto! 🔗',
+      3:'¡Uní cada causa con su efecto! 🔗',
+    };
+    mostrarPupi(consignas[nivelActual]||consignas[1]);
+
+  }
+
+  function renderRonda(){
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const area=document.getElementById('areaPrincipal');
+    const pupiPanel=area.querySelector('.pupi-panel');
+    area.innerHTML='';
+
+    // Consigna
+    const cons=document.createElement('div');
+    cons.className='consigna-txt';
+    cons.textContent=nivelActual===1?'¿Qué pasa cuando...?':'¡Uní cada causa con su efecto!';
+    area.appendChild(cons);
+
+    // ZONA CAUSAS (arriba)
+    const zonaCausas=document.createElement('div');
+    zonaCausas.className='zona-causas';
+    zonaCausas.id='zonaCausas';
+    escenariosRonda.forEach((esc,i)=>{
+      const card=document.createElement('div');
+      card.className='causa-card';
+      card.id='causa_'+esc.id;
+      card.style.animationDelay=(i*0.1)+'s';
+      card.innerHTML=`<div class="causa-emoji">${esc.causa}</div><div class="causa-nombre">${esc.causaN}</div>`;
+      card.addEventListener('click',()=>seleccionarCausa(esc.id,card,esc.causaN));
+      zonaCausas.appendChild(card);
+    });
+    area.appendChild(zonaCausas);
+
+    // Separador
+    const sep=document.createElement('div');
+    sep.className='separador';
+    sep.innerHTML='<span>↕️</span><span style="font-size:clamp(14px,4vw,17px);">¿Qué pasa?</span><span>↕️</span>';
+    area.appendChild(sep);
+
+    // ZONA EFECTOS (abajo) — correctos + incorrectos mezclados
+    const efectosCorrectos=escenariosRonda.map(e=>({emoji:e.efecto,nombre:e.efectoN,causaId:e.id,correcto:true}));
+    const todosIncorrectos=escenariosRonda.flatMap(e=>e.mal);
+    const incMezclados=[...todosIncorrectos].sort(()=>Math.random()-0.5);
+    const efectosIncorrectos=incMezclados.slice(0,nc.cantIncorrectos).map(e=>({emoji:e.e,nombre:e.n,causaId:null,correcto:false}));
+    const todosEfectos=[...efectosCorrectos,...efectosIncorrectos].sort(()=>Math.random()-0.5);
+
+    const zonaEfectos=document.createElement('div');
+    zonaEfectos.className='zona-efectos';
+    zonaEfectos.id='zonaEfectos';
+    todosEfectos.forEach((ef,i)=>{
+      const card=document.createElement('div');
+      card.className='efecto-card';
+      card.id=ef.correcto?'efecto_'+ef.causaId:'efecto_inc_'+i;
+      card.style.animationDelay=(i*0.08)+'s';
+      card.innerHTML=`<div class="efecto-emoji">${ef.emoji}</div><div class="efecto-nombre">${ef.nombre}</div>`;
+      card.addEventListener('click',()=>{if(ef.nombre)_hablar(ef.nombre);seleccionarEfecto(ef,card);});
+      zonaEfectos.appendChild(card);
+    });
+    area.appendChild(zonaEfectos);
+
+    area.appendChild(pupiPanel);
+  }
+
+  // =============================================
+  // LÓGICA DE SELECCIÓN
+  // =============================================
+  function seleccionarCausa(causaId,card,nombre){
+    if(!juegoActivo)return;
+    // Si ya está resuelta, no hacer nada
+    if(card.classList.contains('resuelta'))return;
+
+    // Deseleccionar anterior
+    document.querySelectorAll('.causa-card.seleccionada').forEach(c=>c.classList.remove('seleccionada'));
+
+    causaSeleccionada=causaId;
+    card.classList.add('seleccionada');
+    mostrarPupi('¿Qué pasa con '+nombre+'? 🤔');
+    _hablar(nombre);
+
+    // Resaltar efectos disponibles como pista sutil
+    document.querySelectorAll('.efecto-card:not(.correcto):not(.atenuada)').forEach(c=>c.classList.remove('resaltada'));
+  }
+
+  function seleccionarEfecto(ef,card){
+    if(!juegoActivo||card.classList.contains('atenuada')||card.classList.contains('correcto'))return;
+
+    if(nivelActual===1){
+      // Nivel 1: no necesita seleccionar causa primero
+      causaSeleccionada=escenariosRonda[0].id;
+    }
+
+    if(!causaSeleccionada){
+      mostrarPupi('¡Primero tocá una causa de arriba! 👆');
+      _hablar('Primero tocá uno de arriba');
+      return;
+    }
+
+    if(ef.correcto&&ef.causaId===causaSeleccionada){
+      // CORRECTO ✅
+      acierto(ef,card);
+    }else if(ef.correcto&&ef.causaId!==causaSeleccionada){
+      // Efecto correcto pero de otra causa
+      card.classList.add('incorrecto');
+      mostrarPupi('¡Upps! Ese no va con '+escenariosRonda.find(e=>e.id===causaSeleccionada).causaN+' 🤔');
+      reproducir('upps');
+      setTimeout(()=>card.classList.remove('incorrecto'),800);
+    }else{
+      // INCORRECTO ❌
+      card.classList.add('incorrecto');
+      mostrarPupi('¡Upps! Buscá otro 🙈');
+      reproducir('upps');
+      setTimeout(()=>card.classList.remove('incorrecto'),800);
+    }
+  }
+
+  function acierto(ef,card){
+    // Marcar efecto como correcto
+    card.classList.add('correcto');
+
+    // Marcar causa como resuelta
+    const causaCard=document.getElementById('causa_'+causaSeleccionada);
+    if(causaCard){causaCard.classList.remove('seleccionada');causaCard.classList.add('resuelta');}
+
+    const escenario=escenariosRonda.find(e=>e.id===causaSeleccionada);
+    mostrarPupi(escenario.causaN+' → '+escenario.efectoN+' ✅');
+    _hablar(escenario.causaN+' genera '+escenario.efectoN);
+
+    // Quitar de pendientes
+    pendientesUnir=pendientesUnir.filter(id=>id!==causaSeleccionada);
+    causaSeleccionada=null;
+
+    puntaje+=(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+    document.getElementById('puntaje').textContent=puntaje;
+    rondasCorrectas++;
+
+    lanzarMiniConfeti();
+
+    // ¿Terminó la ronda?
+    if(pendientesUnir.length===0){
+      rondasJugadas++;
+      if(rondasJugadas>=RONDAS_POR_CELEBRACION){
+        setTimeout(mostrarCelebracion,1500);
+      }else{
+        setTimeout(nuevaRonda,2000);
+      }
+    }
+  }
+
+  function mostrarPupi(texto){document.getElementById('pupiTexto').textContent=texto;}
+
+  function lanzarMiniConfeti(){
+    const confeti=document.getElementById('confeti');
+    confeti.style.display='block';confeti.innerHTML='';
+    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+    for(let i=0;i<35;i++){
+      const p=document.createElement('div');p.className='confeti-pieza';
+      p.style.left=Math.random()*100+'vw';p.style.top='-10px';
+      p.style.background=cols[Math.floor(Math.random()*cols.length)];
+      p.style.animationDelay=Math.random()*0.4+'s';
+      p.style.width=(Math.random()*8+4)+'px';p.style.height=(Math.random()*8+4)+'px';
+      confeti.appendChild(p);
+    }
+    setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},1800);
+  }
+
+  // =============================================
+  // CELEBRACIÓN
+  // =============================================
+  function mostrarCelebracion(){
+    const frases=[{texto:'¡EXCELENTE!',audio:'excelente'},{texto:'¡QUÉ BIEN!',audio:'que_bien'},{texto:'¡INCREÍBLE!',audio:'increible'}];
+    const f=frases[Math.floor(Math.random()*frases.length)];
+    const xpGanado=rondasCorrectas*(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+    document.getElementById('celTitulo').textContent=f.texto;
+    document.getElementById('celXP').textContent='+'+xpGanado+' XP ⚡';
+    document.getElementById('celebracion').style.display='flex';
+    lanzarConfeti();reproducir(f.audio,true);
+    guardarProgreso();
+  }
+
+  function cerrarCelebracion(){
+    document.getElementById('celebracion').style.display='none';
+    rondasJugadas=0;rondasCorrectas=0;
+    nuevaRonda();
+  }
+
+  function lanzarConfeti(){
+    const confeti=document.getElementById('confeti');
+    confeti.style.display='block';confeti.innerHTML='';
+    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+    for(let i=0;i<80;i++){
+      const p=document.createElement('div');p.className='confeti-pieza';
+      p.style.left=Math.random()*100+'vw';p.style.top='-10px';
+      p.style.background=cols[Math.floor(Math.random()*cols.length)];
+      p.style.animationDelay=Math.random()*1+'s';
+      p.style.width=(Math.random()*10+6)+'px';p.style.height=(Math.random()*10+6)+'px';
+      confeti.appendChild(p);
+    }
+    setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},2500);
+  }
+
+  // =============================================
+  // TIMER
+  // =============================================
+  function iniciarTimer(){
+    if(!tiempoLimiteSegundos)return;
+    intervaloTimer=setInterval(()=>{
+      tiempoRestante--;actualizarTimerDisplay();
+      if(tiempoRestante<=60)document.getElementById('timerWrap').classList.add('urgente');
+      if(tiempoRestante<=0){
+        clearInterval(intervaloTimer);juegoActivo=false;
+        document.getElementById('finOverlay').style.display='flex';
+        reproducir('excelente',true);
+      }
+    },1000);
+  }
+
+  function actualizarTimerDisplay(){
+    const min=Math.floor(tiempoRestante/60),seg=tiempoRestante%60;
+    document.getElementById('timerTexto').textContent=min+':'+(seg<10?'0':'')+seg;
+  }
+
+  function avanzarPin(el,sigId){if(el.value.length===1){const s=document.getElementById(sigId);if(s)s.focus();}}
+
+  function verificarPin(){
+    const ingresado=['p1','p2','p3','p4'].map(id=>document.getElementById(id).value).join('');
+    const pinCorrecto=hijo.pin?hijo.pin.toString():'';
+    if(!pinCorrecto||ingresado===pinCorrecto){window.location.href='perfiles.html';}
+    else{
+      document.getElementById('pinError').style.display='block';
+      ['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('p1').focus();
+    }
+  }
+
+  async function guardarProgreso(){
+    try{
+      await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);
+      hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));
+    }catch(e){}
+  }
+
+  function salir(){
+    juegoActivo=false;clearInterval(intervaloTimer);
+    window.speechSynthesis?.cancel();
+    window.location.href='bienvenida.html';
+  }
+</script>
+</body>
+</html>

@@ -7,124 +7,69 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: #F0F7FF;
-    font-family: 'Nunito Sans', sans-serif;
-    min-height: 100vh;
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-x: hidden;
-    overflow-y: auto;
-    position: relative;
-    padding-bottom: 24px;
-  }
-
+  body { background: #F0F7FF; font-family: 'Nunito Sans', sans-serif; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; overflow-y: auto; position: relative; padding-bottom: 70px; }
   .burbuja { position: fixed; border-radius: 50%; opacity: 0.15; animation: flotar 6s ease-in-out infinite; pointer-events: none; z-index: 0; }
-  .b1 { width: 160px; height: 160px; background: #5BBFEA; top: -40px; left: -40px; }
-  .b2 { width: 120px; height: 120px; background: #FFCC3B; top: 8%; right: -20px; animation-delay: 1s; }
-  .b3 { width: 80px; height: 80px; background: #52D9A0; bottom: 20%; left: 5px; animation-delay: 2s; }
-  .b4 { width: 100px; height: 100px; background: #A78BFA; bottom: 5%; right: 10%; animation-delay: 0.5s; }
-  @keyframes flotar { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-16px); } }
+  .b1{width:160px;height:160px;background:#5BBFEA;top:-40px;left:-40px;}
+  .b2{width:120px;height:120px;background:#FFCC3B;top:8%;right:-20px;animation-delay:1s;}
+  .b3{width:80px;height:80px;background:#52D9A0;bottom:20%;left:5px;animation-delay:2s;}
+  .b4{width:100px;height:100px;background:#A78BFA;bottom:5%;right:10%;animation-delay:0.5s;}
+  @keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
 
-  .contenedor {
-    z-index: 10;
-    width: 100%;
-    max-width: 420px;
-    padding: 24px 20px 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-  }
+  .contenedor { z-index:10; width:100%; max-width:420px; padding:16px 20px 24px; display:flex; flex-direction:column; align-items:center; gap:14px; }
 
-  .logo-img {
-    width: 140px;
-    animation: flotar-logo 3s ease-in-out infinite;
-    filter: drop-shadow(0 6px 18px #5BBFEA44);
-  }
-  @keyframes flotar-logo {
-    0%, 100% { transform: translateY(0px) scale(1); }
-    50% { transform: translateY(-8px) scale(1.03); }
-  }
+  .header-bienvenida { width:100%; display:flex; align-items:center; justify-content:space-between; }
+  .btn-atras { background:white; border:2px solid #E0EFFF; border-radius:14px; padding:8px 14px; font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; color:#5BBFEA; cursor:pointer; text-decoration:none; display:flex; align-items:center; gap:6px; }
+  .btn-atras:active { background:#F0F7FF; }
 
-  .saludo {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 900;
-    font-size: clamp(22px, 6vw, 30px);
-    color: #333;
-    text-align: center;
-  }
-  .saludo span { color: #5BBFEA; }
+  .logo-img { width:130px; animation:flotar-logo 3s ease-in-out infinite; filter:drop-shadow(0 6px 18px #5BBFEA44); }
+  @keyframes flotar-logo{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.03)}}
 
-  .avatar-wrap { position: relative; width: 100px; height: 100px; }
-  .avatar-circulo {
-    width: 100px; height: 100px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 50px; animation: pulsar 2s ease-in-out infinite;
-  }
-  @keyframes pulsar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
-  .estrella { position: absolute; font-size: 16px; animation: girar 4s linear infinite; }
-  .e1 { top: 0; right: 0; } .e2 { bottom: 5px; left: 0; animation-delay: 1.5s; font-size: 12px; }
-  @keyframes girar { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.3) rotate(180deg); } }
+  .saludo { font-family:'Nunito',sans-serif; font-weight:900; font-size:clamp(22px,6vw,28px); color:#333; text-align:center; }
+  .saludo span { color:#5BBFEA; }
 
-  .nivel-badge {
-    display: flex; align-items: center; gap: 8px;
-    background: white; border-radius: 50px; padding: 8px 18px;
-    box-shadow: 0 2px 12px #5BBFEA15;
-  }
-  .nivel-animal { font-size: 22px; animation: bounce 2s ease-in-out infinite; }
-  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-  .nivel-texto { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px; color: #555; }
+  .avatar-wrap { position:relative; width:96px; height:96px; }
+  .avatar-circulo { width:96px; height:96px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:48px; animation:pulsar 2s ease-in-out infinite; }
+  @keyframes pulsar{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+  .estrella{position:absolute;font-size:15px;animation:girar 4s linear infinite;}
+  .e1{top:0;right:0;} .e2{bottom:5px;left:0;animation-delay:1.5s;font-size:12px;}
+  @keyframes girar{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.3) rotate(180deg)}}
 
-  .progreso-card {
-    background: white; border-radius: 24px; padding: 16px 18px;
-    width: 100%; box-shadow: 0 4px 20px #5BBFEA22;
-    display: flex; flex-direction: column; gap: 10px;
-  }
-  .progreso-titulo { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px; color: #555; text-align: center; }
+  .nivel-badge { display:flex; align-items:center; gap:8px; background:white; border-radius:50px; padding:7px 16px; box-shadow:0 2px 12px #5BBFEA15; }
+  .nivel-animal{font-size:20px;animation:bounce 2s ease-in-out infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .nivel-texto{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#555;}
 
-  .dias { display: flex; justify-content: space-between; gap: 4px; width: 100%; }
-  .dia { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; min-width: 0; }
-  .dia-circulo {
-    width: clamp(28px, 8vw, 36px);
-    height: clamp(28px, 8vw, 36px);
-    border-radius: 50%; background: #F0F7FF;
-    border: 2px solid #ddd;
-    display: flex; align-items: center; justify-content: center;
-    font-size: clamp(11px, 3vw, 15px);
-    flex-shrink: 0;
-  }
-  .dia-circulo.completado { background: #52D9A0; border-color: #52D9A0; }
-  .dia-circulo.hoy { background: #FFCC3B; border-color: #FFCC3B; animation: pulsar 1.5s ease-in-out infinite; }
-  .dia-label { font-size: clamp(8px, 2.5vw, 11px); font-weight: 700; color: #888; font-family: 'Nunito', sans-serif; }
+  .progreso-card { background:white; border-radius:22px; padding:14px 16px; width:100%; box-shadow:0 4px 20px #5BBFEA22; display:flex; flex-direction:column; gap:10px; }
+  .progreso-titulo{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#555;text-align:center;}
+  .dias{display:flex;justify-content:space-between;gap:3px;width:100%;}
+  .dia{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0;}
+  .dia-circulo{width:clamp(26px,7.5vw,34px);height:clamp(26px,7.5vw,34px);border-radius:50%;background:#F0F7FF;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:clamp(10px,2.8vw,14px);}
+  .dia-circulo.completado{background:#52D9A0;border-color:#52D9A0;}
+  .dia-circulo.hoy{background:#FFCC3B;border-color:#FFCC3B;animation:pulsar 1.5s ease-in-out infinite;}
+  .dia-label{font-size:clamp(8px,2.2vw,10px);font-weight:700;color:#888;font-family:'Nunito',sans-serif;}
 
-  .xp-badge {
-    background: linear-gradient(135deg, #FFCC3B, #FF7E6B);
-    border-radius: 50px; padding: 8px 18px;
-    display: flex; align-items: center; gap: 8px; align-self: center;
-    box-shadow: 0 4px 12px #FFCC3B44;
-  }
-  .xp-texto { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 17px; color: white; }
+  .xp-badge{background:linear-gradient(135deg,#FFCC3B,#FF7E6B);border-radius:50px;padding:7px 16px;display:flex;align-items:center;gap:7px;align-self:center;box-shadow:0 4px 12px #FFCC3B44;}
+  .xp-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:white;}
 
-  .btn-empezar {
-    background: linear-gradient(135deg, #5BBFEA, #A78BFA);
-    border: none; border-radius: 28px; padding: 20px 0; width: 100%;
-    font-family: 'Nunito', sans-serif; font-weight: 900;
-    font-size: clamp(20px, 6vw, 26px);
-    color: white; cursor: pointer;
-    box-shadow: 0 8px 24px #5BBFEA44;
-    animation: llamar 2s ease-in-out infinite;
-    letter-spacing: 1px;
-  }
-  @keyframes llamar { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
-  .btn-empezar:active { transform: scale(0.96) !important; }
+  .btn-empezar{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:28px;padding:20px 0;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(20px,6vw,26px);color:white;cursor:pointer;box-shadow:0 8px 24px #5BBFEA44;animation:llamar 2s ease-in-out infinite;letter-spacing:1px;}
+  @keyframes llamar{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+  .btn-empezar:active{transform:scale(0.96)!important;}
 
-  .confeti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; display: none; }
-  .confeti-pieza { position: absolute; border-radius: 2px; animation: caer 1.5s ease-in forwards; }
-  @keyframes caer { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+  .titulo-juegos{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(16px,4.5vw,20px);color:#555;text-align:center;}
+  .juegos-grid{display:flex;flex-direction:column;gap:12px;width:100%;}
+  .btn-juego{background:white;border:3px solid #E0EFFF;border-radius:22px;padding:16px 20px;width:100%;font-family:'Nunito',sans-serif;font-weight:800;font-size:clamp(16px,4.5vw,20px);color:#333;cursor:pointer;display:flex;align-items:center;gap:14px;box-shadow:0 4px 16px #5BBFEA15;transition:all 0.15s;}
+  .btn-juego:active{transform:scale(0.97);border-color:#5BBFEA;background:#F0F7FF;}
+  .juego-emoji{font-size:clamp(28px,8vw,36px);}
+  .juego-nombre{text-align:left;}
+  .confeti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;display:none;}
+  .confeti-pieza{position:absolute;border-radius:2px;animation:caer 1.5s ease-in forwards;}
+  @keyframes caer{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  /* Footer */
+  .footer{position:fixed;bottom:0;left:0;right:0;z-index:50;background:white;border-top:1px solid #E0EFFF;padding:7px 20px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .footer-marca{font-family:'Nunito',sans-serif;font-weight:700;font-size:11px;color:#5BBFEA;}
+  .footer-marca a{color:#5BBFEA;text-decoration:none;}
+  .footer-legal{font-family:'Nunito Sans',sans-serif;font-size:9px;color:#aaa;text-align:center;}
 </style>
 </head>
 <body>
@@ -132,107 +77,135 @@
 <div class="confeti" id="confeti"></div>
 
 <div class="contenedor">
-  <img class="logo-img" src="TEAbrazo.png" alt="TEAbrazo">
+  <div class="header-bienvenida">
+    <button class="btn-atras" onclick="window.location.href='perfiles.html'">← Atrás</button>
+    
+    <div style="width:70px"></div>
+  </div>
 
   <div class="avatar-wrap">
-    <div class="avatar-circulo" id="avatarCirculo" style="background:#5BBFEA22;">
-      <span id="avatarEmoji">🦋</span>
-    </div>
-    <span class="estrella e1">⭐</span>
-    <span class="estrella e2">✨</span>
+    <div class="avatar-circulo" id="avatarCirculo" style="background:#5BBFEA22;"><span id="avatarEmoji">🦋</span></div>
+    <span class="estrella e1">⭐</span><span class="estrella e2">✨</span>
   </div>
 
   <div class="saludo">¡Hola, <span id="nombreNino">amigo</span>! 👋</div>
 
   <div class="nivel-badge">
     <span class="nivel-animal" id="nivelAnimal">🥚</span>
-    <span class="nivel-texto" id="nivelTexto">Nivel Huevo</span>
+    <span class="nivel-texto" id="nivelTexto">Huevo</span>
   </div>
+
+  <div class="titulo-juegos">¿A qué jugamos hoy? 🎮</div>
+  <div class="juegos-grid">
+    <button class="btn-juego" onclick="irAJuego('burbujas.html')">
+      <span class="juego-emoji">🫧</span>
+      <span class="juego-nombre">Burbujas mágicas</span>
+    </button>
+    <button class="btn-juego" onclick="irAJuego('animales.html')">
+      <span class="juego-emoji">🐾</span>
+      <span class="juego-nombre">Sonidos de animales</span>
+    </button>
+    <button class="btn-juego" onclick="irAJuego('luz.html')">
+      <span class="juego-emoji">🔦</span>
+      <span class="juego-nombre">Sigue la luz</span>
+    </button>
+    <button class="btn-juego" onclick="irAJuego('emociones.html')">
+      <span class="juego-emoji">😊</span>
+      <span class="juego-nombre">Emociones</span>
+    </button>
+    <button class="btn-juego" onclick="irAJuego('causaefecto.html')">
+      <span class="juego-emoji">🌧️</span>
+      <span class="juego-nombre">Causa y efecto</span>
+    </button>
+  </div>
+</div>
 
   <div class="progreso-card">
     <div class="progreso-titulo">⭐ Tu semana</div>
     <div class="dias" id="diasSemana"></div>
     <div class="xp-badge">
-      <span style="font-size:18px">⚡</span>
+      <span style="font-size:16px">⚡</span>
       <span class="xp-texto" id="xpTexto">0 puntos XP</span>
-      <span style="font-size:18px">🏆</span>
+      <span style="font-size:16px">🏆</span>
     </div>
   </div>
 
-  <button class="btn-empezar" onclick="empezar()">¡Empezar! 🚀</button>
+<div class="footer">
+  <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
+  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados. TEAbrazo es una herramienta de apoyo y no reemplaza la intervención profesional.</div>
 </div>
 
 <script>
-  const NIVELES = {
-    1: { animal: '🥚', nombre: 'Huevo' },
-    2: { animal: '🐣', nombre: 'Pollito' },
-    3: { animal: '🐤', nombre: 'Pollito grande' }
-  };
-  const DIAS = ['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'];
+  const NIVELES={1:{animal:'🥚',nombre:'Huevo'},2:{animal:'🐣',nombre:'Pollito'},3:{animal:'🐤',nombre:'Pollito grande'}};
+  const DIAS=['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'];
 
-  window.addEventListener('load', () => {
-    const hijoData = sessionStorage.getItem('hijoActual');
-    if (!hijoData) { window.location.href = 'perfiles.html'; return; }
-    const hijo = JSON.parse(hijoData);
-
-    document.getElementById('nombreNino').textContent = hijo.nombre;
-    if (hijo.avatar_emoji) document.getElementById('avatarEmoji').textContent = hijo.avatar_emoji;
-
-    const xp = hijo.xp_total || 0;
-    const nivel = xp >= 150 ? 3 : xp >= 50 ? 2 : 1;
-    document.getElementById('xpTexto').textContent = xp + ' puntos XP';
-    document.getElementById('nivelAnimal').textContent = NIVELES[nivel].animal;
-    document.getElementById('nivelTexto').textContent = NIVELES[nivel].nombre;
-
-    const racha = hijo.racha_dias || 0;
-    const hoy = new Date().getDay();
-    const diaHoy = hoy === 0 ? 6 : hoy - 1;
-    const diasWrap = document.getElementById('diasSemana');
-    DIAS.forEach((dia, i) => {
-      const div = document.createElement('div');
-      div.className = 'dia';
-      let claseCirculo = 'dia-circulo';
-      let contenido = '';
-      if (i === diaHoy) { claseCirculo += ' hoy'; contenido = hijo.avatar_emoji || '🦋'; }
-      else if (i < diaHoy && i >= diaHoy - racha) { claseCirculo += ' completado'; contenido = '✅'; }
-      div.innerHTML = `<div class="${claseCirculo}">${contenido}</div><div class="dia-label">${dia}</div>`;
+  window.addEventListener('load',()=>{
+    const hijoData=sessionStorage.getItem('hijoActual');
+    if(!hijoData){window.location.href='perfiles.html';return;}
+    const hijo=JSON.parse(hijoData);
+    document.getElementById('nombreNino').textContent=hijo.nombre;
+    if(hijo.avatar_emoji) document.getElementById('avatarEmoji').textContent=hijo.avatar_emoji;
+    const xp=hijo.xp_total||0;
+    const nivel=xp>=150?3:xp>=50?2:1;
+    document.getElementById('xpTexto').textContent=xp+' puntos XP';
+    document.getElementById('nivelAnimal').textContent=NIVELES[nivel].animal;
+    document.getElementById('nivelTexto').textContent=NIVELES[nivel].nombre;
+    const racha=hijo.racha_dias||0;
+    const hoy=new Date().getDay();
+    const diaHoy=hoy===0?6:hoy-1;
+    const diasWrap=document.getElementById('diasSemana');
+    DIAS.forEach((dia,i)=>{
+      const div=document.createElement('div');div.className='dia';
+      let clase='dia-circulo';let contenido='';
+      if(i===diaHoy){clase+=' hoy';contenido=hijo.avatar_emoji||'🦋';}
+      else if(i<diaHoy&&i>=diaHoy-racha){clase+=' completado';contenido='✅';}
+      div.innerHTML=`<div class="${clase}">${contenido}</div><div class="dia-label">${dia}</div>`;
       diasWrap.appendChild(div);
     });
-
-    setTimeout(() => hablar('¡Hola ' + hijo.nombre + '! ¿Jugamos?'), 600);
+    setTimeout(()=>reproducirSaludo(),600);
   });
 
-  function hablar(texto) {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const msg = new SpeechSynthesisUtterance(texto);
-      msg.lang = 'es-AR'; msg.rate = 1.1; msg.pitch = 1.8;
-      window.speechSynthesis.speak(msg);
+  function reproducirSaludo(){
+    // Audio específico de bienvenida que dice "Hola soy Pupi"
+    const grabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');
+    if(grabadas['saludo_bienvenida']){
+      new Audio(grabadas['saludo_bienvenida']).play().catch(()=>{});
+    } else {
+      // Fallback: síntesis de voz
+      if('speechSynthesis' in window){
+        const msg=new SpeechSynthesisUtterance('¡Hola! Soy Pupi');
+        msg.lang='es-AR'; msg.rate=1.1; msg.pitch=1.8;
+        window.speechSynthesis.speak(msg);
+      }
     }
   }
 
-  function empezar() {
-    hablar('¡Vamos!');
-    lanzarConfeti();
-    setTimeout(() => { window.location.href = 'burbujas.html'; }, 1500);
+  function reproducir(archivo){
+    // Usa voz grabada si existe, sino el MP3 por defecto
+    const grabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');
+    const src=grabadas[archivo]||'audio/'+archivo+'.mp3';
+    const a=new Audio(src);
+    a.play().catch(()=>{});
   }
 
-  function lanzarConfeti() {
-    const confeti = document.getElementById('confeti');
-    confeti.style.display = 'block'; confeti.innerHTML = '';
-    const colores = ['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
-    for (let i = 0; i < 60; i++) {
-      const p = document.createElement('div');
-      p.className = 'confeti-pieza';
-      p.style.left = Math.random() * 100 + 'vw';
-      p.style.top = '-10px';
-      p.style.background = colores[Math.floor(Math.random() * colores.length)];
-      p.style.animationDelay = Math.random() * 0.8 + 's';
-      p.style.width = (Math.random() * 10 + 6) + 'px';
-      p.style.height = (Math.random() * 10 + 6) + 'px';
+  function irAJuego(url){
+    lanzarConfeti();
+    setTimeout(()=>{window.location.href=url;},1200);
+  }
+
+  function lanzarConfeti(){
+    const confeti=document.getElementById('confeti');
+    confeti.style.display='block';confeti.innerHTML='';
+    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+    for(let i=0;i<60;i++){
+      const p=document.createElement('div');p.className='confeti-pieza';
+      p.style.left=Math.random()*100+'vw';p.style.top='-10px';
+      p.style.background=cols[Math.floor(Math.random()*cols.length)];
+      p.style.animationDelay=Math.random()*0.8+'s';
+      p.style.width=(Math.random()*10+6)+'px';p.style.height=(Math.random()*10+6)+'px';
       confeti.appendChild(p);
     }
-    setTimeout(() => { confeti.style.display = 'none'; confeti.innerHTML = ''; }, 2000);
+    setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},2000);
   }
 </script>
 </body>

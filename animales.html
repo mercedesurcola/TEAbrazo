@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TEAbrazo — Sonidos de Animales</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:#F0F7FF;font-family:'Nunito',sans-serif;width:100vw;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+
+  /* Header */
+  .header-juego{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:white;box-shadow:0 2px 12px #5BBFEA15;flex-shrink:0;}
+  .btn-salir-juego{background:#F0F7FF;border:2px solid #E0EFFF;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#5BBFEA;cursor:pointer;}
+  .header-centro{display:flex;align-items:center;gap:10px;}
+  .nivel-badge{display:flex;align-items:center;gap:6px;background:#F0F7FF;border-radius:50px;padding:6px 14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#555;}
+  .nivel-animal-badge{font-size:20px;animation:bounce 2s ease-in-out infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .puntaje-wrap{display:flex;align-items:center;gap:6px;background:#FFCC3B22;border:2px solid #FFCC3B44;border-radius:50px;padding:6px 14px;}
+  .puntaje-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#F0A500;}
+
+  /* Área principal */
+  .area-principal{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:16px 18px 12px;overflow:hidden;}
+
+  /* Consigna */
+  .consigna-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;}
+  .consigna-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(18px,5vw,24px);color:#333;text-align:center;}
+
+  /* Botón de sonido */
+  .btn-sonido{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:24px;padding:16px 32px;font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(16px,4.5vw,20px);color:white;cursor:pointer;box-shadow:0 6px 20px #5BBFEA44;display:flex;align-items:center;gap:10px;animation:llamar 2s ease-in-out infinite;}
+  @keyframes llamar{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+  .btn-sonido:active{transform:scale(0.96)!important;}
+  .btn-sonido.tocando{animation:pulsar-sonido 0.4s ease-in-out infinite;}
+  @keyframes pulsar-sonido{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+  /* Grid de animales */
+  .grid-animales{display:grid;gap:14px;width:100%;flex:1;align-content:center;}
+  .grid-2{grid-template-columns:repeat(2,1fr);}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .grid-4{grid-template-columns:repeat(2,2fr);grid-template-rows:repeat(2,1fr);}
+
+  .tarjeta-animal{background:transparent;border-radius:24px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;border:4px solid transparent;transition:transform 0.15s,border-color 0.15s;animation:aparecer 0.4s ease forwards;opacity:0;transform:scale(0.9);}
+  @keyframes aparecer{to{opacity:1;transform:scale(1)}}
+  .tarjeta-animal:active{transform:scale(0.94);}
+  .tarjeta-animal.correcto{border-color:#52D9A0;background:#52D9A022;border-radius:24px;animation:correcto-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes correcto-pop{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+  .tarjeta-animal.incorrecto{border-color:#FF7E6B;background:#FF7E6B22;border-radius:24px;animation:shake 0.4s ease;}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  .tarjeta-animal.bloqueada{pointer-events:none;opacity:0.5;}
+
+  .animal-emoji{font-size:clamp(44px,13vw,72px);line-height:1;transition:transform 0.3s;}
+  .tarjeta-animal.correcto .animal-emoji{animation:bailar 0.6s ease infinite alternate;}
+  @keyframes bailar{from{transform:rotate(-8deg) scale(1.1)}to{transform:rotate(8deg) scale(1.1)}}
+  .animal-nombre{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(14px,4vw,18px);color:#333;text-align:center;display:none;}
+  .animal-nombre.visible{display:block;}
+
+  /* Pupi */
+  .pupi-panel{display:flex;align-items:flex-end;gap:10px;padding:0 4px;flex-shrink:0;}
+  .pupi-emoji{font-size:clamp(36px,10vw,50px);animation:pupi-bounce 2s ease-in-out infinite;filter:drop-shadow(0 3px 8px #00000033);flex-shrink:0;}
+  @keyframes pupi-bounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(3deg)}}
+  .pupi-burbuja{background:white;border-radius:18px 18px 18px 4px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(13px,3.8vw,16px);color:#333;max-width:240px;box-shadow:0 3px 16px #00000022;line-height:1.4;}
+
+  /* Progreso ronda */
+  .progreso-ronda{display:flex;gap:6px;justify-content:center;flex-shrink:0;padding:4px 0;}
+  .punto-ronda{width:10px;height:10px;border-radius:50%;background:#E0EFFF;transition:all 0.3s;}
+  .punto-ronda.activo{background:#5BBFEA;transform:scale(1.3);}
+  .punto-ronda.correcto-punto{background:#52D9A0;}
+  .punto-ronda.incorrecto-punto{background:#FF7E6B;}
+
+  /* Timer */
+  .timer-wrap{background:#A78BFA22;border:2px solid #A78BFA44;border-radius:50px;padding:6px 14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#7C5CDB;display:none;}
+  .timer-wrap.urgente{color:#FF7E6B;border-color:#FF7E6B55;animation:pulsar-timer 1s ease-in-out infinite;}
+  @keyframes pulsar-timer{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+  /* Countdown */
+  .countdown-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#F0F7FFee;}
+  .countdown-numero{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(120px,35vw,200px);animation:numero-pop 0.6s cubic-bezier(0.34,1.56,0.64,1);line-height:1;}
+  .countdown-ya{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(60px,20vw,100px);color:#52D9A0;animation:numero-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes numero-pop{from{transform:scale(0.2) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+  .countdown-pupi-big{font-size:clamp(60px,18vw,90px);}
+
+  /* Celebración */
+  .celebracion-overlay{position:fixed;inset:0;background:#00000066;z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
+  .celebracion-card{background:white;border-radius:32px;padding:36px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:340px;animation:pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop-in{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+  .cel-emoji{font-size:64px;}
+  .cel-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(24px,7vw,30px);color:#333;text-align:center;}
+  .cel-xp{background:linear-gradient(135deg,#FFCC3B,#FF7E6B);border-radius:50px;padding:10px 24px;font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:white;}
+  .btn-cel{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:20px;padding:16px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:white;cursor:pointer;}
+  .btn-cel:active{transform:scale(0.97);}
+  .btn-cel-sec{background:#F0F7FF;border:none;border-radius:16px;padding:12px;width:100%;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;}
+
+  /* Fin de tiempo */
+  .fin-overlay{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#5BBFEA,#A78BFA);}
+  .fin-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(48px,15vw,80px);color:white;text-align:center;text-shadow:0 4px 20px #00000033;animation:flotar-fin 3s ease-in-out infinite;}
+  @keyframes flotar-fin{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .fin-sub{font-family:'Nunito',sans-serif;font-weight:700;font-size:18px;color:rgba(255,255,255,0.85);text-align:center;}
+  .fin-pupi{font-size:80px;animation:pupi-bounce 2s ease-in-out infinite;}
+  .fin-pin-wrap{background:white;border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:320px;}
+  .fin-pin-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:#555;text-align:center;}
+  .fin-pin-input{display:flex;gap:10px;justify-content:center;}
+  .fin-pin-digito{width:56px;height:64px;border:3px solid #E0EFFF;border-radius:16px;background:#F0F7FF;text-align:center;font-family:'Nunito',sans-serif;font-weight:900;font-size:28px;color:#333;outline:none;}
+  .fin-pin-digito:focus{border-color:#5BBFEA;}
+  .fin-pin-error{font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;display:none;}
+  .btn-fin-desbloquear{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:18px;padding:14px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:white;cursor:pointer;}
+
+  .confeti{position:fixed;inset:0;pointer-events:none;z-index:700;display:none;}
+  .confeti-pieza{position:absolute;border-radius:2px;animation:caer 1.8s ease-in forwards;}
+  @keyframes caer{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  /* Footer */
+  .footer{background:white;border-top:1px solid #E0EFFF;padding:5px 20px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  .footer-marca{font-family:'Nunito',sans-serif;font-weight:700;font-size:10px;color:#5BBFEA;}
+  .footer-marca a{color:#5BBFEA;text-decoration:none;}
+  .footer-legal{font-family:'Nunito Sans',sans-serif;font-size:9px;color:#aaa;text-align:center;}
+</style>
+</head>
+<body>
+
+<!-- Countdown -->
+<div class="countdown-overlay" id="countdownOverlay">
+  <div class="countdown-pupi-big">🐙</div>
+  <div id="countdownNumero" class="countdown-numero" style="color:#5BBFEA;">3</div>
+</div>
+
+<!-- Celebración -->
+<div class="celebracion-overlay" id="celebracion">
+  <div class="celebracion-card">
+    <div class="cel-emoji" id="celEmoji">🎉</div>
+    <div class="cel-titulo" id="celTitulo">¡EXCELENTE!</div>
+    <div class="cel-xp" id="celXP">+10 XP ⚡</div>
+    <button class="btn-cel" onclick="cerrarCelebracion()">¡Seguir jugando! 🚀</button>
+    <button class="btn-cel-sec" onclick="salir()">Volver al inicio</button>
+  </div>
+</div>
+
+<!-- Fin de tiempo -->
+<div class="fin-overlay" id="finOverlay">
+  <div class="fin-pupi">🐙</div>
+  <div class="fin-titulo">¡GRACIAS!</div>
+  <div class="fin-sub">¡Jugaste genial hoy! 🌟</div>
+  <div class="fin-pin-wrap">
+    <div class="fin-pin-label">🔐 Ingresá el PIN para salir</div>
+    <div class="fin-pin-input">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p1" oninput="avanzarPin(this,'p2')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p2" oninput="avanzarPin(this,'p3')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p3" oninput="avanzarPin(this,'p4')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p4" oninput="verificarPin()">
+    </div>
+    <div class="fin-pin-error" id="pinError">❌ PIN incorrecto.</div>
+    <button class="btn-fin-desbloquear" onclick="verificarPin()">Desbloquear 🔓</button>
+  </div>
+</div>
+
+<div class="confeti" id="confeti"></div>
+
+<!-- Header -->
+<div class="header-juego">
+  <button class="btn-salir-juego" onclick="salir()">← Salir</button>
+  <div class="header-centro">
+    <div class="nivel-badge">
+      <span class="nivel-animal-badge" id="nivelAnimalBadge">🥚</span>
+      <span id="nivelNombreBadge">Huevo</span>
+    </div>
+    <div class="timer-wrap" id="timerWrap">⏱️ <span id="timerTexto">--:--</span></div>
+  </div>
+  <div class="puntaje-wrap">⭐ <span class="puntaje-texto" id="puntaje">0</span></div>
+</div>
+
+<!-- Área principal -->
+<div class="area-principal">
+
+  <!-- Consigna -->
+  <div class="consigna-wrap">
+    <div class="consigna-texto" id="consignaTexto">¿Cuál hace este sonido?</div>
+    <button class="btn-sonido" id="btnSonido" onclick="reproducirSonidoAnimal()">
+      🔊 <span id="btnSonidoTexto">Escuchar</span>
+    </button>
+  </div>
+
+  <!-- Progreso de ronda -->
+  <div class="progreso-ronda" id="progresoRonda"></div>
+
+  <!-- Grid de animales -->
+  <div class="grid-animales" id="gridAnimales"></div>
+
+  <!-- Pupi -->
+  <div class="pupi-panel">
+    <span class="pupi-emoji">🐙</span>
+    <div class="pupi-burbuja" id="pupiTexto">¡Escuchá bien! 🎵</div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
+  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados.</div>
+</div>
+
+<script>
+  const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
+  const {createClient}=supabase;
+  const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  // =============================================
+  // ANIMALES — emoji, nombre, sonido TTS, archivo
+  // =============================================
+  const ANIMALES = [
+    { id:'perro',   emoji:'🐶', nombre:'Perro',   sonidoTTS:'guau guau guau',       archivo:'animal_perro'   },
+    { id:'gato',    emoji:'🐱', nombre:'Gato',    sonidoTTS:'miau miau',             archivo:'animal_gato'    },
+    { id:'vaca',    emoji:'🐄', nombre:'Vaca',    sonidoTTS:'muuu muuu',             archivo:'animal_vaca'    },
+    { id:'sapo',    emoji:'🐸', nombre:'Sapo',    sonidoTTS:'croac croac',           archivo:'animal_sapo'    },
+    { id:'leon',    emoji:'🦁', nombre:'León',    sonidoTTS:'grrrr',                 archivo:'animal_leon'    },
+    { id:'gallo',   emoji:'🐓', nombre:'Gallo',   sonidoTTS:'quiquiriquí',            archivo:'animal_gallo'   },
+    { id:'chancho', emoji:'🐷', nombre:'Chancho', sonidoTTS:'oink oink',             archivo:'animal_chancho' },
+    { id:'caballo', emoji:'🐴', nombre:'Caballo', sonidoTTS:'hiiii hiiii',            archivo:'animal_caballo' },
+  ];
+
+  const NIVELES_CONFIG={
+    1:{animal:'🥚',nombre:'Huevo',   cantAnimales:2, dicenNombre:false, xpPor:8},
+    2:{animal:'🐣',nombre:'Pollito', cantAnimales:3, dicenNombre:true,  xpPor:10},
+    3:{animal:'🐤',nombre:'Pollito grande', cantAnimales:4, dicenNombre:false, xpPor:14},
+  };
+
+  // =============================================
+  // AUDIO — cola para no pisarse
+  // =============================================
+  let vocesGrabadas={};
+  try{ vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}'); }catch(e){}
+
+  let audioActual=null, audioQueue=[], reproduciendo=false;
+
+  function reproducir(id, forzar=true){
+    if(forzar){
+      audioQueue=[];reproduciendo=false;
+      if(audioActual){audioActual.pause();audioActual.currentTime=0;}
+      _reproducirAhora(id);
+    }else{
+      audioQueue.push(id);
+      if(!reproduciendo)_procesarCola();
+    }
+  }
+
+  function _reproducirAhora(id){
+    // Primero busca grabación, luego archivo, luego TTS
+    const grabada=vocesGrabadas[id];
+    const archivoPosible='audio/'+id+'.mp3';
+
+    const audio=new Audio(grabada||archivoPosible);
+    audioActual=audio;
+    reproduciendo=true;
+    audio.onended=()=>{reproduciendo=false;_procesarCola();};
+    audio.onerror=()=>{
+      // Si no existe el archivo, usar TTS
+      reproduciendo=false;
+      const tts=ANIMALES.find(a=>a.archivo===id);
+      if(tts){
+        _hablar(tts.sonidoTTS,()=>_procesarCola());
+      } else {
+        // Para voces normales buscar en mapa TTS
+        const mapaTTS={
+          'excelente':'¡Excelente!','que_bien':'¡Qué bien!','increible':'¡Increíble!',
+          'bien':'¡Bien!','genial':'¡Genial!','si':'¡Sí!','bravo':'¡Bravo!',
+          'esa_no':'¡Esa no!','upps':'¡Upps!','seguimos':'¡Seguimos!','tres':'Tres','dos':'Dos','uno':'Uno','ya':'¡Ya!',
+        };
+        if(mapaTTS[id]) _hablar(mapaTTS[id],()=>_procesarCola());
+        else _procesarCola();
+      }
+    };
+    audio.play().catch(()=>{audio.onerror();});
+  }
+
+  function _procesarCola(){
+    if(audioQueue.length>0&&!reproduciendo) _reproducirAhora(audioQueue.shift());
+  }
+
+  function _hablar(texto, onEnd){
+    if(!('speechSynthesis' in window)){if(onEnd)onEnd();return;}
+    window.speechSynthesis.cancel();
+    const msg=new SpeechSynthesisUtterance(texto);
+    msg.lang='es-AR'; msg.rate=0.85; msg.pitch=1.5;
+    msg.onend=()=>{reproduciendo=false;if(onEnd)onEnd();};
+    msg.onerror=()=>{reproduciendo=false;if(onEnd)onEnd();};
+    reproduciendo=true;
+    window.speechSynthesis.speak(msg);
+  }
+
+  function reproducirNombreAnimal(animal){
+    // Busca grabación del nombre, si no usa TTS
+    const id='nombre_'+animal.id;
+    const grabada=vocesGrabadas[id];
+    if(grabada){
+      audioQueue.push(id);
+      if(!reproduciendo)_procesarCola();
+    }else{
+      // TTS con el nombre
+      audioQueue.push('__tts__'+animal.nombre);
+      if(!reproduciendo)_procesarColaTTS();
+    }
+  }
+
+  function _procesarColaTTS(){
+    if(audioQueue.length>0&&!reproduciendo){
+      const item=audioQueue.shift();
+      if(item.startsWith('__tts__')){
+        _hablar(item.replace('__tts__',''),()=>_procesarColaTTS());
+      } else {
+        _reproducirAhora(item);
+      }
+    }
+  }
+
+  // Reemplazar _procesarCola para manejar TTS inline
+  function _procesarCola(){
+    if(audioQueue.length>0&&!reproduciendo){
+      const item=audioQueue.shift();
+      if(item&&item.startsWith('__tts__')){
+        _hablar(item.replace('__tts__',''),()=>_procesarCola());
+      } else if(item){
+        _reproducirAhora(item);
+      }
+    }
+  }
+
+  // =============================================
+  // ESTADO
+  // =============================================
+  let hijo=null, nivelActual=1, puntaje=0;
+  let animalesEnJuego=[], animalObjetivo=null;
+  let rondasJugadas=0, rondasCorrectas=0;
+  let juegoActivo=false, esperandoRespuesta=false;
+  let tiempoLimiteSegundos=0, tiempoRestante=0, intervaloTimer=null;
+  const RONDAS_POR_CELEBRACION=5;
+
+  // =============================================
+  // INICIO
+  // =============================================
+  window.addEventListener('load',()=>{
+    const hijoData=sessionStorage.getItem('hijoActual');
+    if(!hijoData){window.location.href='perfiles.html';return;}
+    hijo=JSON.parse(hijoData);
+    puntaje=hijo.xp_total||0;
+    nivelActual=hijo.nivel||1;
+    document.getElementById('puntaje').textContent=puntaje;
+
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    document.getElementById('nivelAnimalBadge').textContent=nc.animal;
+    document.getElementById('nivelNombreBadge').textContent=nc.nombre;
+
+    if(hijo.tiempo_limite&&hijo.tiempo_limite>0){
+      tiempoLimiteSegundos=hijo.tiempo_limite*60;
+      tiempoRestante=tiempoLimiteSegundos;
+      document.getElementById('timerWrap').style.display='flex';
+      actualizarTimerDisplay();
+    }
+
+    setTimeout(()=>mostrarCountdown(),300);
+  });
+
+  // =============================================
+  // COUNTDOWN
+  // =============================================
+  function mostrarCountdown(){
+    const overlay=document.getElementById('countdownOverlay');
+    const numEl=document.getElementById('countdownNumero');
+    overlay.style.display='flex';
+    const pasos=[
+      {texto:'3',color:'#FF7E6B',audio:'tres'},
+      {texto:'2',color:'#FFCC3B',audio:'dos'},
+      {texto:'1',color:'#52D9A0',audio:'uno'},
+      {texto:'¡YA!',color:'#5BBFEA',audio:'ya',esYa:true},
+    ];
+    let i=0;
+    function siguiente(){
+      if(i>=pasos.length){overlay.style.display='none';iniciarJuego();return;}
+      const paso=pasos[i];
+      numEl.className=paso.esYa?'countdown-ya':'countdown-numero';
+      numEl.style.color=paso.color;numEl.textContent=paso.texto;
+      numEl.style.animation='none';numEl.offsetHeight;numEl.style.animation='';
+      reproducir(paso.audio);
+      i++;setTimeout(siguiente,900);
+    }
+    siguiente();
+  }
+
+  // =============================================
+  // JUEGO
+  // =============================================
+  function iniciarJuego(){
+    juegoActivo=true;
+    rondasJugadas=0;rondasCorrectas=0;
+    renderProgresoRonda();
+    nuevaRonda();
+    iniciarTimer();
+  }
+
+  function nuevaRonda(){
+    if(!juegoActivo)return;
+    esperandoRespuesta=false;
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+
+    // Elegir animales al azar sin repetir
+    const mezclados=[...ANIMALES].sort(()=>Math.random()-0.5);
+    animalesEnJuego=mezclados.slice(0,nc.cantAnimales);
+    animalObjetivo=animalesEnJuego[Math.floor(Math.random()*animalesEnJuego.length)];
+
+    // Consigna
+    const consigna=nivelActual===2
+      ? '¿Dónde está el '+animalObjetivo.nombre+'? 🎵'
+      : '¿Cuál hace este sonido? 🎵';
+    document.getElementById('consignaTexto').textContent=consigna;
+    document.getElementById('btnSonidoTexto').textContent=nivelActual===2?animalObjetivo.nombre:'Escuchar';
+
+    renderGrid();
+    mostrarPupi('¡Escuchá bien! 🎵');
+
+    // Reproducir sonido automáticamente después de un momento
+    setTimeout(()=>{
+      reproducirSonidoAnimal();
+      esperandoRespuesta=true;
+    },600);
+  }
+
+  function renderGrid(){
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const grid=document.getElementById('gridAnimales');
+    grid.className='grid-animales '+(nc.cantAnimales===2?'grid-2':nc.cantAnimales===3?'grid-3':'grid-4');
+    grid.innerHTML='';
+
+    animalesEnJuego.forEach((animal,i)=>{
+      const card=document.createElement('div');
+      card.className='tarjeta-animal';
+      card.id='card_'+animal.id;
+      card.style.animationDelay=(i*0.1)+'s';
+      card.innerHTML=`
+        <div class="animal-emoji">${animal.emoji}</div>
+        <div class="animal-nombre ${nivelActual===2?'visible':''}">${animal.nombre}</div>
+      `;
+      card.addEventListener('click',()=>tocarAnimal(animal,card));
+      grid.appendChild(card);
+    });
+  }
+
+  function renderProgresoRonda(){
+    const cont=document.getElementById('progresoRonda');
+    cont.innerHTML='';
+    for(let i=0;i<RONDAS_POR_CELEBRACION;i++){
+      const p=document.createElement('div');
+      p.className='punto-ronda'+(i===rondasJugadas?' activo':'');
+      if(i<rondasJugadas) p.classList.add('correcto-punto');
+      cont.appendChild(p);
+    }
+  }
+
+  function reproducirSonidoAnimal(){
+    if(!animalObjetivo)return;
+    const btn=document.getElementById('btnSonido');
+    btn.classList.add('tocando');
+    setTimeout(()=>btn.classList.remove('tocando'),800);
+    reproducir(animalObjetivo.archivo);
+  }
+
+  // =============================================
+  // RESPUESTA
+  // =============================================
+  function tocarAnimal(animal,card){
+    if(!esperandoRespuesta||!juegoActivo)return;
+    esperandoRespuesta=false;
+
+    // Bloquear todas las tarjetas
+    document.querySelectorAll('.tarjeta-animal').forEach(c=>c.classList.add('bloqueada'));
+
+    if(animal.id===animalObjetivo.id){
+      // CORRECTO 🎉
+      card.classList.remove('bloqueada');
+      card.classList.add('correcto');
+      // Mostrar nombre en todos los niveles al acertar
+      card.querySelector('.animal-nombre').classList.add('visible');
+
+      puntaje+=(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+      document.getElementById('puntaje').textContent=puntaje;
+      rondasJugadas++;rondasCorrectas++;
+      renderProgresoRonda();
+
+      mostrarPupi('¡'+animalObjetivo.nombre+'! 🎉');
+
+      // Secuencia: sonido del animal → nombre del animal
+      reproducir(animalObjetivo.archivo, true);
+      audioQueue.push('nombre_'+animalObjetivo.id);
+      if(!reproduciendo)_procesarCola();
+
+      if(rondasJugadas>=RONDAS_POR_CELEBRACION){
+        setTimeout(()=>mostrarCelebracion(),2200);
+      }else{
+        setTimeout(()=>nuevaRonda(),2500);
+      }
+
+    }else{
+      // INCORRECTO ❌
+      card.classList.remove('bloqueada');
+      card.classList.add('incorrecto');
+      mostrarPupi('¡Esa no! Escuchá de nuevo 👂');
+      // Primero suena el animal que tocó (incorrecto), luego repite el objetivo
+      reproducir(animal.archivo);
+      audioQueue.push('esa_no');
+      audioQueue.push(animalObjetivo.archivo);
+      if(!reproduciendo)_procesarCola();
+
+      setTimeout(()=>{
+        card.classList.remove('incorrecto');
+        document.querySelectorAll('.tarjeta-animal').forEach(c=>{
+          c.classList.remove('bloqueada');
+        });
+        esperandoRespuesta=true;
+      },1800);
+    }
+  }
+
+  function mostrarPupi(texto){document.getElementById('pupiTexto').textContent=texto;}
+
+  // =============================================
+  // CELEBRACIÓN
+  // =============================================
+  function mostrarCelebracion(){
+    const frases=[{texto:'¡EXCELENTE!',audio:'excelente'},{texto:'¡QUÉ BIEN!',audio:'que_bien'},{texto:'¡INCREÍBLE!',audio:'increible'}];
+    const f=frases[Math.floor(Math.random()*frases.length)];
+    const xpGanado=rondasCorrectas*(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+    document.getElementById('celEmoji').textContent='🎉';
+    document.getElementById('celTitulo').textContent=f.texto;
+    document.getElementById('celXP').textContent='+'+xpGanado+' XP ⚡';
+    document.getElementById('celebracion').style.display='flex';
+    lanzarConfeti();
+    reproducir(f.audio);
+    guardarProgreso();
+  }
+
+  function cerrarCelebracion(){
+    document.getElementById('celebracion').style.display='none';
+    rondasJugadas=0;rondasCorrectas=0;
+    renderProgresoRonda();
+    nuevaRonda();
+  }
+
+  // =============================================
+  // TIMER
+  // =============================================
+  function iniciarTimer(){
+    if(!tiempoLimiteSegundos)return;
+    intervaloTimer=setInterval(()=>{
+      tiempoRestante--;
+      actualizarTimerDisplay();
+      if(tiempoRestante<=60)document.getElementById('timerWrap').classList.add('urgente');
+      if(tiempoRestante<=0){
+        clearInterval(intervaloTimer);
+        juegoActivo=false;
+        document.getElementById('finOverlay').style.display='flex';
+        reproducir('excelente');
+      }
+    },1000);
+  }
+
+  function actualizarTimerDisplay(){
+    const min=Math.floor(tiempoRestante/60);
+    const seg=tiempoRestante%60;
+    document.getElementById('timerTexto').textContent=min+':'+(seg<10?'0':'')+seg;
+  }
+
+  function avanzarPin(el,sigId){if(el.value.length===1){const s=document.getElementById(sigId);if(s)s.focus();}}
+
+  function verificarPin(){
+    const ingresado=['p1','p2','p3','p4'].map(id=>document.getElementById(id).value).join('');
+    const pinCorrecto=hijo.pin?hijo.pin.toString():'';
+    if(!pinCorrecto||ingresado===pinCorrecto){window.location.href='perfiles.html';}
+    else{
+      document.getElementById('pinError').style.display='block';
+      ['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('p1').focus();
+    }
+  }
+
+  async function guardarProgreso(){
+    try{
+      // Solo guardar XP — el nivel lo cambia siempre el padre desde perfiles
+      await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);
+      hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));
+    }catch(e){}
+  }
+
+  function lanzarConfeti(){
+    const confeti=document.getElementById('confeti');
+    confeti.style.display='block';confeti.innerHTML='';
+    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+    for(let i=0;i<80;i++){
+      const p=document.createElement('div');p.className='confeti-pieza';
+      p.style.left=Math.random()*100+'vw';p.style.top='-10px';
+      p.style.background=cols[Math.floor(Math.random()*cols.length)];
+      p.style.animationDelay=Math.random()*1+'s';
+      p.style.width=(Math.random()*10+6)+'px';p.style.height=(Math.random()*10+6)+'px';
+      confeti.appendChild(p);
+    }
+    setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},2500);
+  }
+
+  function salir(){
+    juegoActivo=false;
+    clearInterval(intervaloTimer);
+    window.speechSynthesis?.cancel();
+    window.location.href='bienvenida.html';
+  }
+</script>
+</body>
+</html>

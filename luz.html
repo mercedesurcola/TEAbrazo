@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TEAbrazo — Sigue la Luz</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:#0d0d2b;font-family:'Nunito',sans-serif;width:100vw;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+
+  .fondo{position:fixed;inset:0;background:radial-gradient(ellipse at 40% 30%,#1a1a4e,#0d0d2b);z-index:0;pointer-events:none;}
+  .estrella-fondo{position:absolute;border-radius:50%;background:white;animation:titilar var(--dur) ease-in-out infinite;}
+  @keyframes titilar{0%,100%{opacity:0}50%{opacity:var(--op)}}
+
+  .header-juego{position:relative;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,#0d0d2bdd,transparent);flex-shrink:0;}
+  .btn-salir-juego{background:#ffffff18;border:2px solid #ffffff28;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:white;cursor:pointer;}
+  .header-centro{display:flex;align-items:center;gap:10px;}
+  .nivel-badge{display:flex;align-items:center;gap:6px;background:#ffffff18;border:2px solid #ffffff28;border-radius:50px;padding:6px 14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:white;}
+  .nivel-emoji{font-size:18px;animation:bounce 2s ease-in-out infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .puntaje-wrap{display:flex;align-items:center;gap:6px;background:#FFCC3B22;border:2px solid #FFCC3B44;border-radius:50px;padding:6px 14px;}
+  .puntaje-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#FFCC3B;}
+  .timer-wrap{background:#A78BFA22;border:2px solid #A78BFA44;border-radius:50px;padding:6px 12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#C4A8FF;display:none;}
+  .timer-wrap.urgente{color:#FF7E6B;border-color:#FF7E6B55;animation:pulsar-t 1s ease-in-out infinite;}
+  @keyframes pulsar-t{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+  /* Área de juego — ocupa todo el espacio disponible */
+  .area-juego{position:relative;z-index:10;flex:1;overflow:hidden;touch-action:none;cursor:none;}
+
+  /* LUZ CORRECTA — solo el destello, sin emoji de linterna */
+  .luz{
+    position:absolute;
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    pointer-events:all;
+    cursor:pointer;
+    z-index:20;
+    animation:luz-pulsar 1s ease-in-out infinite;
+  }
+  @keyframes luz-pulsar{
+    0%,100%{box-shadow:0 0 20px 8px #FFCC3Baa, 0 0 50px 20px #FFCC3B44, 0 0 80px 30px #FFAA0022;}
+    50%{box-shadow:0 0 30px 14px #FFCC3Bcc, 0 0 70px 30px #FFCC3B66, 0 0 120px 50px #FFAA0033;}
+  }
+
+  /* LUZ FALSA — destello diferente */
+  .luz-falsa{
+    position:absolute;
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    pointer-events:all;
+    cursor:pointer;
+    z-index:15;
+    animation:falsa-pulsar 1.5s ease-in-out infinite;
+    opacity:0.5;
+  }
+  @keyframes falsa-pulsar{
+    0%,100%{box-shadow:0 0 12px 5px #5BBFEA66, 0 0 30px 12px #5BBFEA22;}
+    50%{box-shadow:0 0 18px 8px #5BBFEA88, 0 0 40px 16px #5BBFEA33;}
+  }
+
+  /* Destello al tocar correctamente */
+  .destello-ok{
+    position:absolute;
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    z-index:30;
+    animation:destello-ok-anim 0.6s ease forwards;
+  }
+  @keyframes destello-ok-anim{
+    0%{width:20px;height:20px;opacity:1;box-shadow:0 0 0 0 #FFCC3Bcc;}
+    100%{width:120px;height:120px;opacity:0;box-shadow:0 0 60px 40px #FFCC3B00;}
+  }
+
+  /* Destello al tocar incorrectamente */
+  .destello-fail{
+    position:absolute;
+    border-radius:50%;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    z-index:30;
+    animation:destello-fail-anim 0.4s ease forwards;
+  }
+  @keyframes destello-fail-anim{
+    0%{width:20px;height:20px;opacity:1;box-shadow:0 0 0 0 #FF7E6Bcc;}
+    100%{width:80px;height:80px;opacity:0;box-shadow:0 0 40px 20px #FF7E6B00;}
+  }
+
+  /* Consigna */
+  .consigna-panel{position:absolute;top:8px;left:0;right:0;z-index:50;display:flex;justify-content:center;padding:0 16px;}
+  .consigna-card{background:#ffffff18;backdrop-filter:blur(12px);border:2px solid #ffffff28;border-radius:20px;padding:8px 18px;font-family:'Nunito',sans-serif;font-weight:800;font-size:clamp(14px,4vw,17px);color:white;text-align:center;}
+
+  /* Progreso */
+  .progreso-wrap{position:absolute;bottom:86px;left:0;right:0;z-index:50;display:flex;justify-content:center;gap:8px;}
+  .punto-prog{width:12px;height:12px;border-radius:50%;background:#ffffff22;transition:all 0.3s;}
+  .punto-prog.activo{background:#FFCC3B;transform:scale(1.3);box-shadow:0 0 8px #FFCC3B;}
+  .punto-prog.ok{background:#52D9A0;box-shadow:0 0 6px #52D9A0;}
+
+  /* Pupi */
+  .pupi-panel{position:absolute;bottom:0;left:0;right:0;z-index:100;display:flex;align-items:flex-end;padding:0 16px 12px;gap:10px;pointer-events:none;}
+  .pupi-emoji{font-size:clamp(34px,9vw,46px);animation:pupi-bounce 2s ease-in-out infinite;filter:drop-shadow(0 3px 8px #00000055);flex-shrink:0;}
+  @keyframes pupi-bounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(3deg)}}
+  .pupi-burbuja{background:white;border-radius:18px 18px 18px 4px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(13px,3.8vw,15px);color:#333;max-width:220px;box-shadow:0 3px 16px #00000044;line-height:1.4;}
+
+  /* Countdown */
+  .countdown-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#0d0d2bee;}
+  .countdown-numero{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(120px,35vw,200px);animation:num-pop 0.6s cubic-bezier(0.34,1.56,0.64,1);line-height:1;}
+  .countdown-ya{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(60px,18vw,100px);color:#FFCC3B;animation:num-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes num-pop{from{transform:scale(0.2) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+
+  /* Celebración */
+  .celebracion-overlay{position:fixed;inset:0;background:#00000077;z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
+  .celebracion-card{background:white;border-radius:32px;padding:36px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:340px;animation:pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop-in{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+  .cel-emoji{font-size:64px;}
+  .cel-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(24px,7vw,30px);color:#333;text-align:center;}
+  .cel-xp{background:linear-gradient(135deg,#FFCC3B,#FF7E6B);border-radius:50px;padding:10px 24px;font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:white;}
+  .btn-cel{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:20px;padding:16px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:white;cursor:pointer;}
+  .btn-cel:active{transform:scale(0.97);}
+  .btn-cel-sec{background:#F0F7FF;border:none;border-radius:16px;padding:12px;width:100%;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;}
+
+  /* Fin de tiempo */
+  .fin-overlay{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#5BBFEA,#A78BFA);}
+  .fin-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(48px,15vw,80px);color:white;text-align:center;animation:flotar-fin 3s ease-in-out infinite;}
+  @keyframes flotar-fin{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .fin-sub{font-family:'Nunito',sans-serif;font-weight:700;font-size:18px;color:rgba(255,255,255,0.85);text-align:center;}
+  .fin-pupi{font-size:80px;animation:pupi-bounce 2s ease-in-out infinite;}
+  .fin-pin-wrap{background:white;border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:320px;}
+  .fin-pin-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:#555;text-align:center;}
+  .fin-pin-input{display:flex;gap:10px;justify-content:center;}
+  .fin-pin-digito{width:56px;height:64px;border:3px solid #E0EFFF;border-radius:16px;background:#F0F7FF;text-align:center;font-family:'Nunito',sans-serif;font-weight:900;font-size:28px;color:#333;outline:none;}
+  .fin-pin-digito:focus{border-color:#5BBFEA;}
+  .fin-pin-error{font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;display:none;}
+  .btn-fin-desbloquear{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:18px;padding:14px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:white;cursor:pointer;}
+
+  .confeti{position:fixed;inset:0;pointer-events:none;z-index:700;display:none;}
+  .confeti-pieza{position:absolute;border-radius:2px;animation:caer 1.8s ease-in forwards;}
+  @keyframes caer{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  .footer{position:relative;z-index:100;background:#0d0d2b;border-top:1px solid #ffffff11;padding:5px 20px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  .footer-marca{font-family:'Nunito',sans-serif;font-weight:700;font-size:10px;color:#5BBFEA;}
+  .footer-marca a{color:#5BBFEA;text-decoration:none;}
+  .footer-legal{font-family:'Nunito Sans',sans-serif;font-size:9px;color:#555;text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="fondo" id="fondo"></div>
+<div class="confeti" id="confeti"></div>
+
+<div class="countdown-overlay" id="countdownOverlay">
+  <div style="font-size:clamp(60px,18vw,90px);">🐙</div>
+  <div id="countdownNumero" class="countdown-numero" style="color:#5BBFEA;">3</div>
+</div>
+
+<div class="celebracion-overlay" id="celebracion">
+  <div class="celebracion-card">
+    <div class="cel-emoji">🎉</div>
+    <div class="cel-titulo" id="celTitulo">¡EXCELENTE!</div>
+    <div class="cel-xp" id="celXP">+10 XP ⚡</div>
+    <button class="btn-cel" onclick="cerrarCelebracion()">¡Seguir jugando! 🚀</button>
+    <button class="btn-cel-sec" onclick="salir()">Volver al inicio</button>
+  </div>
+</div>
+
+<div class="fin-overlay" id="finOverlay">
+  <div class="fin-pupi">🐙</div>
+  <div class="fin-titulo">¡GRACIAS!</div>
+  <div class="fin-sub">¡Jugaste genial hoy! 🌟</div>
+  <div class="fin-pin-wrap">
+    <div class="fin-pin-label">🔐 Ingresá el PIN para salir</div>
+    <div class="fin-pin-input">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p1" oninput="avanzarPin(this,'p2')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p2" oninput="avanzarPin(this,'p3')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p3" oninput="avanzarPin(this,'p4')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p4" oninput="verificarPin()">
+    </div>
+    <div class="fin-pin-error" id="pinError">❌ PIN incorrecto.</div>
+    <button class="btn-fin-desbloquear" onclick="verificarPin()">Desbloquear 🔓</button>
+  </div>
+</div>
+
+<div class="header-juego">
+  <button class="btn-salir-juego" onclick="salir()">← Salir</button>
+  <div class="header-centro">
+    <div class="nivel-badge">
+      <span class="nivel-emoji" id="nivelEmoji">🥚</span>
+      <span id="nivelNombre">Huevo</span>
+    </div>
+    <div class="timer-wrap" id="timerWrap">⏱️ <span id="timerTexto">--:--</span></div>
+  </div>
+  <div class="puntaje-wrap">⭐ <span class="puntaje-texto" id="puntaje">0</span></div>
+</div>
+
+<div class="area-juego" id="areaJuego">
+  <div class="consigna-panel">
+    <div class="consigna-card" id="consignaCard">¡Tocá la luz! ✨</div>
+  </div>
+  <div class="progreso-wrap" id="progresoWrap"></div>
+  <div class="pupi-panel">
+    <span class="pupi-emoji">🐙</span>
+    <div class="pupi-burbuja" id="pupiTexto">¡Encontrá la luz! ✨</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
+  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados.</div>
+</div>
+
+<script>
+  const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
+  const {createClient}=supabase;
+  const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  // =============================================
+  // CONFIG POR NIVEL
+  // nivel 1: aparece y se mueve cada 2.5s, sin distractores
+  // nivel 2: más rápido (1.6s), 2 distractores
+  // nivel 3: muy rápido (1s), 4 distractores
+  // =============================================
+  const NIVELES_CONFIG={
+    1:{emoji:'🥚', nombre:'Huevo',         xpPor:6,  intervalo:2500, distractores:0, tamLuz:60, consigna:'¡Tocá la luz! ✨'},
+    2:{emoji:'🐣', nombre:'Pollito',        xpPor:9,  intervalo:1600, distractores:2, tamLuz:52, consigna:'¡Tocá la luz amarilla! ✨'},
+    3:{emoji:'🐤', nombre:'Pollito grande', xpPor:13, intervalo:1000, distractores:4, tamLuz:44, consigna:'¡Rápido, tocá la luz amarilla! ⚡'},
+  };
+  const RONDAS_POR_CELEBRACION=8;
+
+  // =============================================
+  // AUDIO — cola sin superposición
+  // =============================================
+  let vocesGrabadas={};
+  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
+  let audioActual=null, audioQueue=[], reproduciendo=false;
+
+  function reproducir(id){
+    // Siempre interrumpe y reproduce inmediato (para feedback instantáneo)
+    audioQueue=[];
+    reproduciendo=false;
+    if(audioActual){audioActual.pause();audioActual.currentTime=0;audioActual=null;}
+    _reproducirAhora(id);
+  }
+
+  function _reproducirAhora(id){
+    const mapaTTS={
+      'excelente':'¡Excelente!','que_bien':'¡Qué bien!','increible':'¡Increíble!',
+      'bien':'¡Bien!','genial':'¡Genial!','si':'¡Sí!','bravo':'¡Bravo!',
+      'esa_no':'¡Esa no!','upps':'¡Upps!','seguimos':'¡Seguimos!',
+      'tres':'Tres','dos':'Dos','uno':'Uno','ya':'¡Ya!',
+    };
+    const src=vocesGrabadas[id]||('audio/'+id+'.mp3');
+    const audio=new Audio(src);
+    audioActual=audio;
+    reproduciendo=true;
+    audio.onended=()=>{reproduciendo=false;audioActual=null;};
+    audio.onerror=()=>{
+      reproduciendo=false;audioActual=null;
+      if(mapaTTS[id])_hablar(mapaTTS[id]);
+    };
+    audio.play().catch(()=>audio.onerror());
+  }
+
+  function _hablar(texto){
+    if(!('speechSynthesis' in window))return;
+    window.speechSynthesis.cancel();
+    const msg=new SpeechSynthesisUtterance(texto);
+    msg.lang='es-AR';msg.rate=1.1;msg.pitch=1.8;
+    msg.onend=()=>{reproduciendo=false;};
+    reproduciendo=true;
+    window.speechSynthesis.speak(msg);
+  }
+
+  // =============================================
+  // ESTADO
+  // =============================================
+  let hijo=null, nivelActual=1, puntaje=0;
+  let rondasJugadas=0, rondasCorrectas=0;
+  let juegoActivo=false, esperandoRespuesta=false;
+  let tiempoLimiteSegundos=0, tiempoRestante=0, intervaloTimer=null;
+  let moverTimeout=null, luzEl=null;
+  const audiosCorrectos=['bien','genial','si','bravo'];
+
+  // =============================================
+  // INICIO
+  // =============================================
+  window.addEventListener('load',()=>{
+    crearEstrellas();
+    const hijoData=sessionStorage.getItem('hijoActual');
+    if(!hijoData){window.location.href='perfiles.html';return;}
+    hijo=JSON.parse(hijoData);
+    puntaje=hijo.xp_total||0;
+    nivelActual=hijo.nivel||1;
+    document.getElementById('puntaje').textContent=puntaje;
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    document.getElementById('nivelEmoji').textContent=nc.emoji;
+    document.getElementById('nivelNombre').textContent=nc.nombre;
+    document.getElementById('consignaCard').textContent=nc.consigna;
+
+    if(hijo.tiempo_limite&&hijo.tiempo_limite>0){
+      tiempoLimiteSegundos=hijo.tiempo_limite*60;
+      tiempoRestante=tiempoLimiteSegundos;
+      document.getElementById('timerWrap').style.display='flex';
+      actualizarTimerDisplay();
+    }
+    setTimeout(()=>mostrarCountdown(),300);
+  });
+
+  function crearEstrellas(){
+    const fondo=document.getElementById('fondo');
+    for(let i=0;i<50;i++){
+      const s=document.createElement('div');s.className='estrella-fondo';
+      const size=Math.random()*3+1;
+      s.style.cssText=`width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${Math.random()*4+2}s;--op:${Math.random()*0.5+0.1};animation-delay:${Math.random()*4}s`;
+      fondo.appendChild(s);
+    }
+  }
+
+  // =============================================
+  // COUNTDOWN
+  // =============================================
+  function mostrarCountdown(){
+    const overlay=document.getElementById('countdownOverlay');
+    const numEl=document.getElementById('countdownNumero');
+    overlay.style.display='flex';
+    const pasos=[
+      {texto:'3',color:'#FF7E6B',audio:'tres'},
+      {texto:'2',color:'#FFCC3B',audio:'dos'},
+      {texto:'1',color:'#52D9A0',audio:'uno'},
+      {texto:'¡YA!',color:'#FFCC3B',audio:'ya',esYa:true},
+    ];
+    let i=0;
+    function siguiente(){
+      if(i>=pasos.length){overlay.style.display='none';iniciarJuego();return;}
+      const paso=pasos[i];
+      numEl.className=paso.esYa?'countdown-ya':'countdown-numero';
+      numEl.style.color=paso.color;numEl.textContent=paso.texto;
+      numEl.style.animation='none';numEl.offsetHeight;numEl.style.animation='';
+      reproducir(paso.audio);i++;setTimeout(siguiente,900);
+    }
+    siguiente();
+  }
+
+  // =============================================
+  // JUEGO
+  // =============================================
+  function iniciarJuego(){
+    juegoActivo=true;rondasJugadas=0;rondasCorrectas=0;
+    renderProgreso();
+    mostrarPupi('¡Encontrá la luz! ✨');
+    nuevaRonda();
+    iniciarTimer();
+  }
+
+  function posicionAleatoria(){
+    const area=document.getElementById('areaJuego');
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const margen=nc.tamLuz+20;
+    const minY=80, maxY=area.clientHeight-180;
+    return {
+      x:margen+Math.random()*(area.clientWidth-margen*2),
+      y:minY+Math.random()*(maxY-minY),
+    };
+  }
+
+  function nuevaRonda(){
+    if(!juegoActivo)return;
+    limpiarLuces();
+    esperandoRespuesta=false;
+
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const pos=posicionAleatoria();
+
+    // Crear distractores PRIMERO (debajo de la luz correcta)
+    for(let i=0;i<nc.distractores;i++){
+      let fpos;
+      // Asegurar que no se superpongan con la luz correcta
+      do{ fpos=posicionAleatoria(); }
+      while(Math.hypot(fpos.x-pos.x,fpos.y-pos.y)<100);
+      crearLuzFalsa(fpos.x,fpos.y,nc.tamLuz*0.8);
+    }
+
+    // Crear luz correcta ENCIMA
+    luzEl=crearLuz(pos.x,pos.y,nc.tamLuz);
+
+    esperandoRespuesta=true;
+
+    // Mover automáticamente según intervalo del nivel
+    moverTimeout=setTimeout(()=>{
+      if(juegoActivo&&esperandoRespuesta) nuevaRonda();
+    },nc.intervalo);
+  }
+
+  function crearLuz(x,y,tam){
+    const area=document.getElementById('areaJuego');
+    const el=document.createElement('div');
+    el.className='luz';
+    el.style.cssText=`left:${x}px;top:${y}px;width:${tam}px;height:${tam}px;background:radial-gradient(circle,#FFEE88,#FFCC3B88,transparent);`;
+    el.addEventListener('pointerdown',(e)=>{
+      e.stopPropagation();
+      if(!esperandoRespuesta||!juegoActivo)return;
+      tocarCorrecto(x,y,el);
+    });
+    area.appendChild(el);
+    return el;
+  }
+
+  function crearLuzFalsa(x,y,tam){
+    const area=document.getElementById('areaJuego');
+    const el=document.createElement('div');
+    el.className='luz-falsa';
+    el.style.cssText=`left:${x}px;top:${y}px;width:${tam}px;height:${tam}px;background:radial-gradient(circle,#aaddff,#5BBFEA44,transparent);`;
+    el.addEventListener('pointerdown',(e)=>{
+      e.stopPropagation();
+      if(!esperandoRespuesta||!juegoActivo)return;
+      tocarIncorrecto(x,y);
+    });
+    area.appendChild(el);
+    return el;
+  }
+
+  function limpiarLuces(){
+    clearTimeout(moverTimeout);
+    document.querySelectorAll('.luz,.luz-falsa').forEach(el=>el.remove());
+    luzEl=null;
+  }
+
+  // =============================================
+  // RESPUESTAS
+  // =============================================
+  function tocarCorrecto(x,y,el){
+    esperandoRespuesta=false;
+    clearTimeout(moverTimeout);
+
+    // Destello de acierto
+    crearDestelloOk(x,y);
+    el.remove();
+
+    // Puntaje
+    puntaje+=(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+    document.getElementById('puntaje').textContent=puntaje;
+    rondasJugadas++;rondasCorrectas++;
+    renderProgreso();
+
+    // Audio de acierto — uno al azar
+    const audio=audiosCorrectos[Math.floor(Math.random()*audiosCorrectos.length)];
+    reproducir(audio);
+
+    const frases=['¡BIEN! 🌟','¡GENIAL! ✨','¡SÍ! 🎉','¡BRAVO! ⭐'];
+    mostrarPupi(frases[Math.floor(Math.random()*frases.length)]);
+
+    if(rondasJugadas>=RONDAS_POR_CELEBRACION){
+      setTimeout(mostrarCelebracion,500);
+    }else{
+      setTimeout(()=>nuevaRonda(),600);
+    }
+  }
+
+  function tocarIncorrecto(x,y){
+    // NO interrumpe la ronda, solo feedback visual y sonoro
+    crearDestelloFail(x,y);
+    reproducir('upps');
+    mostrarPupi('¡Esa no! 🙈');
+  }
+
+  function crearDestelloOk(x,y){
+    const area=document.getElementById('areaJuego');
+    const d=document.createElement('div');
+    d.className='destello-ok';
+    d.style.cssText=`left:${x}px;top:${y}px;`;
+    area.appendChild(d);
+    setTimeout(()=>d.remove(),700);
+
+    // Partículas
+    const cols=['#FFCC3B','#FFEE88','#52D9A0','#5BBFEA','#A78BFA'];
+    for(let i=0;i<12;i++){
+      const p=document.createElement('div');
+      const ang=(i/12)*Math.PI*2;
+      const dist=40+Math.random()*50;
+      const s=Math.random()*8+4;
+      p.style.cssText=`position:absolute;border-radius:50%;width:${s}px;height:${s}px;left:${x}px;top:${y}px;background:${cols[Math.floor(Math.random()*cols.length)]};pointer-events:none;z-index:31;animation:volar-p 0.6s ease forwards;--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;`;
+      area.appendChild(p);
+      setTimeout(()=>p.remove(),700);
+    }
+  }
+
+  function crearDestelloFail(x,y){
+    const area=document.getElementById('areaJuego');
+    const d=document.createElement('div');
+    d.className='destello-fail';
+    d.style.cssText=`left:${x}px;top:${y}px;`;
+    area.appendChild(d);
+    setTimeout(()=>d.remove(),500);
+  }
+
+  function renderProgreso(){
+    const wrap=document.getElementById('progresoWrap');
+    wrap.innerHTML='';
+    for(let i=0;i<RONDAS_POR_CELEBRACION;i++){
+      const p=document.createElement('div');
+      p.className='punto-prog'+(i===rondasJugadas?' activo':'');
+      if(i<rondasJugadas)p.classList.add('ok');
+      wrap.appendChild(p);
+    }
+  }
+
+  function mostrarPupi(texto){document.getElementById('pupiTexto').textContent=texto;}
+
+  // =============================================
+  // CELEBRACIÓN
+  // =============================================
+  function mostrarCelebracion(){
+    limpiarLuces();
+    const frases=[{texto:'¡EXCELENTE!',audio:'excelente'},{texto:'¡QUÉ BIEN!',audio:'que_bien'},{texto:'¡INCREÍBLE!',audio:'increible'}];
+    const f=frases[Math.floor(Math.random()*frases.length)];
+    const xpGanado=rondasCorrectas*(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+    document.getElementById('celTitulo').textContent=f.texto;
+    document.getElementById('celXP').textContent='+'+xpGanado+' XP ⚡';
+    document.getElementById('celebracion').style.display='flex';
+    lanzarConfeti();
+    reproducir(f.audio);
+    guardarProgreso();
+  }
+
+  function cerrarCelebracion(){
+    document.getElementById('celebracion').style.display='none';
+    rondasJugadas=0;rondasCorrectas=0;
+    renderProgreso();
+    mostrarPupi('¡Seguimos! ✨');
+    nuevaRonda();
+  }
+
+  // =============================================
+  // TIMER
+  // =============================================
+  function iniciarTimer(){
+    if(!tiempoLimiteSegundos)return;
+    intervaloTimer=setInterval(()=>{
+      tiempoRestante--;actualizarTimerDisplay();
+      if(tiempoRestante<=60)document.getElementById('timerWrap').classList.add('urgente');
+      if(tiempoRestante<=0){
+        clearInterval(intervaloTimer);
+        juegoActivo=false;
+        limpiarLuces();
+        document.getElementById('finOverlay').style.display='flex';
+        reproducir('excelente');
+      }
+    },1000);
+  }
+
+  function actualizarTimerDisplay(){
+    const min=Math.floor(tiempoRestante/60),seg=tiempoRestante%60;
+    document.getElementById('timerTexto').textContent=min+':'+(seg<10?'0':'')+seg;
+  }
+
+  function avanzarPin(el,sigId){if(el.value.length===1){const s=document.getElementById(sigId);if(s)s.focus();}}
+
+  function verificarPin(){
+    const ingresado=['p1','p2','p3','p4'].map(id=>document.getElementById(id).value).join('');
+    const pinCorrecto=hijo.pin?hijo.pin.toString():'';
+    if(!pinCorrecto||ingresado===pinCorrecto){window.location.href='perfiles.html';}
+    else{
+      document.getElementById('pinError').style.display='block';
+      ['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('p1').focus();
+    }
+  }
+
+  async function guardarProgreso(){
+    try{
+      // Solo guardar XP — el nivel lo cambia siempre el padre desde perfiles
+      await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);
+      hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));
+    }catch(e){}
+  }
+
+  function lanzarConfeti(){
+    const confeti=document.getElementById('confeti');
+    confeti.style.display='block';confeti.innerHTML='';
+    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+    for(let i=0;i<80;i++){
+      const p=document.createElement('div');p.className='confeti-pieza';
+      p.style.left=Math.random()*100+'vw';p.style.top='-10px';
+      p.style.background=cols[Math.floor(Math.random()*cols.length)];
+      p.style.animationDelay=Math.random()*1+'s';
+      p.style.width=(Math.random()*10+6)+'px';p.style.height=(Math.random()*10+6)+'px';
+      confeti.appendChild(p);
+    }
+    setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},2500);
+  }
+
+  function salir(){
+    juegoActivo=false;limpiarLuces();
+    clearInterval(intervaloTimer);
+    window.speechSynthesis?.cancel();
+    window.location.href='bienvenida.html';
+  }
+
+  // Animación partículas
+  const style=document.createElement('style');
+  style.textContent=`@keyframes volar-p{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}`;
+  document.head.appendChild(style);
+</script>
+</body>
+</html>

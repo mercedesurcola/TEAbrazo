@@ -30,7 +30,7 @@
     z-index: 10;
     width: 100%;
     max-width: 400px;
-    padding: 24px;
+    padding: 24px 24px 70px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -45,7 +45,7 @@
   }
 
   .logo-img {
-    width: 180px;
+    width: 130px;
     animation: flotar-logo 3s ease-in-out infinite;
     filter: drop-shadow(0 8px 24px #5BBFEA44);
   }
@@ -58,7 +58,7 @@
   .tagline {
     font-family: 'Nunito', sans-serif;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 11px;
     color: #888;
     text-align: center;
     letter-spacing: 0.3px;
@@ -67,7 +67,7 @@
   .card {
     background: white;
     border-radius: 28px;
-    padding: 32px 24px;
+    padding: 20px 20px;
     width: 100%;
     box-shadow: 0 8px 32px #5BBFEA22;
     display: flex;
@@ -84,18 +84,21 @@
   }
   .campo input:focus { border-color: #5BBFEA; }
   .btn-login {
-    background: linear-gradient(135deg, #5BBFEA, #A78BFA); border: none; border-radius: 20px;
-    padding: 18px; width: 100%; font-family: 'Nunito', sans-serif; font-weight: 900;
-    font-size: 20px; color: white; cursor: pointer; box-shadow: 0 6px 20px #5BBFEA44;
+    background: linear-gradient(135deg, #5BBFEA, #A78BFA); border: none; border-radius: 16px;
+    padding: 13px; width: 100%; font-family: 'Nunito', sans-serif; font-weight: 900;
+    font-size: 16px; color: white; cursor: pointer; box-shadow: 0 6px 20px #5BBFEA44;
     transition: transform 0.15s; margin-top: 4px;
   }
   .btn-login:active { transform: scale(0.97); }
+  .fila-btns { display: flex; gap: 10px; width: 100%; }
+  .fila-btns .btn-login { flex: 1.4; }
+  .fila-btns .btn-registro { flex: 1; border: 2px solid #5BBFEA; }
   .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
   .separador { display: flex; align-items: center; gap: 12px; color: #bbb; font-size: 14px; }
   .separador::before, .separador::after { content: ''; flex: 1; height: 1px; background: #eee; }
   .btn-registro {
-    background: white; border: 2px solid #5BBFEA; border-radius: 20px; padding: 16px;
-    width: 100%; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 18px;
+    background: white; border: 2px solid #5BBFEA; border-radius: 16px; padding: 11px;
+    width: 100%; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px;
     color: #5BBFEA; cursor: pointer; transition: all 0.15s;
   }
   .btn-registro:active { background: #F0F7FF; transform: scale(0.97); }
@@ -107,8 +110,8 @@
   .cargando { display: none; align-items: center; justify-content: center; gap: 8px; font-family: 'Nunito', sans-serif; font-weight: 700; color: #5BBFEA; font-size: 16px; }
   .spinner { width: 20px; height: 20px; border: 3px solid #E0EFFF; border-top-color: #5BBFEA; border-radius: 50%; animation: girar 0.8s linear infinite; }
   @keyframes girar { to { transform: rotate(360deg); } }
-  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #00000055; z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; }
-  .modal { background: white; border-radius: 28px; padding: 32px 24px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 20px 60px #00000033; }
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #00000055; z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px 24px 70px; }
+  .modal { background: white; border-radius: 28px; padding: 20px 20px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 20px 60px #00000033; }
   .modal-titulo { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 22px; color: #333; text-align: center; }
   .btn-cerrar { background: #F0F7FF; border: none; border-radius: 14px; padding: 12px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 16px; color: #888; cursor: pointer; }
 </style>
@@ -137,14 +140,15 @@
   </div>
 
   <div class="card">
-    <div class="card-titulo">👋 ¡Hola de nuevo!</div>
+    
     <div class="campo"><label>📧 Email</label><input type="email" id="email" placeholder="nombre@email.com"></div>
     <div class="campo"><label>🔒 Contraseña</label><input type="password" id="password" placeholder="Tu contraseña"></div>
     <div class="error" id="errorLogin"></div>
     <div class="cargando" id="cargando"><div class="spinner"></div>Ingresando...</div>
-    <button class="btn-login" id="btnLogin" onclick="login()">Ingresar 🚀</button>
-    <div class="separador">¿Primera vez?</div>
-    <button class="btn-registro" onclick="abrirModal()">✨ Crear cuenta gratis</button>
+    <div class="fila-btns">
+      <button class="btn-registro" onclick="abrirModal()">✨ Registrarme</button>
+      <button class="btn-login" id="btnLogin" onclick="login()">Ingresar 🚀</button>
+    </div>
   </div>
 </div>
 
@@ -208,5 +212,9 @@
   }
   document.addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
 </script>
+<div style="position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #E0EFFF;padding:6px 20px;display:flex;flex-direction:column;align-items:center;gap:2px;z-index:50;">
+  <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:11px;color:#5BBFEA;">Un producto de <a href="https://www.cusol.com.ar" target="_blank" style="color:#5BBFEA;text-decoration:none;">cusol.com.ar</a></div>
+  <div style="font-family:'Nunito Sans',sans-serif;font-size:9px;color:#aaa;text-align:center;">© 2025 Cusol. Todos los derechos reservados. TEAbrazo es una herramienta de apoyo y no reemplaza la intervención profesional.</div>
+</div>
 </body>
 </html>
