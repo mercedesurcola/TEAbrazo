@@ -234,7 +234,7 @@
     const disponible=window.innerHeight-200;
     const tam=Math.min(window.innerWidth-32,disponible,380);
     canvas.width=tam;canvas.height=tam;canvas.style.width=tam+'px';canvas.style.height=tam+'px';
-    if(figuraActual)renderFigura();
+    if(figuraActual&&juegoActivo)renderFigura();
   }
 
   function mostrarCountdown(){
@@ -246,7 +246,7 @@
     sig();
   }
 
-  function iniciarJuego(){juegoActivo=true;figurasUsadas=[];nuevaFigura();}
+  function iniciarJuego(){juegoActivo=true;figurasUsadas=[];nuevaFigura();iniciarAnimLoop();}
 
   function elegirFigura(){
     const disponibles=FIGURAS.filter(f=>f.nivel===nivelActual&&!figurasUsadas.includes(f.nombre));
@@ -268,6 +268,7 @@
   }
 
   function renderFigura(){
+    if(!figuraActual)return;
     const canvas=document.getElementById('puntosCanvas');
     const ctx=canvas.getContext('2d');
     const W=canvas.width,H=canvas.height;
@@ -434,8 +435,6 @@
   }
   function salir(){juegoActivo=false;cancelAnimationFrame(animLoop);window.speechSynthesis?.cancel();window.location.href='bienvenida.html';}
 
-  // Iniciar animación loop al comenzar
-  window.addEventListener('load',()=>{setTimeout(iniciarAnimLoop,200);},{once:false});
 
   if(!CanvasRenderingContext2D.prototype.roundRect){
     CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.beginPath();this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath();return this;};
