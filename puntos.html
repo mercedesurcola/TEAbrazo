@@ -220,20 +220,49 @@
   let animDestello=null;
 
   window.addEventListener('load',()=>{
-    const h=sessionStorage.getItem('hijoActual');if(!h){window.location.href='perfiles.html';return;}
-    hijo=JSON.parse(h);puntaje=hijo.xp_total||0;nivelActual=1; // se sobreescribe con cargarProgresoJuego()
+    const h=sessionStorage.getItem('hijoActual');
+    if(!h){window.location.href='perfiles.html';return;}
+    hijo=JSON.parse(h);
+    puntaje=hijo.xp_total||0;
+    nivelActual=1;
     document.getElementById('puntaje').textContent=puntaje;
-    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
-    document.getElementById('nivelEmoji').textContent=nc.emoji;document.getElementById('nivelNombre').textContent=nc.nombre;
-    ajustarCanvas();window.addEventListener('resize',ajustarCanvas);
-    cargarProgresoJuego().then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
+
+    // Esperar a que el DOM esté pintado antes de medir el canvas
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        ajustarCanvas();
+        window.addEventListener('resize',ajustarCanvas);
+        actualizarUIDeNivel();
+
+        cargarProgresoJuego().then(()=>{
+          mostrarIntro(()=>{
+            setTimeout(()=>mostrarCountdown(),300);
+          });
+        }).catch(()=>{
+          // Si falla Supabase, arrancar igual en nivel 1
+          mostrarIntro(()=>{
+            setTimeout(()=>mostrarCountdown(),300);
+          });
+        });
+      });
+    });
   });
 
   function ajustarCanvas(){
     const canvas=document.getElementById('puntosCanvas');
-    const disponible=window.innerHeight-200;
-    const tam=Math.min(window.innerWidth-32,disponible,380);
-    canvas.width=tam;canvas.height=tam;canvas.style.width=tam+'px';canvas.style.height=tam+'px';
+    const wrap=document.querySelector('.canvas-wrap');
+    if(!wrap)return;
+    // Calcular espacio disponible real
+    const headerH=document.querySelector('.header-juego')?.offsetHeight||60;
+    const footerH=document.querySelector('.footer')?.offsetHeight||30;
+    const nombreH=document.getElementById('figuraNombre')?.offsetHeight||30;
+    const pupiH=document.querySelector('.pupi-panel')?.offsetHeight||60;
+    const padding=20;
+    const disponibleH=window.innerHeight-headerH-footerH-nombreH-pupiH-padding*4;
+    const disponibleW=window.innerWidth-32;
+    const tam=Math.max(200,Math.min(disponibleW,disponibleH,380));
+    canvas.width=tam;canvas.height=tam;
+    canvas.style.width=tam+'px';canvas.style.height=tam+'px';
     if(figuraActual&&juegoActivo)renderFigura();
   }
 
@@ -263,8 +292,12 @@
     document.getElementById('figuraNombre').textContent=figuraActual.emoji+' '+figuraActual.nombre;
     mostrarPupi('¡Uní los puntos para armar el '+figuraActual.nombre+'! ✏️');
     _hablar('¡Uní los puntos para armar el '+figuraActual.nombre,1.0);
-    renderFigura();
-    configurarEventos();
+    // Asegurar dimensiones del canvas antes de renderizar
+    ajustarCanvas();
+    requestAnimationFrame(()=>{
+      renderFigura();
+      configurarEventos();
+    });
   }
 
   function renderFigura(){
