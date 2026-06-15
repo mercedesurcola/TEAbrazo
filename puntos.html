@@ -9,91 +9,97 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   body{background:#F0F7FF;font-family:'Nunito',sans-serif;width:100vw;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
-  .burbuja{position:fixed;border-radius:50%;opacity:0.10;animation:flotar 6s ease-in-out infinite;z-index:0;pointer-events:none;}
-  .b1{width:200px;height:200px;background:#A78BFA;top:-60px;left:-60px;}
-  .b2{width:140px;height:140px;background:#FFCC3B;bottom:10%;right:-30px;animation-delay:1s;}
-  @keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
 
-  .header-juego{position:relative;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:white;box-shadow:0 2px 12px #5BBFEA15;flex-shrink:0;}
+  .header-juego{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:white;box-shadow:0 2px 12px #5BBFEA15;flex-shrink:0;z-index:10;}
   .btn-salir{background:#F0F7FF;border:2px solid #E0EFFF;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#5BBFEA;cursor:pointer;}
   .nivel-badge{display:flex;align-items:center;gap:6px;background:#F0F7FF;border-radius:50px;padding:6px 14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#555;}
-  .nivel-emoji-b{font-size:18px;animation:bounce 2s ease-in-out infinite;}
-  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .nivel-emoji-b{font-size:18px;}
   .puntaje-wrap{display:flex;align-items:center;gap:6px;background:#FFCC3B22;border:2px solid #FFCC3B44;border-radius:50px;padding:6px 14px;}
   .puntaje-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#F0A500;}
 
-  .area-principal{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 16px 10px;overflow:hidden;position:relative;z-index:10;gap:8px;}
-  .figura-nombre{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(16px,4.5vw,22px);color:#333;text-align:center;}
-  .canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%;position:relative;}
-  #puntosCanvas{border-radius:20px;touch-action:none;box-shadow:0 6px 28px #A78BFA22;}
+  /* Área principal — ocupa todo el espacio restante */
+  .area-juego{flex:1;display:flex;flex-direction:column;align-items:center;padding:12px 16px 10px;gap:8px;overflow:hidden;}
+
+  .figura-nombre{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(16px,4.5vw,22px);color:#333;text-align:center;flex-shrink:0;}
+
+  /* Canvas ocupa el espacio disponible */
+  #puntosCanvas{
+    display:block;
+    border-radius:20px;
+    touch-action:none;
+    box-shadow:0 6px 28px #A78BFA22;
+    background:white;
+    flex-shrink:0;
+  }
 
   .pupi-panel{display:flex;align-items:flex-end;gap:10px;width:100%;flex-shrink:0;}
-  .pupi-emoji{font-size:clamp(34px,9vw,46px);animation:pupi-b 2s ease-in-out infinite;filter:drop-shadow(0 3px 8px #00000022);flex-shrink:0;}
+  .pupi-emoji{font-size:clamp(34px,9vw,46px);animation:pupi-b 2s ease-in-out infinite;flex-shrink:0;}
   @keyframes pupi-b{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(3deg)}}
   .pupi-burbuja{background:white;border-radius:18px 18px 18px 4px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(13px,3.8vw,15px);color:#333;max-width:240px;box-shadow:0 3px 16px #00000015;line-height:1.4;}
 
-  @keyframes intro-bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.05)}}
+  /* Intro */
+  .intro-overlay{position:fixed;inset:0;z-index:350;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#0d0d2b,#1a1a4e);}
+  .intro-emoji{font-size:clamp(72px,20vw,110px);animation:intro-b 1s ease-in-out infinite;}
+  @keyframes intro-b{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.05)}}
+  .intro-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(22px,6vw,32px);color:white;text-align:center;}
+  .intro-pupi-row{display:flex;align-items:flex-end;gap:12px;max-width:360px;width:100%;}
+  .intro-pupi{font-size:clamp(44px,12vw,64px);animation:pupi-intro 2s ease-in-out infinite;flex-shrink:0;}
   @keyframes pupi-intro{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
-  @keyframes btn-llamar{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+  .intro-texto{background:white;border-radius:20px 20px 20px 4px;padding:14px 18px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(15px,4.5vw,19px);color:#333;line-height:1.4;flex:1;}
+  .btn-listo{background:linear-gradient(135deg,#52D9A0,#5BBFEA);border:none;border-radius:28px;padding:20px 0;width:100%;max-width:320px;font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(20px,6vw,26px);color:white;cursor:pointer;animation:btn-ll 2s ease-in-out infinite;}
+  @keyframes btn-ll{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
 
+  /* Countdown */
   .countdown-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#F0F7FFee;}
   .countdown-numero{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(120px,35vw,200px);animation:num-pop .6s cubic-bezier(0.34,1.56,0.64,1);line-height:1;}
   .countdown-ya{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(60px,18vw,100px);color:#A78BFA;animation:num-pop .5s cubic-bezier(0.34,1.56,0.64,1);}
   @keyframes num-pop{from{transform:scale(0.2) rotate(-10deg);opacity:0}to{transform:scale(1);opacity:1}}
 
+  /* Celebración */
   .cel-overlay{position:fixed;inset:0;background:#00000066;z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
   .cel-card{background:white;border-radius:32px;padding:36px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:340px;animation:pop-in .4s cubic-bezier(0.34,1.56,0.64,1);}
   @keyframes pop-in{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
-  .cel-emoji{font-size:64px;}.cel-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(24px,7vw,30px);color:#333;text-align:center;}
+  .cel-emoji-big{font-size:64px;}
+  .cel-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(24px,7vw,30px);color:#333;text-align:center;}
   .cel-xp{background:linear-gradient(135deg,#FFCC3B,#FF7E6B);border-radius:50px;padding:10px 24px;font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:white;}
   .btn-cel{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:20px;padding:16px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:white;cursor:pointer;}
   .btn-cel:active{transform:scale(0.97);}
   .btn-cel-sec{background:#F0F7FF;border:none;border-radius:16px;padding:12px;width:100%;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;}
 
-  .fin-overlay{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#5BBFEA,#A78BFA);}
-  .fin-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(48px,15vw,80px);color:white;text-align:center;}
-  .fin-sub{font-family:'Nunito',sans-serif;font-weight:700;font-size:18px;color:rgba(255,255,255,0.85);text-align:center;}
-  .fin-pupi{font-size:80px;}
-  .fin-pin-wrap{background:white;border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:320px;}
-  .fin-pin-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:#555;text-align:center;}
-  .fin-pin-input{display:flex;gap:10px;justify-content:center;}
-  .fin-pin-digito{width:56px;height:64px;border:3px solid #E0EFFF;border-radius:16px;background:#F0F7FF;text-align:center;font-family:'Nunito',sans-serif;font-weight:900;font-size:28px;color:#333;outline:none;}
-  .fin-pin-digito:focus{border-color:#5BBFEA;}
-  .fin-pin-error{font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;display:none;}
-  .btn-fin-desbloquear{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:18px;padding:14px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:white;cursor:pointer;}
-
   .confeti{position:fixed;inset:0;pointer-events:none;z-index:700;display:none;}
   .confeti-pieza{position:absolute;border-radius:2px;animation:caer 1.8s ease-in forwards;}
   @keyframes caer{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
 
-  .footer{position:relative;z-index:100;background:white;border-top:1px solid #E0EFFF;padding:5px 20px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  .footer{background:white;border-top:1px solid #E0EFFF;padding:5px 20px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
   .footer-marca{font-family:'Nunito',sans-serif;font-weight:700;font-size:10px;color:#5BBFEA;}
   .footer-marca a{color:#5BBFEA;text-decoration:none;}
   .footer-legal{font-family:'Nunito Sans',sans-serif;font-size:9px;color:#aaa;text-align:center;}
 </style>
 </head>
 <body>
-<div class="burbuja b1"></div><div class="burbuja b2"></div>
 <div class="confeti" id="confeti"></div>
 
-<div id="introOverlay" style="position:fixed;inset:0;z-index:350;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#0d0d2b,#1a1a4e);">
-  <div style="font-size:clamp(72px,20vw,110px);animation:intro-bounce 1s ease-in-out infinite;">✏️</div>
-  <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(22px,6vw,32px);color:white;text-align:center;">¡Uní los puntos!</div>
-  <div style="display:flex;align-items:flex-end;gap:12px;max-width:360px;width:100%;">
-    <div style="font-size:clamp(44px,12vw,64px);animation:pupi-intro 2s ease-in-out infinite;flex-shrink:0;">🐙</div>
-    <div id="introTexto" style="background:white;border-radius:20px 20px 20px 4px;padding:14px 18px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(15px,4.5vw,19px);color:#333;line-height:1.4;flex:1;"></div>
+<!-- Intro -->
+<div class="intro-overlay" id="introOverlay">
+  <div class="intro-emoji">✏️</div>
+  <div class="intro-titulo">¡Uní los puntos!</div>
+  <div class="intro-pupi-row">
+    <div class="intro-pupi">🐙</div>
+    <div class="intro-texto" id="introTexto">¡Tocá los puntos en orden para armar la figura!</div>
   </div>
-  <button onclick="cerrarIntro()" style="background:linear-gradient(135deg,#52D9A0,#5BBFEA);border:none;border-radius:28px;padding:20px 0;width:100%;max-width:320px;font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(20px,6vw,26px);color:white;cursor:pointer;animation:btn-llamar 2s ease-in-out infinite;">¡Listo! 🚀</button>
+  <button class="btn-listo" onclick="cerrarIntro()">¡Listo! 🚀</button>
 </div>
 
+<!-- Countdown -->
 <div class="countdown-overlay" id="countdownOverlay">
   <div style="font-size:clamp(60px,18vw,90px);">🐙</div>
   <div id="countdownNumero" class="countdown-numero" style="color:#A78BFA;">3</div>
 </div>
 
+<!-- Celebración -->
 <div class="cel-overlay" id="celebracion">
   <div class="cel-card">
-    <div class="cel-emoji" id="celEmoji">✏️</div>
+    <div class="cel-emoji-big" id="celEmoji">✏️</div>
     <div class="cel-titulo" id="celTitulo">¡EXCELENTE!</div>
     <div class="cel-xp" id="celXP">+15 XP ⚡</div>
     <button class="btn-cel" onclick="cerrarCelebracion()">¡Otra figura! 🚀</button>
@@ -101,377 +107,441 @@
   </div>
 </div>
 
-<div class="fin-overlay" id="finOverlay">
-  <div class="fin-pupi">🐙</div><div class="fin-titulo">¡GRACIAS!</div><div class="fin-sub">¡Jugaste genial! 🌟</div>
-  <div class="fin-pin-wrap">
-    <div class="fin-pin-label">🔐 PIN para salir</div>
-    <div class="fin-pin-input">
-      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p1" oninput="avanzarPin(this,'p2')">
-      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p2" oninput="avanzarPin(this,'p3')">
-      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p3" oninput="avanzarPin(this,'p4')">
-      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p4" oninput="verificarPin()">
-    </div>
-    <div class="fin-pin-error" id="pinError">❌ PIN incorrecto.</div>
-    <button class="btn-fin-desbloquear" onclick="verificarPin()">Desbloquear 🔓</button>
-  </div>
-</div>
-
+<!-- Header -->
 <div class="header-juego">
   <button class="btn-salir" onclick="salir()">← Salir</button>
   <div class="nivel-badge"><span class="nivel-emoji-b" id="nivelEmoji">🥚</span><span id="nivelNombre">Huevo</span></div>
   <div class="puntaje-wrap">⭐ <span class="puntaje-texto" id="puntaje">0</span></div>
 </div>
 
-<div class="area-principal">
+<!-- Área de juego -->
+<div class="area-juego" id="areaJuego">
   <div class="figura-nombre" id="figuraNombre">✏️ Armá la figura</div>
-  <div class="canvas-wrap"><canvas id="puntosCanvas"></canvas></div>
+  <canvas id="puntosCanvas"></canvas>
   <div class="pupi-panel">
     <span class="pupi-emoji">🐙</span>
-    <div class="pupi-burbuja" id="pupiTexto">¡Uní los puntos con el dedo! ✏️</div>
+    <div class="pupi-burbuja" id="pupiTexto">¡Tocá los puntos en orden! ✏️</div>
   </div>
 </div>
 
+<!-- Footer -->
 <div class="footer">
   <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
   <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados.</div>
 </div>
 
 <script>
-  const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
-  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
-  const {createClient}=supabase;const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-  function appEstaSilenciada(){return localStorage.getItem('teabrazo_muted')==='1';}
+const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
+const {createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+function appEstaSilenciada(){return localStorage.getItem('teabrazo_muted')==='1';}
 
-  // =============================================
-  // FIGURAS — puntos normalizados (0-1) y nombre
-  // =============================================
-  const FIGURAS=[
-    // Nivel 1: simples
-    {nombre:'Estrella', emoji:'⭐', nivel:1, puntos:[
-      [0.5,0.1],[0.62,0.38],[0.9,0.38],[0.68,0.57],[0.77,0.85],[0.5,0.68],[0.23,0.85],[0.32,0.57],[0.1,0.38],[0.38,0.38],[0.5,0.1]
-    ]},
-    {nombre:'Casa', emoji:'🏠', nivel:1, puntos:[
-      [0.5,0.1],[0.9,0.45],[0.9,0.9],[0.1,0.9],[0.1,0.45],[0.5,0.1],[0.5,0.45],[0.9,0.45],[0.1,0.45],[0.5,0.1]
-    ]},
-    {nombre:'Corazón', emoji:'❤️', nivel:1, puntos:[
-      [0.5,0.85],[0.1,0.4],[0.15,0.22],[0.3,0.15],[0.5,0.25],[0.7,0.15],[0.85,0.22],[0.9,0.4],[0.5,0.85]
-    ]},
-    // Nivel 2: medianas
-    {nombre:'Pez', emoji:'🐟', nivel:2, puntos:[
-      [0.15,0.5],[0.1,0.25],[0.1,0.75],[0.15,0.5],[0.4,0.35],[0.7,0.3],[0.88,0.5],[0.7,0.7],[0.4,0.65],[0.15,0.5]
-    ]},
-    {nombre:'Flor', emoji:'🌸', nivel:2, puntos:[
-      [0.5,0.5],[0.5,0.2],[0.65,0.25],[0.5,0.5],[0.8,0.5],[0.75,0.65],[0.5,0.5],[0.5,0.8],[0.35,0.75],[0.5,0.5],[0.2,0.5],[0.25,0.35],[0.5,0.5]
-    ]},
-    {nombre:'Rayo', emoji:'⚡', nivel:2, puntos:[
-      [0.6,0.1],[0.35,0.5],[0.55,0.5],[0.3,0.9],[0.65,0.5],[0.45,0.5],[0.6,0.1]
-    ]},
-    // Nivel 3: complejas
-    {nombre:'Árbol', emoji:'🌲', nivel:3, puntos:[
-      [0.5,0.05],[0.75,0.3],[0.62,0.3],[0.82,0.55],[0.65,0.55],[0.85,0.78],[0.6,0.78],[0.6,0.95],[0.4,0.95],[0.4,0.78],[0.15,0.78],[0.35,0.55],[0.18,0.55],[0.38,0.3],[0.25,0.3],[0.5,0.05]
-    ]},
-    {nombre:'Mariposa', emoji:'🦋', nivel:3, puntos:[
-      [0.5,0.5],[0.2,0.2],[0.1,0.4],[0.2,0.6],[0.4,0.65],[0.5,0.5],[0.6,0.65],[0.8,0.6],[0.9,0.4],[0.8,0.2],[0.5,0.5],[0.5,0.6],[0.5,0.8],[0.5,0.6],[0.5,0.5]
-    ]},
-    {nombre:'Cohete', emoji:'🚀', nivel:3, puntos:[
-      [0.5,0.05],[0.65,0.25],[0.72,0.6],[0.62,0.78],[0.5,0.82],[0.38,0.78],[0.28,0.6],[0.35,0.25],[0.5,0.05],[0.5,0.82],[0.38,0.95],[0.5,0.82],[0.62,0.95],[0.5,0.82]
-    ]},
+// =============================================
+// FIGURAS — puntos normalizados 0-1
+// =============================================
+const FIGURAS=[
+  // Nivel 1
+  {nombre:'Estrella',   emoji:'⭐', nivel:1, pts:[[.5,.08],[.61,.35],[.9,.35],[.67,.54],[.78,.82],[.5,.65],[.22,.82],[.33,.54],[.1,.35],[.39,.35],[.5,.08]]},
+  {nombre:'Casa',       emoji:'🏠', nivel:1, pts:[[.5,.1],[.9,.45],[.75,.45],[.75,.9],[.25,.9],[.25,.45],[.1,.45],[.5,.1]]},
+  {nombre:'Corazón',    emoji:'❤️', nivel:1, pts:[[.5,.85],[.1,.38],[.15,.2],[.3,.12],[.5,.25],[.7,.12],[.85,.2],[.9,.38],[.5,.85]]},
+  {nombre:'Diamante',   emoji:'💎', nivel:1, pts:[[.5,.05],[.95,.45],[.5,.95],[.05,.45],[.5,.05]]},
+  // Nivel 2
+  {nombre:'Flecha',     emoji:'➡️', nivel:2, pts:[[.1,.4],[.55,.4],[.55,.15],[.9,.5],[.55,.85],[.55,.6],[.1,.6],[.1,.4]]},
+  {nombre:'Rayo',       emoji:'⚡', nivel:2, pts:[[.62,.05],[.32,.52],[.55,.52],[.28,.95],[.68,.48],[.45,.48],[.62,.05]]},
+  {nombre:'Luna',       emoji:'🌙', nivel:2, pts:[[.7,.1],[.4,.15],[.2,.35],[.15,.55],[.2,.75],[.4,.88],[.7,.92],[.55,.75],[.45,.55],[.55,.32],[.7,.1]]},
+  {nombre:'Pez',        emoji:'🐟', nivel:2, pts:[[.12,.5],[.08,.25],[.08,.75],[.12,.5],[.38,.32],[.72,.28],[.9,.5],[.72,.72],[.38,.68],[.12,.5]]},
+  // Nivel 3
+  {nombre:'Árbol',      emoji:'🌲', nivel:3, pts:[[.5,.04],[.78,.32],[.62,.32],[.82,.56],[.64,.56],[.84,.8],[.6,.8],[.6,.96],[.4,.96],[.4,.8],[.16,.8],[.36,.56],[.18,.56],[.38,.32],[.22,.32],[.5,.04]]},
+  {nombre:'Mariposa',   emoji:'🦋', nivel:3, pts:[[.5,.5],[.18,.18],[.08,.38],[.18,.6],[.4,.65],[.5,.5],[.6,.65],[.82,.6],[.92,.38],[.82,.18],[.5,.5]]},
+  {nombre:'Cohete',     emoji:'🚀', nivel:3, pts:[[.5,.04],[.66,.26],[.72,.6],[.62,.78],[.5,.82],[.38,.78],[.28,.6],[.34,.26],[.5,.04],[.5,.82],[.36,.96],[.5,.82],[.64,.96],[.5,.82]]},
+];
+
+const NIVELES_CONFIG={
+  1:{emoji:'🥚',nombre:'Huevo',        xpPor:12, radioTouch:44, puntosVer:1},
+  2:{emoji:'🐣',nombre:'Pollito',       xpPor:16, radioTouch:36, puntosVer:3},
+  3:{emoji:'🐤',nombre:'Pollito grande',xpPor:22, radioTouch:30, puntosVer:'todos'},
+};
+
+const INSTRUCCIONES={
+  1:'¡Tocá el punto brillante! Te vas a sorprender con lo que aparece 🌟',
+  2:'¡Tocá los 3 puntos en orden para armar la figura!',
+  3:'¡Uní todos los puntos numerados para descubrir la figura!',
+};
+
+// =============================================
+// AUDIO
+// =============================================
+let vocesGrabadas={};
+try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
+let audioActual=null;
+function reproducir(id){
+  if(appEstaSilenciada())return;
+  if(audioActual){audioActual.pause();audioActual.currentTime=0;}
+  const tts={excelente:'¡Excelente!',que_bien:'¡Qué bien!',increible:'¡Increíble!',bien:'¡Bien!',tres:'Tres',dos:'Dos',uno:'Uno',ya:'¡Ya!'};
+  const a=new Audio(vocesGrabadas[id]||('audio/'+id+'.mp3'));
+  audioActual=a;
+  a.onerror=()=>{if(tts[id])_hablar(tts[id]);};
+  a.play().catch(()=>a.onerror());
+}
+function _hablar(t,r=1.0){
+  if(appEstaSilenciada())return;
+  if(!('speechSynthesis' in window))return;
+  window.speechSynthesis.cancel();
+  const m=new SpeechSynthesisUtterance(t);m.lang='es-AR';m.rate=r;m.pitch=1.8;
+  window.speechSynthesis.speak(m);
+}
+
+// =============================================
+// ESTADO
+// =============================================
+let hijo=null, nivelActual=1, puntaje=0, juegoActivo=false;
+let figuraActual=null, figurasUsadas=[];
+let puntoActual=0; // índice del próximo punto a tocar
+let animLoop=null;
+
+// =============================================
+// INICIO
+// =============================================
+window.addEventListener('load',()=>{
+  const h=sessionStorage.getItem('hijoActual');
+  if(!h){window.location.href='perfiles.html';return;}
+  hijo=JSON.parse(h);
+  puntaje=hijo.xp_total||0;
+  nivelActual=hijo.nivel||1;
+  document.getElementById('puntaje').textContent=puntaje;
+  document.getElementById('nivelEmoji').textContent=NIVELES_CONFIG[nivelActual]?.emoji||'🥚';
+  document.getElementById('nivelNombre').textContent=NIVELES_CONFIG[nivelActual]?.nombre||'Huevo';
+  document.getElementById('introTexto').textContent=INSTRUCCIONES[nivelActual]||INSTRUCCIONES[1];
+
+  // Mostrar intro
+  document.getElementById('introOverlay').style.display='flex';
+  _hablar(INSTRUCCIONES[nivelActual]||INSTRUCCIONES[1],1.0);
+});
+
+function cerrarIntro(){
+  document.getElementById('introOverlay').style.display='none';
+  window.speechSynthesis?.cancel();
+  mostrarCountdown();
+}
+
+// =============================================
+// COUNTDOWN
+// =============================================
+function mostrarCountdown(){
+  const overlay=document.getElementById('countdownOverlay');
+  const numEl=document.getElementById('countdownNumero');
+  overlay.style.display='flex';
+  const pasos=[
+    {texto:'3',color:'#FF7E6B',audio:'tres'},
+    {texto:'2',color:'#FFCC3B',audio:'dos'},
+    {texto:'1',color:'#A78BFA',audio:'uno'},
+    {texto:'¡YA!',color:'#5BBFEA',audio:'ya',esYa:true},
   ];
-
-  const NIVELES_CONFIG={
-    1:{emoji:'🥚',nombre:'Huevo',        xpPor:12, puntosVisibles:1, radioTouch:30},
-    2:{emoji:'🐣',nombre:'Pollito',       xpPor:16, puntosVisibles:3, radioTouch:28},
-    3:{emoji:'🐤',nombre:'Pollito grande',xpPor:20, puntosVisibles:'todos', radioTouch:25},
-  };
-
-  let vocesGrabadas={};
-  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
-  let audioActual=null;
-  function reproducir(id){
-    if(appEstaSilenciada())return;
-    if(audioActual){audioActual.pause();audioActual.currentTime=0;}
-    const tts={excelente:'¡Excelente!',que_bien:'¡Qué bien!',increible:'¡Increíble!',bien:'¡Bien!',upps:'¡Upps!',tres:'Tres',dos:'Dos',uno:'Uno',ya:'¡Ya!'};
-    const a=new Audio(vocesGrabadas[id]||('audio/'+id+'.mp3'));audioActual=a;
-    a.onerror=()=>{if(tts[id])_hablar(tts[id]);};a.play().catch(()=>a.onerror());
+  let i=0;
+  function sig(){
+    if(i>=pasos.length){overlay.style.display='none';iniciarJuego();return;}
+    const p=pasos[i];
+    numEl.className=p.esYa?'countdown-ya':'countdown-numero';
+    numEl.style.color=p.color;numEl.textContent=p.texto;
+    numEl.style.animation='none';numEl.offsetHeight;numEl.style.animation='';
+    reproducir(p.audio);i++;setTimeout(sig,900);
   }
-  function _hablar(t,r=1.0){
-    if(appEstaSilenciada())return;
-    if(!('speechSynthesis' in window))return;
-    window.speechSynthesis.cancel();
-    const m=new SpeechSynthesisUtterance(t);m.lang='es-AR';m.rate=r;m.pitch=1.8;window.speechSynthesis.speak(m);
+  sig();
+}
+
+// =============================================
+// JUEGO
+// =============================================
+function iniciarJuego(){
+  juegoActivo=true;
+  figurasUsadas=[];
+  nuevaFigura();
+}
+
+function elegirFigura(){
+  const disponibles=FIGURAS.filter(f=>f.nivel===nivelActual&&!figurasUsadas.includes(f.nombre));
+  if(disponibles.length===0)figurasUsadas=[];
+  const arr=disponibles.length>0?disponibles:FIGURAS.filter(f=>f.nivel===nivelActual);
+  if(arr.length===0)return FIGURAS[0];
+  const f=arr[Math.floor(Math.random()*arr.length)];
+  figurasUsadas.push(f.nombre);
+  return f;
+}
+
+function nuevaFigura(){
+  if(!juegoActivo)return;
+  // Cancelar loop anterior
+  if(animLoop)cancelAnimationFrame(animLoop);
+
+  figuraActual=elegirFigura();
+  puntoActual=0;
+
+  document.getElementById('figuraNombre').textContent=figuraActual.emoji+' '+figuraActual.nombre;
+  mostrarPupi('¡Tocá el primer punto brillante! ✨');
+  _hablar('¡Uní los puntos para armar el '+figuraActual.nombre,1.0);
+
+  // Dimensionar canvas AHORA que ya sabemos el layout
+  dimensionarCanvas();
+
+  // Iniciar loop de render y eventos
+  iniciarLoop();
+  configurarEventos();
+}
+
+function dimensionarCanvas(){
+  const canvas=document.getElementById('puntosCanvas');
+  const area=document.getElementById('areaJuego');
+  const nombreEl=document.getElementById('figuraNombre');
+  const pupiEl=document.querySelector('.pupi-panel');
+
+  // Medir espacio real disponible para el canvas
+  const areaH=area.clientHeight;
+  const nombreH=nombreEl.offsetHeight||30;
+  const pupiH=pupiEl?.offsetHeight||70;
+  const gaps=8*3; // 3 gaps de 8px
+
+  const disponibleH=areaH-nombreH-pupiH-gaps;
+  const disponibleW=area.clientWidth-0;
+  const tam=Math.max(180,Math.min(disponibleW,disponibleH));
+
+  canvas.width=tam;
+  canvas.height=tam;
+  canvas.style.width=tam+'px';
+  canvas.style.height=tam+'px';
+}
+
+// =============================================
+// LOOP DE ANIMACIÓN
+// =============================================
+function iniciarLoop(){
+  if(animLoop)cancelAnimationFrame(animLoop);
+  function loop(){
+    if(!juegoActivo||!figuraActual){animLoop=null;return;}
+    renderFigura();
+    animLoop=requestAnimationFrame(loop);
   }
+  animLoop=requestAnimationFrame(loop);
+}
 
-  const INSTRUCCIONES_JUEGO={
-    1:'¡Arrastrá el dedo del punto brillante al siguiente! ¡Te sorprenderás!',
-    2:'¡Uní los 3 puntos que brillan en orden!',
-    3:'¡Uní todos los puntos en orden para armar la figura!',
-  };
-  function mostrarIntro(onDone){
-    const overlay=document.getElementById('introOverlay');if(!overlay){onDone();return;}
-    const texto=INSTRUCCIONES_JUEGO[nivelActual]||INSTRUCCIONES_JUEGO[1];
-    document.getElementById('introTexto').textContent=texto;overlay.style.display='flex';window._introDone=onDone;
-    setTimeout(()=>_hablar(texto,1.0),600);
-  }
-  function cerrarIntro(){document.getElementById('introOverlay').style.display='none';window.speechSynthesis&&window.speechSynthesis.cancel();if(window._introDone)window._introDone();}
+// =============================================
+// RENDER
+// =============================================
+function renderFigura(){
+  const canvas=document.getElementById('puntosCanvas');
+  if(!canvas||canvas.width===0||canvas.height===0)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+  const pts=figuraActual.pts.map(([x,y])=>({x:x*W,y:y*H}));
 
-  let hijo=null,nivelActual=1,puntaje=0,juegoActivo=false;
-  let figuraActual=null,figurasUsadas=[],puntoActual=0;
-  let dibujando=false,lineasTrazadas=[];
-  let animDestello=null;
+  ctx.clearRect(0,0,W,H);
 
-  window.addEventListener('load',()=>{
-    const h=sessionStorage.getItem('hijoActual');
-    if(!h){window.location.href='perfiles.html';return;}
-    hijo=JSON.parse(h);
-    puntaje=hijo.xp_total||0;
-    nivelActual=1;
-    document.getElementById('puntaje').textContent=puntaje;
-
-    // Esperar a que el DOM esté pintado antes de medir el canvas
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        ajustarCanvas();
-        window.addEventListener('resize',ajustarCanvas);
-        actualizarUIDeNivel();
-
-        cargarProgresoJuego().then(()=>{
-          mostrarIntro(()=>{
-            setTimeout(()=>mostrarCountdown(),300);
-          });
-        }).catch(()=>{
-          // Si falla Supabase, arrancar igual en nivel 1
-          mostrarIntro(()=>{
-            setTimeout(()=>mostrarCountdown(),300);
-          });
-        });
-      });
-    });
-  });
-
-  function ajustarCanvas(){
-    const canvas=document.getElementById('puntosCanvas');
-    const wrap=document.querySelector('.canvas-wrap');
-    if(!wrap)return;
-    // Calcular espacio disponible real
-    const headerH=document.querySelector('.header-juego')?.offsetHeight||60;
-    const footerH=document.querySelector('.footer')?.offsetHeight||30;
-    const nombreH=document.getElementById('figuraNombre')?.offsetHeight||30;
-    const pupiH=document.querySelector('.pupi-panel')?.offsetHeight||60;
-    const padding=20;
-    const disponibleH=window.innerHeight-headerH-footerH-nombreH-pupiH-padding*4;
-    const disponibleW=window.innerWidth-32;
-    const tam=Math.max(200,Math.min(disponibleW,disponibleH,380));
-    canvas.width=tam;canvas.height=tam;
-    canvas.style.width=tam+'px';canvas.style.height=tam+'px';
-    if(figuraActual&&juegoActivo)renderFigura();
-  }
-
-  function mostrarCountdown(){
-    const overlay=document.getElementById('countdownOverlay'),numEl=document.getElementById('countdownNumero');
-    overlay.style.display='flex';
-    const pasos=[{texto:'3',color:'#FF7E6B',audio:'tres'},{texto:'2',color:'#FFCC3B',audio:'dos'},{texto:'1',color:'#A78BFA',audio:'uno'},{texto:'¡YA!',color:'#5BBFEA',audio:'ya',esYa:true}];
-    let i=0;
-    function sig(){if(i>=pasos.length){overlay.style.display='none';iniciarJuego();return;}const p=pasos[i];numEl.className=p.esYa?'countdown-ya':'countdown-numero';numEl.style.color=p.color;numEl.textContent=p.texto;numEl.style.animation='none';numEl.offsetHeight;numEl.style.animation='';reproducir(p.audio);i++;setTimeout(sig,900);}
-    sig();
-  }
-
-  function iniciarJuego(){juegoActivo=true;figurasUsadas=[];nuevaFigura();iniciarAnimLoop();}
-
-  function elegirFigura(){
-    const disponibles=FIGURAS.filter(f=>f.nivel===nivelActual&&!figurasUsadas.includes(f.nombre));
-    if(disponibles.length===0)figurasUsadas=[];
-    const arr=disponibles.length>0?disponibles:FIGURAS.filter(f=>f.nivel===nivelActual);
-    const f=arr[Math.floor(Math.random()*arr.length)];
-    figurasUsadas.push(f.nombre);return f;
-  }
-
-  function nuevaFigura(){
-    if(!juegoActivo)return;
-    figuraActual=elegirFigura();
-    puntoActual=0;lineasTrazadas=[];dibujando=false;
-    document.getElementById('figuraNombre').textContent=figuraActual.emoji+' '+figuraActual.nombre;
-    mostrarPupi('¡Uní los puntos para armar el '+figuraActual.nombre+'! ✏️');
-    _hablar('¡Uní los puntos para armar el '+figuraActual.nombre,1.0);
-    // Asegurar dimensiones del canvas antes de renderizar
-    ajustarCanvas();
-    requestAnimationFrame(()=>{
-      renderFigura();
-      configurarEventos();
-    });
-  }
-
-  function renderFigura(){
-    if(!figuraActual)return;
-    const canvas=document.getElementById('puntosCanvas');
-    const ctx=canvas.getContext('2d');
-    const W=canvas.width,H=canvas.height;
-    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
-    const pts=figuraActual.puntos.map(([x,y])=>({x:x*W,y:y*H}));
-
-    ctx.clearRect(0,0,W,H);
-
-    // Fondo sutil
-    ctx.fillStyle='#F8FBFF';ctx.beginPath();ctx.roundRect(0,0,W,H,20);ctx.fill();
-
-    // Líneas ya trazadas
-    if(lineasTrazadas.length>0){
-      ctx.strokeStyle='#A78BFA';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';
-      ctx.setLineDash([]);
-      ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
-      for(let i=1;i<=lineasTrazadas.length;i++)ctx.lineTo(pts[i].x,pts[i].y);
-      ctx.stroke();
+  // --- Líneas ya trazadas ---
+  if(puntoActual>0){
+    ctx.strokeStyle='#A78BFA';
+    ctx.lineWidth=Math.max(3,W*0.008);
+    ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x,pts[0].y);
+    for(let i=1;i<=Math.min(puntoActual,pts.length-1);i++){
+      ctx.lineTo(pts[i].x,pts[i].y);
     }
-
-    // Puntos a mostrar según nivel
-    const cantMostrar=nc.puntosVisibles==='todos'?pts.length:nc.puntosVisibles+1;
-    for(let i=0;i<pts.length;i++){
-      const visible=i<=puntoActual+(cantMostrar-1)&&i<pts.length;
-      if(!visible)continue;
-      const p=pts[i];
-      const yaUnido=i<puntoActual;
-      const esSiguiente=i===puntoActual;
-      const esProx=i>puntoActual&&i<=puntoActual+(cantMostrar-1);
-
-      if(yaUnido){
-        ctx.beginPath();ctx.arc(p.x,p.y,8,0,Math.PI*2);ctx.fillStyle='#52D9A0';ctx.fill();
-      }else if(esSiguiente){
-        // Punto objetivo — brillante y animado
-        const t=Date.now()/400;const escala=1+Math.sin(t)*0.3;
-        ctx.beginPath();ctx.arc(p.x,p.y,12*escala,0,Math.PI*2);
-        const grad=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,20*escala);
-        grad.addColorStop(0,'#FFCC3B');grad.addColorStop(1,'#FFCC3B00');
-        ctx.fillStyle=grad;ctx.fill();
-        ctx.beginPath();ctx.arc(p.x,p.y,10,0,Math.PI*2);ctx.fillStyle='#FFCC3B';ctx.fill();
-        // Número del punto
-        ctx.fillStyle='white';ctx.font='bold 12px Nunito,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-        if(nc.puntosVisibles!==1)ctx.fillText(i+1,p.x,p.y);
-      }else if(esProx){
-        ctx.beginPath();ctx.arc(p.x,p.y,8,0,Math.PI*2);ctx.fillStyle='#5BBFEA';ctx.fill();
-        if(nc.puntosVisibles!==1){ctx.fillStyle='white';ctx.font='bold 11px Nunito,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i+1,p.x,p.y);}
-      }
-    }
-
-    // Línea guía punteada al siguiente
-    if(puntoActual>0&&puntoActual<pts.length){
-      ctx.strokeStyle='#CCDDFF';ctx.lineWidth=2;ctx.setLineDash([6,8]);
-      ctx.beginPath();ctx.moveTo(pts[puntoActual-1].x,pts[puntoActual-1].y);ctx.lineTo(pts[puntoActual].x,pts[puntoActual].y);
-      ctx.stroke();ctx.setLineDash([]);
-    }
-  }
-
-  function configurarEventos(){
-    const canvas=document.getElementById('puntosCanvas');
-    canvas.onpointerdown=e=>{e.preventDefault();verificarToque(e);};
-    canvas.ontouchstart=e=>{e.preventDefault();if(e.touches[0])verificarToque(e.touches[0]);};
-  }
-
-  function verificarToque(e){
-    if(!juegoActivo||puntoActual>=figuraActual.puntos.length)return;
-    const canvas=document.getElementById('puntosCanvas');
-    const rect=canvas.getBoundingClientRect();
-    const W=canvas.width,H=canvas.height;
-    const scaleX=W/rect.width,scaleY=H/rect.height;
-    const tx=(e.clientX-rect.left)*scaleX;
-    const ty=(e.clientY-rect.top)*scaleY;
-    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
-
-    const objetivo=figuraActual.puntos[puntoActual];
-    const ox=objetivo[0]*W,oy=objetivo[1]*H;
-    const dist=Math.sqrt((tx-ox)**2+(ty-oy)**2);
-
-    if(dist<=nc.radioTouch*1.5){
-      // ¡Tocó el punto correcto!
-      lineasTrazadas.push(puntoActual);
-      puntoActual++;
-      reproducir('bien');
-      renderFigura();
-
-      if(puntoActual>=figuraActual.puntos.length){
-        // ¡Figura completa!
-        setTimeout(()=>figuraCompleta(),400);
-      }else{
-        const nc2=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
-        const quedan=figuraActual.puntos.length-puntoActual;
-        mostrarPupi('¡Bien! '+quedan+' punto'+(quedan===1?'':'s')+' más ✏️');
-      }
-    }
-  }
-
-  let animLoop=null;
-  function iniciarAnimLoop(){
-    if(animLoop)cancelAnimationFrame(animLoop);
-    function loop(){if(!juegoActivo)return;renderFigura();animLoop=requestAnimationFrame(loop);}
-    loop();
-  }
-
-  function figuraCompleta(){
-    cancelAnimationFrame(animLoop);
-    puntaje+=(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
-    document.getElementById('puntaje').textContent=puntaje;
-
-    // Mostrar figura completa con color
-    const canvas=document.getElementById('puntosCanvas');
-    const ctx=canvas.getContext('2d');
-    const W=canvas.width,H=canvas.height;
-    const pts=figuraActual.puntos.map(([x,y])=>({x:x*W,y:y*H}));
-    ctx.strokeStyle='#A78BFA';ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';
-    ctx.setLineDash([]);
-    ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
-    for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);
     ctx.stroke();
+  }
 
-    // Emoji grande en el centro
-    ctx.font=`${W*0.4}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.globalAlpha=0.3;ctx.fillText(figuraActual.emoji,W/2,H/2);ctx.globalAlpha=1;
+  // --- Cuántos puntos mostrar según nivel ---
+  const cantMostrar = nc.puntosVer==='todos' ? pts.length : nc.puntosVer+1;
 
+  // --- Dibujar puntos ---
+  for(let i=0;i<pts.length;i++){
+    const p=pts[i];
+    const yaUnido=i<puntoActual;
+    const esSiguiente=i===puntoActual;
+    const esVisible=i<=puntoActual+(cantMostrar-1) && i<pts.length;
+
+    if(yaUnido){
+      // Punto ya tocado — verde pequeño
+      ctx.beginPath();ctx.arc(p.x,p.y,W*0.022,0,Math.PI*2);
+      ctx.fillStyle='#52D9A0';ctx.fill();
+    } else if(esSiguiente){
+      // Punto objetivo — grande, animado con pulso
+      const t=Date.now()/500;
+      const escala=1+Math.sin(t)*0.25;
+      const r=W*0.042*escala;
+
+      // Halo exterior
+      const grad=ctx.createRadialGradient(p.x,p.y,r*0.3,p.x,p.y,r*2);
+      grad.addColorStop(0,'rgba(255,204,59,0.6)');
+      grad.addColorStop(1,'rgba(255,204,59,0)');
+      ctx.beginPath();ctx.arc(p.x,p.y,r*2,0,Math.PI*2);
+      ctx.fillStyle=grad;ctx.fill();
+
+      // Círculo dorado
+      ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);
+      ctx.fillStyle='#FFCC3B';ctx.fill();
+      ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
+
+      // Número (solo si nivel 2 o 3)
+      if(nc.puntosVer!==1){
+        ctx.fillStyle='white';
+        ctx.font=`bold ${Math.max(11,W*0.032)}px Nunito,sans-serif`;
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(i+1,p.x,p.y);
+      }
+
+    } else if(esVisible){
+      // Punto próximo visible
+      ctx.beginPath();ctx.arc(p.x,p.y,W*0.028,0,Math.PI*2);
+      ctx.fillStyle='#5BBFEA';ctx.fill();
+      ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
+      if(nc.puntosVer!==1){
+        ctx.fillStyle='white';
+        ctx.font=`bold ${Math.max(10,W*0.028)}px Nunito,sans-serif`;
+        ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(i+1,p.x,p.y);
+      }
+    }
+  }
+
+  // Guía punteada al siguiente punto
+  if(puntoActual>0 && puntoActual<pts.length){
+    ctx.strokeStyle='#DDD5FF';
+    ctx.lineWidth=2;ctx.setLineDash([6,8]);
+    ctx.beginPath();
+    ctx.moveTo(pts[puntoActual-1].x,pts[puntoActual-1].y);
+    ctx.lineTo(pts[puntoActual].x,pts[puntoActual].y);
+    ctx.stroke();ctx.setLineDash([]);
+  }
+}
+
+// =============================================
+// EVENTOS DE TOQUE
+// =============================================
+function configurarEventos(){
+  const canvas=document.getElementById('puntosCanvas');
+  canvas.onpointerdown=e=>{e.preventDefault();procesarToque(e.clientX,e.clientY);};
+  canvas.ontouchstart=e=>{e.preventDefault();if(e.touches[0])procesarToque(e.touches[0].clientX,e.touches[0].clientY);};
+}
+
+function procesarToque(clientX,clientY){
+  if(!juegoActivo||!figuraActual)return;
+  if(puntoActual>=figuraActual.pts.length)return;
+
+  const canvas=document.getElementById('puntosCanvas');
+  const rect=canvas.getBoundingClientRect();
+  // Escalar correctamente por si el canvas tiene diferente tamaño visual
+  const scaleX=canvas.width/rect.width;
+  const scaleY=canvas.height/rect.height;
+  const tx=(clientX-rect.left)*scaleX;
+  const ty=(clientY-rect.top)*scaleY;
+
+  const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+  const objetivo=figuraActual.pts[puntoActual];
+  const ox=objetivo[0]*canvas.width;
+  const oy=objetivo[1]*canvas.height;
+  const dist=Math.sqrt((tx-ox)**2+(ty-oy)**2);
+
+  if(dist<=nc.radioTouch){
+    // ¡Acierto!
+    puntoActual++;
     reproducir('bien');
-    mostrarPupi('¡Armaste el '+figuraActual.nombre+'! '+figuraActual.emoji);
-    lanzarMiniConfeti();
-    setTimeout(mostrarCelebracion,1500);
-  }
 
-  function mostrarCelebracion(){
-    const frases=[{texto:'¡EXCELENTE!',audio:'excelente'},{texto:'¡QUÉ BIEN!',audio:'que_bien'},{texto:'¡INCREÍBLE!',audio:'increible'}];
-    const f=frases[Math.floor(Math.random()*frases.length)];
-    document.getElementById('celEmoji').textContent=figuraActual.emoji;
-    document.getElementById('celTitulo').textContent=f.texto;
-    document.getElementById('celXP').textContent='+'+(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor+' XP ⚡';
-    document.getElementById('celebracion').style.display='flex';
-    lanzarConfeti();reproducir(f.audio);guardarProgreso(rondasCorrectas||partesCorrectas||juegosCorrectos||0, rondasJugadas||partesJugadas||juegosEnRonda||RONDAS_POR_CELEBRACION||5);
+    if(puntoActual>=figuraActual.pts.length){
+      // Figura completa
+      setTimeout(figuraCompleta,300);
+    } else {
+      const quedan=figuraActual.pts.length-puntoActual;
+      mostrarPupi(quedan===1?'¡Último punto! 🌟':'¡Bien! '+quedan+' puntos más ✏️');
+    }
   }
-  function cerrarCelebracion(){document.getElementById('celebracion').style.display='none';nuevaFigura();iniciarAnimLoop();}
+}
 
-  function mostrarPupi(t){document.getElementById('pupiTexto').textContent=t;}
+// =============================================
+// FIGURA COMPLETA
+// =============================================
+function figuraCompleta(){
+  if(animLoop)cancelAnimationFrame(animLoop);
 
-  function lanzarMiniConfeti(){
-    const c=document.getElementById('confeti');c.style.display='block';c.innerHTML='';
-    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
-    for(let i=0;i<40;i++){const p=document.createElement('div');p.className='confeti-pieza';p.style.left=Math.random()*100+'vw';p.style.top='-10px';p.style.background=cols[Math.floor(Math.random()*cols.length)];p.style.animationDelay=Math.random()*0.5+'s';p.style.width=(Math.random()*8+4)+'px';p.style.height=(Math.random()*8+4)+'px';c.appendChild(p);}
-    setTimeout(()=>{c.style.display='none';c.innerHTML='';},1800);
-  }
-  function lanzarConfeti(){
-    const c=document.getElementById('confeti');c.style.display='block';c.innerHTML='';
-    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
-    for(let i=0;i<80;i++){const p=document.createElement('div');p.className='confeti-pieza';p.style.left=Math.random()*100+'vw';p.style.top='-10px';p.style.background=cols[Math.floor(Math.random()*cols.length)];p.style.animationDelay=Math.random()*1+'s';p.style.width=(Math.random()*10+6)+'px';p.style.height=(Math.random()*10+6)+'px';c.appendChild(p);}
-    setTimeout(()=>{c.style.display='none';c.innerHTML='';},2500);
-  }
-  function avanzarPin(el,sigId){if(el.value.length===1){const s=document.getElementById(sigId);if(s)s.focus();}}
-  function verificarPin(){
-    const ing=['p1','p2','p3','p4'].map(id=>document.getElementById(id).value).join('');
-    const pin=hijo.pin?hijo.pin.toString():'';
-    if(!pin||ing===pin)window.location.href='perfiles.html';
-    else{document.getElementById('pinError').style.display='block';['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).value='');document.getElementById('p1').focus();}
-  }
-  async function guardarProgreso(aciertos=0,total=0){
-    await registrarResultadoPartida(aciertos,total);
-    try{await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));}catch(e){}
-  }
-  function salir(){juegoActivo=false;cancelAnimationFrame(animLoop);window.speechSynthesis?.cancel();window.location.href='bienvenida.html';}
+  // Dibujar figura final con color y emoji
+  const canvas=document.getElementById('puntosCanvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const pts=figuraActual.pts.map(([x,y])=>({x:x*W,y:y*H}));
 
+  ctx.clearRect(0,0,W,H);
 
-  if(!CanvasRenderingContext2D.prototype.roundRect){
-    CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){this.beginPath();this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath();return this;};
-  }
+  // Línea final suave
+  ctx.strokeStyle='#A78BFA';
+  ctx.lineWidth=Math.max(3,W*0.009);
+  ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);
+  ctx.stroke();
+
+  // Emoji grande semitransparente en el centro
+  ctx.globalAlpha=0.25;
+  ctx.font=`${W*0.45}px serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(figuraActual.emoji,W/2,H/2);
+  ctx.globalAlpha=1;
+
+  puntaje+=(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor;
+  document.getElementById('puntaje').textContent=puntaje;
+
+  mostrarPupi('¡Armaste el '+figuraActual.nombre+'! '+figuraActual.emoji+' 🎉');
+  reproducir('bien');
+  lanzarMiniConfeti();
+  setTimeout(mostrarCelebracion,1500);
+}
+
+function mostrarCelebracion(){
+  const frases=[{texto:'¡EXCELENTE!',audio:'excelente'},{texto:'¡QUÉ BIEN!',audio:'que_bien'},{texto:'¡INCREÍBLE!',audio:'increible'}];
+  const f=frases[Math.floor(Math.random()*frases.length)];
+  document.getElementById('celEmoji').textContent=figuraActual.emoji;
+  document.getElementById('celTitulo').textContent=f.texto;
+  document.getElementById('celXP').textContent='+'+(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor+' XP ⚡';
+  document.getElementById('celebracion').style.display='flex';
+  lanzarConfeti();reproducir(f.audio);
+  guardarProgreso();
+}
+
+function cerrarCelebracion(){
+  document.getElementById('celebracion').style.display='none';
+  nuevaFigura();
+}
+
+function mostrarPupi(t){document.getElementById('pupiTexto').textContent=t;}
+
+// =============================================
+// CONFETI
+// =============================================
+function lanzarMiniConfeti(){
+  const c=document.getElementById('confeti');c.style.display='block';c.innerHTML='';
+  const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+  for(let i=0;i<40;i++){const p=document.createElement('div');p.className='confeti-pieza';p.style.left=Math.random()*100+'vw';p.style.top='-10px';p.style.background=cols[Math.floor(Math.random()*cols.length)];p.style.animationDelay=Math.random()*0.5+'s';p.style.width=(Math.random()*8+4)+'px';p.style.height=(Math.random()*8+4)+'px';c.appendChild(p);}
+  setTimeout(()=>{c.style.display='none';c.innerHTML='';},1800);
+}
+function lanzarConfeti(){
+  const c=document.getElementById('confeti');c.style.display='block';c.innerHTML='';
+  const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+  for(let i=0;i<80;i++){const p=document.createElement('div');p.className='confeti-pieza';p.style.left=Math.random()*100+'vw';p.style.top='-10px';p.style.background=cols[Math.floor(Math.random()*cols.length)];p.style.animationDelay=Math.random()*1+'s';p.style.width=(Math.random()*10+6)+'px';p.style.height=(Math.random()*10+6)+'px';c.appendChild(p);}
+  setTimeout(()=>{c.style.display='none';c.innerHTML='';},2500);
+}
+
+async function guardarProgreso(){
+  try{
+    await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);
+    hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));
+  }catch(e){}
+}
+
+function salir(){
+  juegoActivo=false;
+  if(animLoop)cancelAnimationFrame(animLoop);
+  window.speechSynthesis?.cancel();
+  window.location.href='bienvenida.html';
+}
 </script>
 </body>
 </html>
