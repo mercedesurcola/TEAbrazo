@@ -133,6 +133,26 @@
       <span class="juego-emoji">🔢</span>
       <span class="juego-nombre">Números</span>
     </button>
+    <button class="btn-juego" onclick="irAJuego('cara.html')">
+      <span class="juego-emoji">😊</span>
+      <span class="juego-nombre">La Cara</span>
+    </button>
+    <button class="btn-juego" onclick="irAJuego('silueta.html')">
+      <span class="juego-emoji">✏️</span>
+      <span class="juego-nombre">Silueta</span>
+    </button>
+    <button class="btn-juego" onclick="irAJuego('golpecitos.html')">
+      <span class="juego-emoji">✨</span>
+      <span class="juego-nombre">Golpecitos</span>
+    </button>
+    <button class="btn-juego" onclick="irAJuego('perseguir.html')">
+      <span class="juego-emoji">🌟</span>
+      <span class="juego-nombre">Perseguí la luz</span>
+    </button>
+    <button class="btn-juego" onclick="irAJuego('puntos.html')">
+      <span class="juego-emoji">🔗</span>
+      <span class="juego-nombre">Uní los puntos</span>
+    </button>
   </div>
 </div>
 
@@ -146,6 +166,13 @@
     </div>
   </div>
 
+
+<!-- Botón compartir -->
+<div style="padding:0 16px 12px;z-index:10;position:relative;">
+  <button onclick="compartirApp()" style="width:100%;background:linear-gradient(135deg,#52D9A0,#5BBFEA);border:none;border-radius:20px;padding:14px;font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 16px #52D9A044;">
+    📲 ¡Compartí TEAbrazo con otras familias!
+  </button>
+</div>
 <div class="footer">
   <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
   <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados. TEAbrazo es una herramienta de apoyo y no reemplaza la intervención profesional.</div>
@@ -224,5 +251,35 @@
     setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},2000);
   }
 </script>
+
+<!-- Botón silencio global -->
+<button id="btnMute" onclick="toggleMute()" style="
+  position:fixed;top:14px;right:16px;z-index:200;
+  background:white;border:2px solid #E0EFFF;border-radius:50%;
+  width:44px;height:44px;font-size:22px;cursor:pointer;
+  box-shadow:0 2px 12px #5BBFEA22;display:flex;align-items:center;justify-content:center;
+" title="Silenciar/Activar sonido">🔊</button>
+<script>
+  let _appMuted=localStorage.getItem('teabrazo_muted')==='1';
+  function toggleMute(){_appMuted=!_appMuted;localStorage.setItem('teabrazo_muted',_appMuted?'1':'0');document.getElementById('btnMute').textContent=_appMuted?'🔇':'🔊';}
+  window.addEventListener('load',()=>{document.getElementById('btnMute').textContent=_appMuted?'🔇':'🔊';});
+</script>
+
+
+<script>
+  function compartirApp(){
+    const texto = '🧠 Descubrí TEAbrazo, una app pensada para acompañar a niños con TEA en su aprendizaje con juegos divertidos y estimulantes. ¡Lo probé con mi hijo/a y me encantó! 💙\n\n👉 teabrazo.netlify.app';
+    if(navigator.share){
+      navigator.share({title:'TEAbrazo',text:texto,url:'https://teabrazo.netlify.app'}).catch(()=>{});
+    }else{
+      navigator.clipboard.writeText(texto+'\n\nhttps://teabrazo.netlify.app').then(()=>{
+        alert('¡Texto copiado! Pegalo donde quieras compartirlo 📋');
+      }).catch(()=>{
+        prompt('Copiá este texto:',texto+' https://teabrazo.netlify.app');
+      });
+    }
+  }
+</script>
+
 </body>
 </html>

@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TEAbrazo — Asociación</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{background:#F0F7FF;font-family:'Nunito',sans-serif;width:100vw;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+  .burbuja{position:fixed;border-radius:50%;opacity:0.10;animation:flotar 6s ease-in-out infinite;z-index:0;pointer-events:none;}
+  .b1{width:180px;height:180px;background:#A78BFA;top:-50px;left:-50px;}
+  .b2{width:130px;height:130px;background:#FFCC3B;top:8%;right:-20px;animation-delay:1s;}
+  .b3{width:90px;height:90px;background:#5BBFEA;bottom:20%;left:5px;animation-delay:2s;}
+  .b4{width:110px;height:110px;background:#52D9A0;bottom:-20px;right:15%;animation-delay:0.5s;}
+  @keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-18px)}}
+
+  .header-juego{position:relative;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:white;box-shadow:0 2px 12px #5BBFEA15;flex-shrink:0;}
+  .btn-salir-juego{background:#F0F7FF;border:2px solid #E0EFFF;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#5BBFEA;cursor:pointer;}
+  .header-centro{display:flex;align-items:center;gap:10px;}
+  .nivel-badge{display:flex;align-items:center;gap:6px;background:#F0F7FF;border-radius:50px;padding:6px 14px;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#555;}
+  .nivel-emoji-b{font-size:18px;animation:bounce 2s ease-in-out infinite;}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .puntaje-wrap{display:flex;align-items:center;gap:6px;background:#FFCC3B22;border:2px solid #FFCC3B44;border-radius:50px;padding:6px 14px;}
+  .puntaje-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#F0A500;}
+  .timer-wrap{background:#A78BFA22;border:2px solid #A78BFA44;border-radius:50px;padding:6px 12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#7C5CDB;display:none;}
+  .timer-wrap.urgente{color:#FF7E6B;border-color:#FF7E6B55;animation:pulsar-t 1s ease-in-out infinite;}
+  @keyframes pulsar-t{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+  .area-principal{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 16px 8px;overflow:hidden;position:relative;z-index:10;}
+  .puzzle-nombre{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(16px,4.5vw,22px);color:#333;text-align:center;}
+
+  .tablero{display:grid;border-radius:16px;overflow:hidden;box-shadow:0 6px 28px #00000018;border:3px solid #E0EFFF;background:#E0EFFF;gap:3px;padding:3px;}
+  .celda{display:flex;align-items:center;justify-content:center;border-radius:10px;font-size:clamp(28px,8vw,48px);line-height:1;position:relative;transition:all 0.2s;}
+  .celda.colocada{background:white;}
+  .celda.hueco{background:#C8DEFF;border:3px dashed #5BBFEA;animation:hueco-pulsar 2s ease-in-out infinite;}
+  @keyframes hueco-pulsar{0%,100%{border-color:#5BBFEA;background:#C8DEFF}50%{border-color:#A78BFA;background:#DDD5FF}}
+  .celda.hueco.drag-over{background:#B8FFDF;border-color:#52D9A0;transform:scale(1.05);}
+  .celda.resuelto{background:white;animation:pop-celda 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop-celda{0%{transform:scale(0.7)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+
+  .piezas-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;}
+  .piezas-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#555;}
+  .piezas-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+  .pieza{width:clamp(56px,16vw,80px);height:clamp(56px,16vw,80px);background:white;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,8vw,44px);cursor:grab;box-shadow:0 4px 16px #5BBFEA22;border:3px solid #E0EFFF;transition:transform 0.15s,box-shadow 0.15s;user-select:none;touch-action:none;animation:aparecer 0.3s ease forwards;opacity:0;transform:scale(0.8);flex-shrink:0;overflow:hidden;}
+  @keyframes aparecer{to{opacity:1;transform:scale(1)}}
+  .pieza.arrastrando{transform:scale(1.12);box-shadow:0 8px 28px #A78BFA44;border-color:#A78BFA;cursor:grabbing;}
+  .pieza.usada{opacity:0;pointer-events:none;}
+  .pieza-fantasma{position:fixed;pointer-events:none;z-index:1000;border-radius:16px;background:white;border:3px solid #A78BFA;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px #A78BFA44;opacity:0.9;transform:translate(-50%,-50%) scale(1.1);}
+
+  .pupi-panel{display:flex;align-items:flex-end;gap:10px;width:100%;flex-shrink:0;}
+  .pupi-emoji{font-size:clamp(36px,10vw,48px);animation:pupi-bounce 2s ease-in-out infinite;filter:drop-shadow(0 3px 8px #00000022);flex-shrink:0;}
+  @keyframes pupi-bounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(3deg)}}
+  .pupi-burbuja{background:white;border-radius:18px 18px 18px 4px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(13px,3.8vw,15px);color:#333;max-width:240px;box-shadow:0 3px 16px #00000015;line-height:1.4;}
+
+  /* Intro */
+  @keyframes intro-bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.05)}}
+  @keyframes pupi-intro{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+  @keyframes btn-llamar{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+
+  /* Countdown */
+  .countdown-overlay{position:fixed;inset:0;z-index:400;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:#F0F7FFee;}
+  .countdown-numero{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(120px,35vw,200px);animation:num-pop 0.6s cubic-bezier(0.34,1.56,0.64,1);line-height:1;}
+  .countdown-ya{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(60px,18vw,100px);color:#52D9A0;animation:num-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes num-pop{from{transform:scale(0.2) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+
+  .celebracion-overlay{position:fixed;inset:0;background:#00000066;z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
+  .celebracion-card{background:white;border-radius:32px;padding:36px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:340px;animation:pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop-in{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+  .cel-emoji{font-size:64px;}.cel-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(24px,7vw,30px);color:#333;text-align:center;}
+  .cel-xp{background:linear-gradient(135deg,#FFCC3B,#FF7E6B);border-radius:50px;padding:10px 24px;font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:white;}
+  .btn-cel{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:20px;padding:16px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:white;cursor:pointer;}
+  .btn-cel:active{transform:scale(0.97);}
+  .btn-cel-sec{background:#F0F7FF;border:none;border-radius:16px;padding:12px;width:100%;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;}
+
+  .fin-overlay{position:fixed;inset:0;z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#5BBFEA,#A78BFA);}
+  .fin-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(48px,15vw,80px);color:white;text-align:center;animation:flotar-fin 3s ease-in-out infinite;}
+  @keyframes flotar-fin{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .fin-sub{font-family:'Nunito',sans-serif;font-weight:700;font-size:18px;color:rgba(255,255,255,0.85);text-align:center;}
+  .fin-pupi{font-size:80px;}
+  .fin-pin-wrap{background:white;border-radius:24px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:320px;}
+  .fin-pin-label{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:#555;text-align:center;}
+  .fin-pin-input{display:flex;gap:10px;justify-content:center;}
+  .fin-pin-digito{width:56px;height:64px;border:3px solid #E0EFFF;border-radius:16px;background:#F0F7FF;text-align:center;font-family:'Nunito',sans-serif;font-weight:900;font-size:28px;color:#333;outline:none;}
+  .fin-pin-digito:focus{border-color:#5BBFEA;}
+  .fin-pin-error{font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;display:none;}
+  .btn-fin-desbloquear{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:18px;padding:14px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:white;cursor:pointer;}
+
+  .confeti{position:fixed;inset:0;pointer-events:none;z-index:700;display:none;}
+  .confeti-pieza{position:absolute;border-radius:2px;animation:caer 1.8s ease-in forwards;}
+  @keyframes caer{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+  .footer{position:relative;z-index:100;background:white;border-top:1px solid #E0EFFF;padding:5px 20px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  .footer-marca{font-family:'Nunito',sans-serif;font-weight:700;font-size:10px;color:#5BBFEA;}
+  .footer-marca a{color:#5BBFEA;text-decoration:none;}
+  .footer-legal{font-family:'Nunito Sans',sans-serif;font-size:9px;color:#aaa;text-align:center;}
+</style>
+</head>
+<body>
+<div class="burbuja b1"></div><div class="burbuja b2"></div><div class="burbuja b3"></div><div class="burbuja b4"></div>
+<div class="confeti" id="confeti"></div>
+
+<!-- Intro -->
+<div id="introOverlay" style="position:fixed;inset:0;z-index:350;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:28px;background:linear-gradient(135deg,#0d0d2b,#1a1a4e);">
+  <div id="introEmoji" style="font-size:clamp(72px,20vw,110px);animation:intro-bounce 1s ease-in-out infinite;filter:drop-shadow(0 8px 24px #5BBFEA44);">🔗</div>
+  <div id="introTitulo" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(22px,6vw,32px);color:white;text-align:center;text-shadow:0 2px 12px #00000055;">¡Asociación!</div>
+  <div style="display:flex;align-items:flex-end;gap:12px;max-width:360px;width:100%;">
+    <div style="font-size:clamp(44px,12vw,64px);animation:pupi-intro 2s ease-in-out infinite;filter:drop-shadow(0 4px 12px #00000066);flex-shrink:0;">🐙</div>
+    <div id="introTexto" style="background:white;border-radius:20px 20px 20px 4px;padding:14px 18px;font-family:'Nunito',sans-serif;font-weight:700;font-size:clamp(15px,4.5vw,19px);color:#333;box-shadow:0 4px 20px #00000033;line-height:1.4;flex:1;"></div>
+  </div>
+  <button onclick="cerrarIntro()" style="background:linear-gradient(135deg,#52D9A0,#5BBFEA);border:none;border-radius:28px;padding:20px 0;width:100%;max-width:320px;font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(20px,6vw,26px);color:white;cursor:pointer;box-shadow:0 8px 24px #52D9A044;animation:btn-llamar 2s ease-in-out infinite;letter-spacing:1px;">¡Listo! 🚀</button>
+</div>
+
+<div class="countdown-overlay" id="countdownOverlay">
+  <div style="font-size:clamp(60px,18vw,90px);">🐙</div>
+  <div id="countdownNumero" class="countdown-numero" style="color:#A78BFA;">3</div>
+</div>
+
+<div class="celebracion-overlay" id="celebracion">
+  <div class="celebracion-card">
+    <div class="cel-emoji" id="celEmoji">🎉</div>
+    <div class="cel-titulo" id="celTitulo">¡EXCELENTE!</div>
+    <div class="cel-xp" id="celXP">+10 XP ⚡</div>
+    <button class="btn-cel" onclick="cerrarCelebracion()">¡Otro rompecabezas! 🔗</button>
+    <button class="btn-cel-sec" onclick="salir()">Volver al inicio</button>
+  </div>
+</div>
+
+<div class="fin-overlay" id="finOverlay">
+  <div class="fin-pupi">🐙</div>
+  <div class="fin-titulo">¡GRACIAS!</div>
+  <div class="fin-sub">¡Jugaste genial hoy! 🌟</div>
+  <div class="fin-pin-wrap">
+    <div class="fin-pin-label">🔐 Ingresá el PIN para salir</div>
+    <div class="fin-pin-input">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p1" oninput="avanzarPin(this,'p2')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p2" oninput="avanzarPin(this,'p3')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p3" oninput="avanzarPin(this,'p4')">
+      <input class="fin-pin-digito" type="password" maxlength="1" inputmode="numeric" id="p4" oninput="verificarPin()">
+    </div>
+    <div class="fin-pin-error" id="pinError">❌ PIN incorrecto.</div>
+    <button class="btn-fin-desbloquear" onclick="verificarPin()">Desbloquear 🔓</button>
+  </div>
+</div>
+
+<div class="header-juego">
+  <button class="btn-salir-juego" onclick="salir()">← Salir</button>
+  <div class="header-centro">
+    <div class="nivel-badge"><span class="nivel-emoji-b" id="nivelEmoji">🥚</span><span id="nivelNombre">Huevo</span></div>
+    <div class="timer-wrap" id="timerWrap">⏱️ <span id="timerTexto">--:--</span></div>
+  </div>
+  <div class="puntaje-wrap">⭐ <span class="puntaje-texto" id="puntaje">0</span></div>
+</div>
+
+<div class="area-principal" id="areaPrincipal">
+  <div class="pupi-panel"><span class="pupi-emoji">🐙</span><div class="pupi-burbuja" id="pupiTexto">¡Armemos la asociación! 🔗</div></div>
+</div>
+
+<div class="footer">
+  <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
+  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados.</div>
+</div>
+
+<script>
+  const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
+  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
+  const {createClient}=supabase;
+  const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+  // =============================================
+  // SISTEMA DE NIVELES POR JUEGO
+  // Flexible para N niveles futuros
+  // =============================================
+  const JUEGO_ID = 'asociacion';
+  const NIVEL_MAXIMO_JUEGO = 3;
+  const RACHA_PARA_SUBIR = 3;
+  const RACHA_PARA_BAJAR = 3;
+  const UMBRAL_EXITO = 0.6;
+
+  let progresoJuego = {nivel:1, racha_ok:0, racha_fail:0};
+
+  async function cargarProgresoJuego(){
+    if(!hijo)return;
+    try{
+      const {data,error}=await sb.from('game_progress').select('*').eq('hijo_id',hijo.id).eq('juego',JUEGO_ID).single();
+      if(data&&!error){
+        progresoJuego=data;
+        nivelActual=data.nivel;
+      }else{
+        await sb.from('game_progress').insert({hijo_id:hijo.id,juego:JUEGO_ID,nivel:1,racha_ok:0,racha_fail:0,nivel_maximo:NIVEL_MAXIMO_JUEGO});
+        nivelActual=1;
+      }
+    }catch(e){nivelActual=1;}
+    actualizarUIDeNivel();
+  }
+
+  async function registrarResultadoPartida(aciertos,total){
+    const exito=total>0?aciertos/total:0;
+    const buena=exito>=UMBRAL_EXITO;
+    if(buena){progresoJuego.racha_ok++;progresoJuego.racha_fail=0;}
+    else{progresoJuego.racha_fail++;progresoJuego.racha_ok=0;}
+    let cambio=null;
+    const nivelMax=progresoJuego.nivel_maximo||NIVEL_MAXIMO_JUEGO;
+    if(progresoJuego.racha_ok>=RACHA_PARA_SUBIR&&nivelActual<nivelMax){
+      nivelActual++;progresoJuego.nivel=nivelActual;progresoJuego.racha_ok=0;cambio='subio';
+    }
+    if(progresoJuego.racha_fail>=RACHA_PARA_BAJAR&&nivelActual>1){
+      nivelActual--;progresoJuego.nivel=nivelActual;progresoJuego.racha_fail=0;cambio='bajo';
+    }
+    try{
+      await sb.from('game_progress').upsert({
+        hijo_id:hijo.id,juego:JUEGO_ID,nivel:nivelActual,
+        racha_ok:progresoJuego.racha_ok,racha_fail:progresoJuego.racha_fail,
+        nivel_maximo:nivelMax,actualizado_at:new Date().toISOString(),
+      },{onConflict:'hijo_id,juego'});
+    }catch(e){}
+    actualizarUIDeNivel();
+    if(cambio)mostrarCambioDeNivel(cambio);
+  }
+
+  function actualizarUIDeNivel(){
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const em=document.getElementById('nivelEmoji');const nm=document.getElementById('nivelNombre');
+    if(em)em.textContent=nc.emoji;if(nm)nm.textContent=nc.nombre;
+    actualizarEstrellas();
+  }
+
+  function actualizarEstrellas(){
+    let el=document.getElementById('rachaStars');
+    if(!el){
+      el=document.createElement('div');el.id='rachaStars';
+      el.style.cssText='font-size:11px;letter-spacing:1px;';
+      const nm=document.getElementById('nivelNombre');
+      if(nm&&nm.parentNode)nm.parentNode.appendChild(el);
+    }
+    const llenas=progresoJuego.racha_ok||0;
+    let h='';for(let i=0;i<RACHA_PARA_SUBIR;i++)h+=i<llenas?'⭐':'·';
+    el.textContent=h;
+  }
+
+  function mostrarCambioDeNivel(tipo){
+    const msg=tipo==='subio'?'🎉 ¡Nivel '+nivelActual+'!':'💪 Nivel '+nivelActual;
+    const n=document.createElement('div');
+    n.style.cssText='position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:800;background:white;border-radius:20px;padding:10px 20px;font-family:Nunito,sans-serif;font-weight:900;font-size:16px;color:#333;box-shadow:0 6px 24px #00000022;white-space:nowrap;animation:npop 0.4s ease;';
+    n.textContent=msg;document.body.appendChild(n);
+    if(!document.getElementById('npop-style')){const s=document.createElement('style');s.id='npop-style';s.textContent='@keyframes npop{from{opacity:0;transform:translateX(-50%) scale(0.7)}to{opacity:1;transform:translateX(-50%) scale(1)}}';document.head.appendChild(s);}
+    setTimeout(()=>n.remove(),2800);
+    if(typeof _hablar==='function')_hablar(msg.replace(/[🎉💪]/g,''),1.0);
+  }
+
+
+  // Respeta silencio global
+  function appEstaSilenciada(){return localStorage.getItem('teabrazo_muted')==='1';}
+
+
+  const PUZZLES=[
+    {nombre:'Perro',    emojis:['🐶','🐾','🦴','👅','👁️','🐕','🐩','🎾','🏠'],color:'#FFCC3B'},
+    {nombre:'Gato',     emojis:['🐱','🐾','🐟','👅','👁️','🎀','🧶','🌙','💤'],color:'#A78BFA'},
+    {nombre:'Granja',   emojis:['🐄','🥛','🌿','🐾','🔔','🌾','☁️','🌳','🏡'],color:'#52D9A0'},
+    {nombre:'Jardín',   emojis:['🌻','🌷','🌹','🍃','🦋','🐝','🌱','☀️','💧'],color:'#52D9A0'},
+    {nombre:'Playa',    emojis:['🏖️','🌊','🐚','⭐','🦀','🐠','🌴','☀️','🏄'],color:'#5BBFEA'},
+    {nombre:'Frutas',   emojis:['🍎','🍊','🍋','🍇','🍓','🍑','🥭','🍍','🥝'],color:'#FFCC3B'},
+    {nombre:'Juguetes', emojis:['🧸','🎮','🎯','🪀','🎲','🪁','🎪','🎠','🎡'],color:'#FF7E6B'},
+    {nombre:'Deportes', emojis:['⚽','🏀','🎾','🏈','⚾','🏐','🏉','🎱','🏓'],color:'#5BBFEA'},
+    {nombre:'Cocina',   emojis:['🍳','🥄','🔪','🫕','🧂','🍴','🥘','🫙','🧃'],color:'#FF7E6B'},
+    {nombre:'Cuarto',   emojis:['🛏️','🪆','🎮','📚','🧸','🖼️','💡','🌙','⭐'],color:'#A78BFA'},
+  ];
+
+  const NIVELES_CONFIG={
+    1:{emoji:'🥚',nombre:'Huevo',        cols:2,rows:2,totalPiezas:4, huecos:1, xpPor:10},
+    2:{emoji:'🐣',nombre:'Pollito',       cols:3,rows:2,totalPiezas:6, huecos:3, xpPor:15},
+    3:{emoji:'🐤',nombre:'Pollito grande',cols:3,rows:3,totalPiezas:9, huecos:9, xpPor:20},
+  };
+
+  const INSTRUCCIONES_JUEGO={
+    1:'¡Arrastrá el emoji al casillero donde corresponde!',
+    2:'¡Encontrá el lugar de cada emoji en la grilla!',
+    3:'¡Completá toda la grilla con los emojis!',
+  };
+
+  let vocesGrabadas={};
+  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
+  let audioActual=null;
+  function reproducir(id){
+    const tts={excelente:'¡Excelente!',que_bien:'¡Qué bien!',increible:'¡Increíble!',bien:'¡Bien!',upps:'¡Upps!',tres:'Tres',dos:'Dos',uno:'Uno',ya:'¡Ya!'};
+    if(audioActual){audioActual.pause();audioActual.currentTime=0;}
+    const audio=new Audio(vocesGrabadas[id]||('audio/'+id+'.mp3'));
+    audioActual=audio;audio.onerror=()=>{if(tts[id])_hablar(tts[id]);};
+    audio.play().catch(()=>audio.onerror());
+  }
+  function _hablar(t){if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();const m=new SpeechSynthesisUtterance(t);m.lang='es-AR';m.rate=1.0;m.pitch=1.7;window.speechSynthesis.speak(m);}
+
+  // INTRO
+  function mostrarIntro(onDone){
+    const overlay=document.getElementById('introOverlay');
+    if(!overlay){onDone();return;}
+    const texto=INSTRUCCIONES_JUEGO[nivelActual]||INSTRUCCIONES_JUEGO[1];
+    document.getElementById('introTexto').textContent=texto;
+    overlay.style.display='flex';
+    window._introDone=onDone;
+    setTimeout(()=>_hablar(texto),400);
+  }
+  function cerrarIntro(){
+    document.getElementById('introOverlay').style.display='none';
+    window.speechSynthesis&&window.speechSynthesis.cancel();
+    if(window._introDone)window._introDone();
+  }
+
+  let hijo=null,nivelActual=1,puntaje=0;
+  let rondasJugadas=0,juegoActivo=false;
+  let tiempoLimiteSegundos=0,tiempoRestante=0,intervaloTimer=null;
+  let puzzleActual=null,puzzlesUsados=[];
+  let piezaArrastrando=null,fantasmaEl=null,piezasColocadas=new Set(),huecosIndices=[];
+
+  window.addEventListener('load',()=>{
+    const hijoData=sessionStorage.getItem('hijoActual');
+    if(!hijoData){window.location.href='perfiles.html';return;}
+    hijo=JSON.parse(hijoData);
+    puntaje=hijo.xp_total||0;nivelActual=1; // se sobreescribe con cargarProgresoJuego()
+    document.getElementById('puntaje').textContent=puntaje;
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    document.getElementById('nivelEmoji').textContent=nc.emoji;
+    document.getElementById('nivelNombre').textContent=nc.nombre;
+    if(hijo.tiempo_limite&&hijo.tiempo_limite>0){tiempoLimiteSegundos=hijo.tiempo_limite*60;tiempoRestante=tiempoLimiteSegundos;document.getElementById('timerWrap').style.display='flex';actualizarTimerDisplay();}
+    cargarProgresoJuego().then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
+  });
+
+  function mostrarCountdown(){
+    const overlay=document.getElementById('countdownOverlay'),numEl=document.getElementById('countdownNumero');
+    overlay.style.display='flex';
+    const pasos=[{texto:'3',color:'#FF7E6B',audio:'tres'},{texto:'2',color:'#FFCC3B',audio:'dos'},{texto:'1',color:'#52D9A0',audio:'uno'},{texto:'¡YA!',color:'#A78BFA',audio:'ya',esYa:true}];
+    let i=0;
+    function sig(){if(i>=pasos.length){overlay.style.display='none';iniciarJuego();return;}const p=pasos[i];numEl.className=p.esYa?'countdown-ya':'countdown-numero';numEl.style.color=p.color;numEl.textContent=p.texto;numEl.style.animation='none';numEl.offsetHeight;numEl.style.animation='';reproducir(p.audio);i++;setTimeout(sig,900);}
+    sig();
+  }
+
+  function iniciarJuego(){juegoActivo=true;rondasJugadas=0;nuevoPuzzle();iniciarTimer();}
+
+  function elegirPuzzle(){
+    const d=PUZZLES.filter(p=>!puzzlesUsados.includes(p.nombre));
+    if(d.length===0)puzzlesUsados=[];
+    const arr=d.length>0?d:PUZZLES;
+    const p=arr[Math.floor(Math.random()*arr.length)];
+    puzzlesUsados.push(p.nombre);return p;
+  }
+
+  function nuevoPuzzle(){
+    if(!juegoActivo)return;
+    piezaArrastrando=null;piezasColocadas=new Set();
+    puzzleActual=elegirPuzzle();
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const total=nc.totalPiezas;
+    const emojis=puzzleActual.emojis.slice(0,total);
+    const todos=[...Array(total).keys()];
+    huecosIndices=[...todos].sort(()=>Math.random()-0.5).slice(0,nc.huecos);
+    renderPuzzle(emojis,nc);
+    mostrarPupi('¡Armá el '+puzzleActual.nombre+'! 🔗');
+    _hablar('Armá el '+puzzleActual.nombre);
+  }
+
+  function renderPuzzle(emojis,nc){
+    const area=document.getElementById('areaPrincipal');
+    const pupi=area.querySelector('.pupi-panel');
+    area.innerHTML='';
+    const nombre=document.createElement('div');nombre.className='puzzle-nombre';nombre.textContent='🔗 '+puzzleActual.nombre;area.appendChild(nombre);
+    const tamCelda=calcularTam(nc.cols,nc.rows);
+    const tablero=document.createElement('div');tablero.className='tablero';tablero.id='tablero';
+    tablero.style.gridTemplateColumns=`repeat(${nc.cols},${tamCelda}px)`;
+    tablero.style.gridTemplateRows=`repeat(${nc.rows},${tamCelda}px)`;
+    emojis.forEach((emoji,idx)=>{
+      const celda=document.createElement('div');celda.className='celda';celda.id='celda_'+idx;celda.style.width=tamCelda+'px';celda.style.height=tamCelda+'px';celda.dataset.idx=idx;celda.dataset.emoji=emoji;
+      if(huecosIndices.includes(idx)){
+        celda.classList.add('hueco');
+        celda.addEventListener('dragover',e=>{e.preventDefault();celda.classList.add('drag-over');});
+        celda.addEventListener('dragleave',()=>celda.classList.remove('drag-over'));
+        celda.addEventListener('drop',e=>{e.preventDefault();celda.classList.remove('drag-over');soltarEnCelda(idx);});
+      }else{
+        celda.classList.add('colocada');celda.style.background=puzzleActual.color+'22';celda.textContent=emoji;
+      }
+      tablero.appendChild(celda);
+    });
+    area.appendChild(tablero);
+
+    const piezasWrap=document.createElement('div');piezasWrap.className='piezas-wrap';
+    const lbl=document.createElement('div');lbl.className='piezas-label';lbl.textContent='Arrastrá las piezas 👆';piezasWrap.appendChild(lbl);
+    const pr=document.createElement('div');pr.className='piezas-row';pr.id='piezasRow';
+
+    const piezasFaltantes=huecosIndices.map(idx=>({idx,emoji:emojis[idx]}));
+    const distractores=[];
+    if(nivelActual<3){
+      const cantD=nivelActual===1?1:2;
+      const extra=PUZZLES.filter(p=>p.nombre!==puzzleActual.nombre).flatMap(p=>p.emojis);
+      const mezD=[...extra].sort(()=>Math.random()-0.5);
+      for(let i=0;i<cantD;i++)distractores.push({idx:-1-i,emoji:mezD[i]||'❓'});
+    }
+    const todas=[...piezasFaltantes,...distractores].sort(()=>Math.random()-0.5);
+    todas.forEach((p,i)=>{
+      const pieza=document.createElement('div');pieza.className='pieza';pieza.id='pieza_'+p.idx;pieza.textContent=p.emoji;pieza.dataset.idx=p.idx;pieza.dataset.emoji=p.emoji;pieza.style.width=tamCelda+'px';pieza.style.height=tamCelda+'px';pieza.style.animationDelay=(i*0.08)+'s';pieza.draggable=true;
+      pieza.addEventListener('dragstart',e=>{iniciarArrastre(p.idx,p.emoji,pieza);e.dataTransfer.setData('text/plain',p.idx);});
+      pieza.addEventListener('dragend',()=>terminarArrastre());
+      pieza.addEventListener('pointerdown',e=>{e.preventDefault();iniciarArrastre(p.idx,p.emoji,pieza);moverFantasma(e.clientX,e.clientY,p.emoji,tamCelda);});
+      pr.appendChild(pieza);
+    });
+    piezasWrap.appendChild(pr);area.appendChild(piezasWrap);area.appendChild(pupi);
+    area.addEventListener('pointermove',onPointerMove);
+    area.addEventListener('pointerup',onPointerUp);
+    area.addEventListener('pointercancel',terminarArrastre);
+  }
+
+  function calcularTam(cols,rows){
+    const area=document.getElementById('areaPrincipal');
+    const maxW=Math.min(area.clientWidth-32,320);
+    const maxH=area.clientHeight*0.45;
+    return Math.floor(Math.min(maxW/cols,maxH/rows,90));
+  }
+
+  function iniciarArrastre(idx,emoji,el){piezaArrastrando={idx,emoji,el};el.classList.add('arrastrando');}
+  function moverFantasma(x,y,emoji,tam){
+    if(!fantasmaEl){fantasmaEl=document.createElement('div');fantasmaEl.className='pieza-fantasma';fantasmaEl.style.width=tam+'px';fantasmaEl.style.height=tam+'px';fantasmaEl.style.fontSize=Math.floor(tam*0.55)+'px';document.body.appendChild(fantasmaEl);}
+    fantasmaEl.textContent=emoji;fantasmaEl.style.left=x+'px';fantasmaEl.style.top=y+'px';
+  }
+  function onPointerMove(e){
+    if(!piezaArrastrando)return;
+    moverFantasma(e.clientX,e.clientY,piezaArrastrando.emoji,60);
+    document.querySelectorAll('.celda.hueco').forEach(c=>c.classList.remove('drag-over'));
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    if(el){const c=el.closest('.celda');if(c&&c.classList.contains('hueco'))c.classList.add('drag-over');}
+  }
+  function onPointerUp(e){
+    if(!piezaArrastrando)return;
+    document.querySelectorAll('.celda.hueco').forEach(c=>c.classList.remove('drag-over'));
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    if(el){const c=el.closest('.celda');if(c&&c.classList.contains('hueco'))soltarEnCelda(parseInt(c.dataset.idx));}
+    terminarArrastre();
+  }
+  function terminarArrastre(){if(piezaArrastrando&&piezaArrastrando.el)piezaArrastrando.el.classList.remove('arrastrando');piezaArrastrando=null;if(fantasmaEl){fantasmaEl.remove();fantasmaEl=null;}}
+
+  function soltarEnCelda(celdaIdx){
+    if(!piezaArrastrando||!juegoActivo)return;
+    const celda=document.getElementById('celda_'+celdaIdx);
+    if(!celda||!celda.classList.contains('hueco')||piezasColocadas.has(celdaIdx))return;
+    if(piezaArrastrando.idx===celdaIdx){
+      celda.classList.remove('hueco');celda.classList.add('resuelto');celda.style.background=puzzleActual.color+'22';celda.textContent=piezaArrastrando.emoji;
+      piezasColocadas.add(celdaIdx);
+      const pe=document.getElementById('pieza_'+piezaArrastrando.idx);if(pe)pe.classList.add('usada');
+      puntaje+=Math.floor((NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor/huecosIndices.length);
+      document.getElementById('puntaje').textContent=puntaje;
+      reproducir('bien');mostrarPupi('¡Ahí va! 🌟');
+      if(piezasColocadas.size>=huecosIndices.length)setTimeout(()=>puzzleCompleto(),600);
+    }else{
+      reproducir('upps');mostrarPupi('¡Upps! Buscá el lugar correcto 🤔');
+    }
+  }
+
+  function puzzleCompleto(){
+    rondasJugadas++;
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const frases=[{texto:'¡EXCELENTE!',audio:'excelente'},{texto:'¡QUÉ BIEN!',audio:'que_bien'},{texto:'¡INCREÍBLE!',audio:'increible'}];
+    const f=frases[Math.floor(Math.random()*frases.length)];
+    document.getElementById('celEmoji').textContent=puzzleActual.emojis[0]||'🎉';
+    document.getElementById('celTitulo').textContent=f.texto;
+    document.getElementById('celXP').textContent='+'+nc.xpPor+' XP ⚡';
+    document.getElementById('celebracion').style.display='flex';
+    lanzarConfeti();reproducir(f.audio);guardarProgreso(rondasCorrectas||partesCorrectas||juegosCorrectos||0, rondasJugadas||partesJugadas||juegosEnRonda||RONDAS_POR_CELEBRACION||5);
+  }
+  function cerrarCelebracion(){document.getElementById('celebracion').style.display='none';nuevoPuzzle();}
+  function mostrarPupi(t){document.getElementById('pupiTexto').textContent=t;}
+
+  function iniciarTimer(){
+    if(!tiempoLimiteSegundos)return;
+    intervaloTimer=setInterval(()=>{tiempoRestante--;actualizarTimerDisplay();if(tiempoRestante<=60)document.getElementById('timerWrap').classList.add('urgente');if(tiempoRestante<=0){clearInterval(intervaloTimer);juegoActivo=false;document.getElementById('finOverlay').style.display='flex';reproducir('excelente');}},1000);
+  }
+  function actualizarTimerDisplay(){const m=Math.floor(tiempoRestante/60),s=tiempoRestante%60;document.getElementById('timerTexto').textContent=m+':'+(s<10?'0':'')+s;}
+  function lanzarConfeti(){const confeti=document.getElementById('confeti');confeti.style.display='block';confeti.innerHTML='';const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];for(let i=0;i<80;i++){const p=document.createElement('div');p.className='confeti-pieza';p.style.left=Math.random()*100+'vw';p.style.top='-10px';p.style.background=cols[Math.floor(Math.random()*cols.length)];p.style.animationDelay=Math.random()*1+'s';p.style.width=(Math.random()*10+6)+'px';p.style.height=(Math.random()*10+6)+'px';confeti.appendChild(p);}setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},2500);}
+  function avanzarPin(el,sigId){if(el.value.length===1){const s=document.getElementById(sigId);if(s)s.focus();}}
+  function verificarPin(){const ing=['p1','p2','p3','p4'].map(id=>document.getElementById(id).value).join('');const pin=hijo.pin?hijo.pin.toString():'';if(!pin||ing===pin){window.location.href='perfiles.html';}else{document.getElementById('pinError').style.display='block';['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).value='');document.getElementById('p1').focus();}}
+  async function guardarProgreso(aciertos=0,total=0){
+    await registrarResultadoPartida(aciertos,total);try{await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));}catch(e){}}
+  function salir(){juegoActivo=false;clearInterval(intervaloTimer);window.speechSynthesis?.cancel();window.location.href='bienvenida.html';}
+</script>
+</body>
+</html>

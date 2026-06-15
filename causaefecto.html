@@ -218,6 +218,92 @@
   const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 
   // =============================================
+  // SISTEMA DE NIVELES POR JUEGO
+  // Flexible para N niveles futuros
+  // =============================================
+  const JUEGO_ID = 'causaefecto';
+  const NIVEL_MAXIMO_JUEGO = 3;
+  const RACHA_PARA_SUBIR = 3;
+  const RACHA_PARA_BAJAR = 3;
+  const UMBRAL_EXITO = 0.6;
+
+  let progresoJuego = {nivel:1, racha_ok:0, racha_fail:0};
+
+  async function cargarProgresoJuego(){
+    if(!hijo)return;
+    try{
+      const {data,error}=await sb.from('game_progress').select('*').eq('hijo_id',hijo.id).eq('juego',JUEGO_ID).single();
+      if(data&&!error){
+        progresoJuego=data;
+        nivelActual=data.nivel;
+      }else{
+        await sb.from('game_progress').insert({hijo_id:hijo.id,juego:JUEGO_ID,nivel:1,racha_ok:0,racha_fail:0,nivel_maximo:NIVEL_MAXIMO_JUEGO});
+        nivelActual=1;
+      }
+    }catch(e){nivelActual=1;}
+    actualizarUIDeNivel();
+  }
+
+  async function registrarResultadoPartida(aciertos,total){
+    const exito=total>0?aciertos/total:0;
+    const buena=exito>=UMBRAL_EXITO;
+    if(buena){progresoJuego.racha_ok++;progresoJuego.racha_fail=0;}
+    else{progresoJuego.racha_fail++;progresoJuego.racha_ok=0;}
+    let cambio=null;
+    const nivelMax=progresoJuego.nivel_maximo||NIVEL_MAXIMO_JUEGO;
+    if(progresoJuego.racha_ok>=RACHA_PARA_SUBIR&&nivelActual<nivelMax){
+      nivelActual++;progresoJuego.nivel=nivelActual;progresoJuego.racha_ok=0;cambio='subio';
+    }
+    if(progresoJuego.racha_fail>=RACHA_PARA_BAJAR&&nivelActual>1){
+      nivelActual--;progresoJuego.nivel=nivelActual;progresoJuego.racha_fail=0;cambio='bajo';
+    }
+    try{
+      await sb.from('game_progress').upsert({
+        hijo_id:hijo.id,juego:JUEGO_ID,nivel:nivelActual,
+        racha_ok:progresoJuego.racha_ok,racha_fail:progresoJuego.racha_fail,
+        nivel_maximo:nivelMax,actualizado_at:new Date().toISOString(),
+      },{onConflict:'hijo_id,juego'});
+    }catch(e){}
+    actualizarUIDeNivel();
+    if(cambio)mostrarCambioDeNivel(cambio);
+  }
+
+  function actualizarUIDeNivel(){
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const em=document.getElementById('nivelEmoji');const nm=document.getElementById('nivelNombre');
+    if(em)em.textContent=nc.emoji;if(nm)nm.textContent=nc.nombre;
+    actualizarEstrellas();
+  }
+
+  function actualizarEstrellas(){
+    let el=document.getElementById('rachaStars');
+    if(!el){
+      el=document.createElement('div');el.id='rachaStars';
+      el.style.cssText='font-size:11px;letter-spacing:1px;';
+      const nm=document.getElementById('nivelNombre');
+      if(nm&&nm.parentNode)nm.parentNode.appendChild(el);
+    }
+    const llenas=progresoJuego.racha_ok||0;
+    let h='';for(let i=0;i<RACHA_PARA_SUBIR;i++)h+=i<llenas?'⭐':'·';
+    el.textContent=h;
+  }
+
+  function mostrarCambioDeNivel(tipo){
+    const msg=tipo==='subio'?'🎉 ¡Nivel '+nivelActual+'!':'💪 Nivel '+nivelActual;
+    const n=document.createElement('div');
+    n.style.cssText='position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:800;background:white;border-radius:20px;padding:10px 20px;font-family:Nunito,sans-serif;font-weight:900;font-size:16px;color:#333;box-shadow:0 6px 24px #00000022;white-space:nowrap;animation:npop 0.4s ease;';
+    n.textContent=msg;document.body.appendChild(n);
+    if(!document.getElementById('npop-style')){const s=document.createElement('style');s.id='npop-style';s.textContent='@keyframes npop{from{opacity:0;transform:translateX(-50%) scale(0.7)}to{opacity:1;transform:translateX(-50%) scale(1)}}';document.head.appendChild(s);}
+    setTimeout(()=>n.remove(),2800);
+    if(typeof _hablar==='function')_hablar(msg.replace(/[🎉💪]/g,''),1.0);
+  }
+
+
+  // Respeta silencio global
+  function appEstaSilenciada(){return localStorage.getItem('teabrazo_muted')==='1';}
+
+
+  // =============================================
   // ESCENARIOS — causa, efecto correcto, incorrectos
   // =============================================
   const ESCENARIOS=[
@@ -301,6 +387,7 @@
   }
 
   function _reproducirAhora(id){
+    if(appEstaSilenciada()){reproduciendo=false;_procesarCola();return;}
     const mapaTTS={
       'excelente':'¡Excelente!','que_bien':'¡Qué bien!','increible':'¡Increíble!',
       'bien':'¡Bien!','upps':'¡Upps!','tres':'Tres','dos':'Dos','uno':'Uno','ya':'¡Ya!',
@@ -355,7 +442,7 @@
     if(!hijoData){window.location.href='perfiles.html';return;}
     hijo=JSON.parse(hijoData);
     puntaje=hijo.xp_total||0;
-    nivelActual=hijo.nivel||1;
+    nivelActual=1; // se sobreescribe con cargarProgresoJuego()
     document.getElementById('puntaje').textContent=puntaje;
     const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
     document.getElementById('nivelEmoji').textContent=nc.emoji;
@@ -366,7 +453,7 @@
       document.getElementById('timerWrap').style.display='flex';
       actualizarTimerDisplay();
     }
-    mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
+    cargarProgresoJuego().then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
   });
 
   // =============================================
@@ -593,7 +680,7 @@
     document.getElementById('celXP').textContent='+'+xpGanado+' XP ⚡';
     document.getElementById('celebracion').style.display='flex';
     lanzarConfeti();reproducir(f.audio,true);
-    guardarProgreso();
+    guardarProgreso(rondasCorrectas||partesCorrectas||juegosCorrectos||0, rondasJugadas||partesJugadas||juegosEnRonda||RONDAS_POR_CELEBRACION||5);
   }
 
   function cerrarCelebracion(){
@@ -651,7 +738,8 @@
     }
   }
 
-  async function guardarProgreso(){
+  async function guardarProgreso(aciertos=0,total=0){
+    await registrarResultadoPartida(aciertos,total);
     try{
       await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);
       hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));

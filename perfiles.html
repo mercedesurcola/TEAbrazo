@@ -103,6 +103,19 @@
   .voz-col{flex:1;background:white;border-radius:10px;padding:7px 8px;display:flex;align-items:center;gap:6px;}
   .voz-col-label{font-family:'Nunito',sans-serif;font-weight:700;font-size:11px;color:#777;flex:1;}
 
+
+  /* Niveles por juego */
+  .niveles-juego-wrap{display:flex;flex-direction:column;gap:10px;margin-top:8px;}
+  .juego-nivel-row{display:flex;align-items:center;justify-content:space-between;background:#F8FBFF;border-radius:16px;padding:10px 14px;gap:10px;}
+  .juego-nivel-info{display:flex;align-items:center;gap:8px;flex:1;}
+  .juego-nivel-emoji{font-size:20px;}
+  .juego-nivel-nombre{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#333;}
+  .juego-nivel-racha{font-family:'Nunito',sans-serif;font-size:11px;color:#aaa;}
+  .juego-nivel-btns{display:flex;gap:4px;}
+  .btn-nivel-juego{width:34px;height:34px;border-radius:10px;border:2px solid #E0EFFF;background:white;font-family:'Nunito',sans-serif;font-weight:900;font-size:14px;color:#888;cursor:pointer;transition:all 0.15s;}
+  .btn-nivel-juego.activo{background:linear-gradient(135deg,#5BBFEA,#A78BFA);color:white;border-color:transparent;}
+  .btn-nivel-juego:active{transform:scale(0.92);}
+
   /* Secciones próximamente */
   .proximas-wrap{width:100%;max-width:480px;display:flex;flex-direction:column;gap:12px;z-index:10;}
   .proximas-titulo{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#aaa;text-transform:uppercase;letter-spacing:1px;text-align:center;}
@@ -185,6 +198,7 @@
       <button class="solapa" onclick="cambiarSolapa('animales')">🐾 Animales</button>
       <button class="solapa" onclick="cambiarSolapa('emociones')">😊 Emociones</button>
       <button class="solapa" onclick="cambiarSolapa('gestos')">🎭 Gestos</button>
+      <button class="solapa" onclick="cambiarSolapa('cara')">😊 Cara</button>
     </div>
 
     <!-- Contenido Burbujas -->
@@ -207,6 +221,12 @@
     <div class="solapa-contenido" id="tab-emociones" style="display:none;">
       <div class="seccion-titulo">😊 Nombres de emociones</div>
       <div class="voces-grid" id="vocesGridEmociones"></div>
+    </div>
+
+    <!-- Contenido Cara -->
+    <div class="solapa-contenido" id="tab-cara" style="display:none;">
+      <div class="seccion-titulo">😊 Partes de la cara</div>
+      <div class="voces-grid" id="vocesGridCara"></div>
     </div>
 
     <!-- Contenido Gestos -->
@@ -250,7 +270,7 @@
     </div>
   </div>
   <div class="proxima-card">
-    <div class="proxima-emoji">🩺</div>
+    <div class="proxima-emoji">🌈</div>
     <div class="proxima-info">
       <div class="proxima-nombre">Especialistas</div>
       <div class="proxima-desc">Consultá con profesionales del área</div>
@@ -274,10 +294,12 @@
 
   // TODAS las voces organizadas por sección
   const VOCES_SECCIONES = {
+    // ⭐ NOTA PARA GRABACIÓN: Las voces de celebración pueden ser MUY efusivas,
+    // creativas y emocionantes. ¡Dale rienda suelta a la energía y al entusiasmo!
     vocesGridCelebracion: [
-      {id:'excelente', label:'¡EXCELENTE!'},
-      {id:'que_bien',  label:'¡QUÉ BIEN!'},
-      {id:'increible', label:'¡INCREÍBLE!'},
+      {id:'excelente', label:'¡EXCELENTE! 🌟 — ¡Sé muy efusivo!'},  // ⭐ Podés ser creativo y exagerado
+      {id:'que_bien',  label:'¡QUÉ BIEN! ✨ — ¡Con mucha energía!'},  // ⭐ Cuanto más entusiasta mejor
+      {id:'increible', label:'¡INCREÍBLE! 🎉 — ¡El más efusivo de todos!'},  // ⭐ Libertad total
       {id:'bien',      label:'¡BIEN!'},
       {id:'genial',    label:'¡GENIAL!'},
       {id:'si',        label:'¡SÍ!'},
@@ -313,6 +335,20 @@
       {id:'nombre_gallo',   label:'Nombre: Gallo 🐓'},
       {id:'nombre_chancho', label:'Nombre: Chancho 🐷'},
       {id:'nombre_caballo', label:'Nombre: Caballo 🐴'},
+    ],
+    vocesGridCara: [
+      {id:'cara_boca',    label:'¡Tocá tu boca! 👄'},
+      {id:'cara_ojos',    label:'¡Tocá tus ojos! 👁️'},
+      {id:'cara_nariz',   label:'¡Tocá tu nariz! 👃'},
+      {id:'cara_oreja',   label:'¡Tocá tu oreja! 👂'},
+      {id:'cara_pelo',    label:'¡Tocá tu pelo! 💇'},
+      {id:'cara_cejas',   label:'¡Tocá tus cejas! 🤨'},
+      {id:'cara_cachetes',label:'¡Tocá tus cachetes! 😊'},
+      {id:'cara_lengua',  label:'¡Sacá la lengua! 😛'},
+      {id:'cara_pomulo',  label:'¡Tocá tu pómulo! 🫦'},
+      {id:'cara_dientes', label:'¡Mostrá tus dientes! 🦷'},
+      {id:'cara_menton',  label:'¡Tocá tu mentón! 🫢'},
+      {id:'cara_frente',  label:'¡Tocá tu frente! 🧠'},
     ],
     vocesGridGestos: [
       {id:'gesto_sonrei',      label:'Sonreí 😊'},
@@ -518,7 +554,7 @@
 
   function abrirConfig(){
     // Secciones normales
-    const seccionesNormales=['vocesGridCelebracion','vocesGridColores','vocesGridCountdown','vocesGridPupi','vocesGridEmociones','vocesGridGestos'];
+    const seccionesNormales=['vocesGridCelebracion','vocesGridColores','vocesGridCountdown','vocesGridPupi','vocesGridEmociones','vocesGridGestos','vocesGridCara'];
     seccionesNormales.forEach(gridId=>{
       const voces=VOCES_SECCIONES[gridId];
       if(!voces)return;
@@ -689,6 +725,64 @@
     new Audio(src).play().catch(()=>{});
   }
 
+
+  // =============================================
+  // NIVELES POR JUEGO en perfiles
+  // =============================================
+  const JUEGOS_CONFIG = [("burbujas", "🫧", "Burbujas"), ("animales", "🐾", "Animales"), ("luz", "✨", "Sigue la luz"), ("emociones", "😊", "Emociones"), ("causaefecto", "🌧️", "Causa y efecto"), ("rompecabezas", "🧩", "Rompecabezas"), ("asociacion", "🔗", "Asociación"), ("gestos", "🎭", "Copiá el gesto"), ("numeros", "🔢", "Números"), ("cara", "😊", "La Cara"), ("silueta", "✏️", "Silueta"), ("golpecitos", "✨", "Golpecitos"), ("perseguir", "🌟", "Perseguí la luz"), ("puntos", "🔗", "Uní los puntos")];
+
+  async function cargarNivelesPorJuego(hijoId){
+    const wrap = document.getElementById('nivelesJuegoWrap');
+    if(!wrap)return;
+    wrap.innerHTML = '<div style="font-family:Nunito Sans,sans-serif;font-size:13px;color:#aaa;text-align:center;">Cargando...</div>';
+
+    let progreso = {};
+    try{
+      const {data} = await sb.from('game_progress').select('juego,nivel,racha_ok,racha_fail').eq('hijo_id',hijoId);
+      if(data)data.forEach(r=>{progreso[r.juego]=r;});
+    }catch(e){}
+
+    wrap.innerHTML = '';
+    JUEGOS_CONFIG.forEach(([id, emoji, nombre])=>{
+      const p = progreso[id] || {nivel:1, racha_ok:0, racha_fail:0};
+      const row = document.createElement('div');
+      row.className = 'juego-nivel-row';
+
+      const estrellas = '⭐'.repeat(p.racha_ok||0) + '·'.repeat(Math.max(0,3-(p.racha_ok||0)));
+      row.innerHTML = `
+        <div class="juego-nivel-info">
+          <span class="juego-nivel-emoji">${emoji}</span>
+          <div>
+            <div class="juego-nivel-nombre">${nombre}</div>
+            <div class="juego-nivel-racha">${estrellas} racha</div>
+          </div>
+        </div>
+        <div class="juego-nivel-btns" id="btnsnivel_${id}">
+          <button class="btn-nivel-juego ${p.nivel===1?'activo':''}" onclick="forzarNivelJuego('${hijoId}','${id}',1,this)">1</button>
+          <button class="btn-nivel-juego ${p.nivel===2?'activo':''}" onclick="forzarNivelJuego('${hijoId}','${id}',2,this)">2</button>
+          <button class="btn-nivel-juego ${p.nivel===3?'activo':''}" onclick="forzarNivelJuego('${hijoId}','${id}',3,this)">3</button>
+        </div>
+      `;
+      wrap.appendChild(row);
+    });
+  }
+
+  async function forzarNivelJuego(hijoId, juego, nivel, btnEl){
+    // Actualizar UI inmediato
+    const wrap = btnEl.closest('.juego-nivel-btns');
+    wrap.querySelectorAll('.btn-nivel-juego').forEach(b=>b.classList.remove('activo'));
+    btnEl.classList.add('activo');
+
+    // Guardar en Supabase
+    try{
+      await sb.from('game_progress').upsert({
+        hijo_id:hijoId, juego:juego,
+        nivel:nivel, racha_ok:0, racha_fail:0,
+        nivel_maximo:3, actualizado_at:new Date().toISOString(),
+      },{onConflict:'hijo_id,juego'});
+    }catch(e){console.error(e);}
+  }
+
   async function salir(){await sb.auth.signOut();window.location.href='index.html';}
 
   // PWA
@@ -712,5 +806,19 @@
     }
   }
 </script>
+
+<!-- Botón silencio global -->
+<button id="btnMute" onclick="toggleMute()" style="
+  position:fixed;top:14px;right:16px;z-index:200;
+  background:white;border:2px solid #E0EFFF;border-radius:50%;
+  width:44px;height:44px;font-size:22px;cursor:pointer;
+  box-shadow:0 2px 12px #5BBFEA22;display:flex;align-items:center;justify-content:center;
+" title="Silenciar/Activar sonido">🔊</button>
+<script>
+  let _appMuted=localStorage.getItem('teabrazo_muted')==='1';
+  function toggleMute(){_appMuted=!_appMuted;localStorage.setItem('teabrazo_muted',_appMuted?'1':'0');document.getElementById('btnMute').textContent=_appMuted?'🔇':'🔊';}
+  window.addEventListener('load',()=>{document.getElementById('btnMute').textContent=_appMuted?'🔇':'🔊';});
+</script>
+
 </body>
 </html>

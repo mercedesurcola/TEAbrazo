@@ -80,33 +80,32 @@
   .opciones-4{grid-template-columns:repeat(4,1fr);}
 
   .opcion-card{
-    background:white;border-radius:20px;padding:8px 6px;
+    background:transparent;border-radius:20px;padding:4px;
     display:flex;flex-direction:column;align-items:center;gap:4px;
     border:4px solid transparent;
-    box-shadow:0 3px 14px #00000008;
     transition:all 0.2s;
     animation:aparecer 0.3s ease forwards;opacity:0;
-    position:relative;
+    position:relative;overflow:hidden;
   }
   @keyframes aparecer{to{opacity:1}}
   .opcion-card.drag-over{
-    border-color:#5BBFEA;background:#E8F5FF;
+    border-color:#5BBFEA;background:#5BBFEA22;
     transform:scale(1.05);
     box-shadow:0 6px 24px #5BBFEA44;
   }
   .opcion-card.correcta{
-    border-color:#52D9A0;background:#F0FFF8;
+    border-color:#52D9A0;background:#52D9A022;
     animation:pop-ok 0.5s cubic-bezier(0.34,1.56,0.64,1);
   }
   @keyframes pop-ok{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
   .opcion-card.incorrecta{
-    border-color:#FF7E6B;background:#FFF0EE;
+    border-color:#FF7E6B;background:#FF7E6B22;
     animation:shake-card 0.4s ease;
   }
   @keyframes shake-card{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 
   /* Canvas de la imagen con emojis */
-  .opcion-canvas{border-radius:12px;display:block;}
+  .opcion-canvas{border-radius:12px;display:block;width:100%;height:auto;}
   .opcion-cantidad{font-family:'Nunito',sans-serif;font-weight:900;font-size:clamp(12px,3.5vw,16px);color:#555;}
 
   /* Pupi */
@@ -238,6 +237,92 @@
   const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 
   // =============================================
+  // SISTEMA DE NIVELES POR JUEGO
+  // Flexible para N niveles futuros
+  // =============================================
+  const JUEGO_ID = 'numeros';
+  const NIVEL_MAXIMO_JUEGO = 3;
+  const RACHA_PARA_SUBIR = 3;
+  const RACHA_PARA_BAJAR = 3;
+  const UMBRAL_EXITO = 0.6;
+
+  let progresoJuego = {nivel:1, racha_ok:0, racha_fail:0};
+
+  async function cargarProgresoJuego(){
+    if(!hijo)return;
+    try{
+      const {data,error}=await sb.from('game_progress').select('*').eq('hijo_id',hijo.id).eq('juego',JUEGO_ID).single();
+      if(data&&!error){
+        progresoJuego=data;
+        nivelActual=data.nivel;
+      }else{
+        await sb.from('game_progress').insert({hijo_id:hijo.id,juego:JUEGO_ID,nivel:1,racha_ok:0,racha_fail:0,nivel_maximo:NIVEL_MAXIMO_JUEGO});
+        nivelActual=1;
+      }
+    }catch(e){nivelActual=1;}
+    actualizarUIDeNivel();
+  }
+
+  async function registrarResultadoPartida(aciertos,total){
+    const exito=total>0?aciertos/total:0;
+    const buena=exito>=UMBRAL_EXITO;
+    if(buena){progresoJuego.racha_ok++;progresoJuego.racha_fail=0;}
+    else{progresoJuego.racha_fail++;progresoJuego.racha_ok=0;}
+    let cambio=null;
+    const nivelMax=progresoJuego.nivel_maximo||NIVEL_MAXIMO_JUEGO;
+    if(progresoJuego.racha_ok>=RACHA_PARA_SUBIR&&nivelActual<nivelMax){
+      nivelActual++;progresoJuego.nivel=nivelActual;progresoJuego.racha_ok=0;cambio='subio';
+    }
+    if(progresoJuego.racha_fail>=RACHA_PARA_BAJAR&&nivelActual>1){
+      nivelActual--;progresoJuego.nivel=nivelActual;progresoJuego.racha_fail=0;cambio='bajo';
+    }
+    try{
+      await sb.from('game_progress').upsert({
+        hijo_id:hijo.id,juego:JUEGO_ID,nivel:nivelActual,
+        racha_ok:progresoJuego.racha_ok,racha_fail:progresoJuego.racha_fail,
+        nivel_maximo:nivelMax,actualizado_at:new Date().toISOString(),
+      },{onConflict:'hijo_id,juego'});
+    }catch(e){}
+    actualizarUIDeNivel();
+    if(cambio)mostrarCambioDeNivel(cambio);
+  }
+
+  function actualizarUIDeNivel(){
+    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
+    const em=document.getElementById('nivelEmoji');const nm=document.getElementById('nivelNombre');
+    if(em)em.textContent=nc.emoji;if(nm)nm.textContent=nc.nombre;
+    actualizarEstrellas();
+  }
+
+  function actualizarEstrellas(){
+    let el=document.getElementById('rachaStars');
+    if(!el){
+      el=document.createElement('div');el.id='rachaStars';
+      el.style.cssText='font-size:11px;letter-spacing:1px;';
+      const nm=document.getElementById('nivelNombre');
+      if(nm&&nm.parentNode)nm.parentNode.appendChild(el);
+    }
+    const llenas=progresoJuego.racha_ok||0;
+    let h='';for(let i=0;i<RACHA_PARA_SUBIR;i++)h+=i<llenas?'⭐':'·';
+    el.textContent=h;
+  }
+
+  function mostrarCambioDeNivel(tipo){
+    const msg=tipo==='subio'?'🎉 ¡Nivel '+nivelActual+'!':'💪 Nivel '+nivelActual;
+    const n=document.createElement('div');
+    n.style.cssText='position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:800;background:white;border-radius:20px;padding:10px 20px;font-family:Nunito,sans-serif;font-weight:900;font-size:16px;color:#333;box-shadow:0 6px 24px #00000022;white-space:nowrap;animation:npop 0.4s ease;';
+    n.textContent=msg;document.body.appendChild(n);
+    if(!document.getElementById('npop-style')){const s=document.createElement('style');s.id='npop-style';s.textContent='@keyframes npop{from{opacity:0;transform:translateX(-50%) scale(0.7)}to{opacity:1;transform:translateX(-50%) scale(1)}}';document.head.appendChild(s);}
+    setTimeout(()=>n.remove(),2800);
+    if(typeof _hablar==='function')_hablar(msg.replace(/[🎉💪]/g,''),1.0);
+  }
+
+
+  // Respeta silencio global
+  function appEstaSilenciada(){return localStorage.getItem('teabrazo_muted')==='1';}
+
+
+  // =============================================
   // INTRO
   // =============================================
   const INSTRUCCIONES_JUEGO={
@@ -272,6 +357,7 @@
     else{audioQueue.push(id);if(!reproduciendo)_procesarCola();}
   }
   function _reproducirAhora(id){
+    if(appEstaSilenciada()){reproduciendo=false;_procesarCola();return;}
     const tts={excelente:'¡Excelente!',que_bien:'¡Qué bien!',increible:'¡Increíble!',bien:'¡Bien!',upps:'¡Upps!',tres:'Tres',dos:'Dos',uno:'Uno',ya:'¡Ya!'};
     const src=vocesGrabadas[id]||('audio/'+id+'.mp3');
     const audio=new Audio(src);
@@ -282,6 +368,7 @@
   }
   function _procesarCola(){if(audioQueue.length>0&&!reproduciendo){const item=audioQueue.shift();if(item)_reproducirAhora(item);}}
   function _hablar(texto,rate=1.0,onEnd){
+    if(appEstaSilenciada()){if(onEnd)onEnd();return;}
     if(!('speechSynthesis' in window)){if(onEnd)onEnd();return;}
     window.speechSynthesis.cancel();
     const msg=new SpeechSynthesisUtterance(texto);
@@ -339,7 +426,7 @@
     if(!hijoData){window.location.href='perfiles.html';return;}
     hijo=JSON.parse(hijoData);
     puntaje=hijo.xp_total||0;
-    nivelActual=hijo.nivel||1;
+    nivelActual=1; // se sobreescribe con cargarProgresoJuego()
     document.getElementById('puntaje').textContent=puntaje;
     const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
     document.getElementById('nivelEmoji').textContent=nc.emoji;
@@ -348,7 +435,7 @@
       tiempoLimiteSegundos=hijo.tiempo_limite*60;tiempoRestante=tiempoLimiteSegundos;
       document.getElementById('timerWrap').style.display='flex';actualizarTimerDisplay();
     }
-    mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
+    cargarProgresoJuego().then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
   });
 
   // =============================================
@@ -462,10 +549,11 @@
     const grid=document.createElement('div');
     grid.className='opciones-grid '+(nc.cantOpciones===3?'opciones-3':'opciones-4');
 
-    // Calcular tamaño del canvas
-    const area2=document.getElementById('areaPrincipal')||document.body;
-    const maxW=Math.min((window.innerWidth-48)/nc.cantOpciones,110);
-    const tamCanvas=Math.floor(maxW);
+    // Calcular tamaño del canvas responsivo
+    const gap=10,padding=16,borderExtra=8;
+    const totalGaps=gap*(nc.cantOpciones-1);
+    const available=window.innerWidth - padding*2 - totalGaps - borderExtra*nc.cantOpciones;
+    const tamCanvas=Math.floor(Math.min(available/nc.cantOpciones, 120));
 
     opciones.forEach((op,i)=>{
       const card=document.createElement('div');
@@ -513,9 +601,6 @@
     const w=canvas.width,h=canvas.height;
     ctx.clearRect(0,0,w,h);
 
-    // Fondo suave
-    ctx.fillStyle='#F8FBFF';
-    ctx.beginPath();ctx.roundRect(0,0,w,h,12);ctx.fill();
 
     // Calcular layout de emojis
     const cols=cantidad<=4?2:cantidad<=9?3:4;
@@ -664,7 +749,7 @@
     document.getElementById('celTitulo').textContent=f.texto;
     document.getElementById('celXP').textContent='+'+rondasCorrectos*(NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1]).xpPor+' XP ⚡';
     document.getElementById('celebracion').style.display='flex';
-    lanzarConfeti();reproducir(f.audio);guardarProgreso();
+    lanzarConfeti();reproducir(f.audio);guardarProgreso(rondasCorrectas||partesCorrectas||juegosCorrectos||0, rondasJugadas||partesJugadas||juegosEnRonda||RONDAS_POR_CELEBRACION||5);
   }
 
   // Fix: usar rondasCorrectas no rondasCorrectos
@@ -675,7 +760,7 @@
     document.getElementById('celTitulo').textContent=f.texto;
     document.getElementById('celXP').textContent='+'+xp+' XP ⚡';
     document.getElementById('celebracion').style.display='flex';
-    lanzarConfeti();reproducir(f.audio);guardarProgreso();
+    lanzarConfeti();reproducir(f.audio);guardarProgreso(rondasCorrectas||partesCorrectas||juegosCorrectos||0, rondasJugadas||partesJugadas||juegosEnRonda||RONDAS_POR_CELEBRACION||5);
   }
 
   function cerrarCelebracion(){
@@ -717,7 +802,8 @@
     if(!pin||ing===pin){window.location.href='perfiles.html';}
     else{document.getElementById('pinError').style.display='block';['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).value='');document.getElementById('p1').focus();}
   }
-  async function guardarProgreso(){
+  async function guardarProgreso(aciertos=0,total=0){
+    await registrarResultadoPartida(aciertos,total);
     try{await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));}catch(e){}
   }
   function salir(){juegoActivo=false;clearInterval(intervaloTimer);window.speechSynthesis?.cancel();window.location.href='bienvenida.html';}
