@@ -139,7 +139,7 @@ body { background:#F0F7FF; font-family:'Nunito Sans',sans-serif; min-height:100v
 
 <!-- HEADER LÍNEA 1 -->
 <div class="header1">
-  <img class="logo-img" src="TEAbrazo.png" alt="TEAbrazo">
+  <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:#5BBFEA;">TEA<span style="color:#A78BFA;">brazo</span></div>
   <button class="btn-salir" onclick="salir()">Cerrar sesión 👋</button>
 </div>
 
@@ -147,6 +147,7 @@ body { background:#F0F7FF; font-family:'Nunito Sans',sans-serif; min-height:100v
 <div class="header2">
   <button class="btn-h2" id="btnInstalarApp" onclick="instalarApp()" style="display:none;">📲 Instalar app</button>
   <button class="btn-h2" onclick="abrirConfig()">⚙️ Configuración</button>
+  <button class="btn-h2" id="btnMute" onclick="toggleMute()" style="flex:0;padding:8px 14px;">🔊</button>
 </div>
 
 <!-- CONTENIDO -->
@@ -243,7 +244,7 @@ body { background:#F0F7FF; font-family:'Nunito Sans',sans-serif; min-height:100v
         <div class="voces-grid" id="vocesGridCelebracion"></div>
         <div class="seccion-label">🫧 Burbujas mágicas</div>
         <div class="voces-grid" id="vocesGridBurbujas"></div>
-        <div class="seccion-label">🐾 Sonidos de animales</div>
+        <div class="seccion-label">🐾 Animales — sonido + nombre por animal</div>
         <div class="voces-grid" id="vocesGridAnimales"></div>
         <div class="seccion-label">✨ Sigue la luz</div>
         <div class="voces-grid" id="vocesGridLuz"></div>
@@ -368,7 +369,25 @@ const VOCES_SECCIONES={
     {id:'upps',      label:'¡Upps! ❌'},
   ],
   vocesGridBurbujas:[{id:'burbujas_instruccion',label:'¡Tocá las burbujas!'}],
-  vocesGridAnimales:[{id:'animales_instruccion',label:'¡Escuchá el animal!'}],
+  vocesGridAnimales:[
+    {id:'animal_perro',    label:'🐶 Perro — sonido'},
+    {id:'animal_perro_n',  label:'🐶 Perro — nombre'},
+    {id:'animal_gato',     label:'🐱 Gato — sonido'},
+    {id:'animal_gato_n',   label:'🐱 Gato — nombre'},
+    {id:'animal_vaca',     label:'🐄 Vaca — sonido'},
+    {id:'animal_vaca_n',   label:'🐄 Vaca — nombre'},
+    {id:'animal_pato',     label:'🦆 Pato — sonido'},
+    {id:'animal_pato_n',   label:'🦆 Pato — nombre'},
+    {id:'animal_leon',     label:'🦁 León — sonido'},
+    {id:'animal_leon_n',   label:'🦁 León — nombre'},
+    {id:'animal_caballo',  label:'🐴 Caballo — sonido'},
+    {id:'animal_caballo_n',label:'🐴 Caballo — nombre'},
+    {id:'animal_rana',     label:'🐸 Rana — sonido'},
+    {id:'animal_rana_n',   label:'🐸 Rana — nombre'},
+    {id:'animal_pajaro',   label:'🐦 Pájaro — sonido'},
+    {id:'animal_pajaro_n', label:'🐦 Pájaro — nombre'},
+    {id:'animales_instruccion', label:'📢 Instrucción general'},
+  ],
   vocesGridLuz:[{id:'luz_instruccion',label:'¡Seguí la luz!'}],
   vocesGridEmociones:[
     {id:'emociones_feliz',label:'😊 Feliz'},
@@ -412,6 +431,7 @@ window.addEventListener('load',async()=>{
     renderVoces();
     await cargarDatosPadre();
     setupPWA();
+    initMute();
   }catch(e){window.location.href='index.html';}
 });
 
@@ -812,6 +832,18 @@ async function instalarApp(){
   const {outcome}=await deferredPrompt.userChoice;
   if(outcome==='accepted')document.getElementById('btnInstalarApp').style.display='none';
   deferredPrompt=null;
+}
+
+// MUTE
+function toggleMute(){
+  const muted=localStorage.getItem('teabrazo_muted')==='1';
+  localStorage.setItem('teabrazo_muted',muted?'0':'1');
+  document.getElementById('btnMute').textContent=muted?'🔊':'🔇';
+}
+function initMute(){
+  const muted=localStorage.getItem('teabrazo_muted')==='1';
+  const btn=document.getElementById('btnMute');
+  if(btn)btn.textContent=muted?'🔇':'🔊';
 }
 
 async function salir(){await sb.auth.signOut();window.location.href='index.html';}
