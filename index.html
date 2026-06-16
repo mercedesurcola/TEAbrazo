@@ -4,13 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TEAbrazo — Ingresar</title>
-<link rel="icon" type="image/png" href="TEAbrazo.png">
-<link rel="apple-touch-icon" href="TEAbrazo.png">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#5BBFEA">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="TEAbrazo">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -37,39 +30,17 @@
     z-index: 10;
     width: 100%;
     max-width: 400px;
-    padding: 24px 24px 70px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
   }
 
-  .logo-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .logo-img {
-    width: 130px;
-    animation: flotar-logo 3s ease-in-out infinite;
-    filter: drop-shadow(0 8px 24px #5BBFEA44);
-  }
-
-  @keyframes flotar-logo {
-    0%, 100% { transform: translateY(0px) scale(1); }
-    50% { transform: translateY(-10px) scale(1.03); }
-  }
-
-  .tagline {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 700;
-    font-size: 11px;
-    color: #888;
-    text-align: center;
-    letter-spacing: 0.3px;
-  }
+  .logo-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .logo-img { width: 180px; animation: flotar-logo 3s ease-in-out infinite; filter: drop-shadow(0 8px 24px #5BBFEA44); }
+  @keyframes flotar-logo { 0%, 100% { transform: translateY(0px) scale(1); } 50% { transform: translateY(-10px) scale(1.03); } }
+  .tagline { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 13px; color: #888; text-align: center; letter-spacing: 0.3px; }
 
   .card {
     background: white;
@@ -79,27 +50,24 @@
     box-shadow: 0 8px 32px #5BBFEA22;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 14px;
   }
   .card-titulo { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 22px; color: #333; text-align: center; }
   .campo { display: flex; flex-direction: column; gap: 8px; }
   .campo label { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 15px; color: #555; }
   .campo input {
     background: #F0F7FF; border: 2px solid #E0EFFF; border-radius: 16px;
-    padding: 16px 18px; font-family: 'Nunito Sans', sans-serif; font-size: 16px;
+    padding: 12px 16px; font-family: 'Nunito Sans', sans-serif; font-size: 15px;
     color: #333; outline: none; transition: border-color 0.2s; width: 100%;
   }
   .campo input:focus { border-color: #5BBFEA; }
   .btn-login {
     background: linear-gradient(135deg, #5BBFEA, #A78BFA); border: none; border-radius: 16px;
     padding: 13px; width: 100%; font-family: 'Nunito', sans-serif; font-weight: 900;
-    font-size: 16px; color: white; cursor: pointer; box-shadow: 0 6px 20px #5BBFEA44;
-    transition: transform 0.15s; margin-top: 4px;
+    font-size: 16px; color: white; cursor: pointer; box-shadow: 0 4px 14px #5BBFEA44;
+    transition: transform 0.15s; margin-top: 2px;
   }
   .btn-login:active { transform: scale(0.97); }
-  .fila-btns { display: flex; gap: 10px; width: 100%; }
-  .fila-btns .btn-login { flex: 1.4; }
-  .fila-btns .btn-registro { flex: 1; border: 2px solid #5BBFEA; }
   .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
   .separador { display: flex; align-items: center; gap: 12px; color: #bbb; font-size: 14px; }
   .separador::before, .separador::after { content: ''; flex: 1; height: 1px; background: #eee; }
@@ -109,6 +77,11 @@
     color: #5BBFEA; cursor: pointer; transition: all 0.15s;
   }
   .btn-registro:active { background: #F0F7FF; transform: scale(0.97); }
+  .btn-recuperar {
+    background: none; border: none; font-family: 'Nunito', sans-serif; font-weight: 700;
+    font-size: 13px; color: #5BBFEA; cursor: pointer; text-align: center; padding: 0;
+    text-decoration: underline; width: 100%;
+  }
   .error {
     background: #FFF0EE; border: 2px solid #FF7E6B; border-radius: 14px;
     padding: 12px 16px; font-family: 'Nunito', sans-serif; font-weight: 700;
@@ -117,29 +90,55 @@
   .cargando { display: none; align-items: center; justify-content: center; gap: 8px; font-family: 'Nunito', sans-serif; font-weight: 700; color: #5BBFEA; font-size: 16px; }
   .spinner { width: 20px; height: 20px; border: 3px solid #E0EFFF; border-top-color: #5BBFEA; border-radius: 50%; animation: girar 0.8s linear infinite; }
   @keyframes girar { to { transform: rotate(360deg); } }
-  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #00000055; z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px 24px 70px; }
-  .modal { background: white; border-radius: 28px; padding: 20px 20px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 20px 60px #00000033; }
+
+  /* Modales */
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #00000055; z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; }
+  .modal { background: white; border-radius: 28px; padding: 32px 24px; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 20px 60px #00000033; }
   .modal-titulo { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 22px; color: #333; text-align: center; }
+  .modal-sub { font-family: 'Nunito Sans', sans-serif; font-size: 13px; color: #777; text-align: center; line-height: 1.5; margin-top: -8px; }
   .btn-cerrar { background: #F0F7FF; border: none; border-radius: 14px; padding: 12px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 16px; color: #888; cursor: pointer; }
+  .ok-msg { background: #F0FFF8; border: 2px solid #52D9A0; border-radius: 14px; padding: 12px 16px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 14px; color: #2A9D6E; text-align: center; display: none; }
+
+  /* Footer */
+  .footer-fijo { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E0EFFF; padding: 6px 20px; display: flex; flex-direction: column; align-items: center; z-index: 50; }
+  .footer-marca { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 11px; color: #5BBFEA; }
+  .footer-marca a { color: #5BBFEA; text-decoration: none; }
+  .footer-legal { font-family: 'Nunito Sans', sans-serif; font-size: 9px; color: #aaa; text-align: center; }
 </style>
 </head>
 <body>
+
 <div class="burbuja b1"></div>
 <div class="burbuja b2"></div>
 <div class="burbuja b3"></div>
 <div class="burbuja b4"></div>
 
+<!-- Modal de registro -->
 <div class="modal-overlay" id="modalRegistro">
   <div class="modal">
     <div class="modal-titulo">👋 Crear cuenta</div>
-    <div class="campo"><label>📧 Tu email</label><input type="email" id="regEmail" placeholder="tu@email.com"></div>
-    <div class="campo"><label>🔑 Clave de acceso</label><input type="password" id="regPassword" placeholder="Mínimo 6 caracteres"></div>
+    <div class="campo"><label>📧 Tu email</label><input type="email" id="regEmail" placeholder="nombre@email.com"></div>
+    <div class="campo"><label>🔒 Contraseña</label><input type="password" id="regPassword" placeholder="Mínimo 6 caracteres"></div>
     <div class="error" id="errorRegistro"></div>
     <button class="btn-login" onclick="registrarse()">✨ Crear cuenta</button>
-    <button class="btn-cerrar" onclick="cerrarModal()">Cancelar</button>
+    <button class="btn-cerrar" onclick="cerrarModal('modalRegistro')">Cancelar</button>
   </div>
 </div>
 
+<!-- Modal recuperar contraseña -->
+<div class="modal-overlay" id="modalRecuperar">
+  <div class="modal">
+    <div class="modal-titulo">🔑 Recuperar acceso</div>
+    <div class="modal-sub">Ingresá tu email y te enviamos un enlace para restablecer tu contraseña.</div>
+    <div class="campo"><label>📧 Tu email</label><input type="email" id="recEmail" placeholder="nombre@email.com"></div>
+    <div class="error" id="errorRecuperar"></div>
+    <div class="ok-msg" id="okRecuperar">✅ ¡Listo! Revisá tu email y seguí el enlace.</div>
+    <button class="btn-login" id="btnEnviarRec" onclick="enviarRecupero()">Enviar enlace 📧</button>
+    <button class="btn-cerrar" onclick="cerrarModal('modalRecuperar')">Cancelar</button>
+  </div>
+</div>
+
+<!-- Contenido principal -->
 <div class="contenedor">
   <div class="logo-wrap">
     <img class="logo-img" src="TEAbrazo.png" alt="TEAbrazo">
@@ -148,16 +147,34 @@
 
   <div class="card">
     
-    <div class="campo"><label>📧 Email</label><input type="email" id="email" placeholder="tu@email.com"></div>
-    <div class="campo"><label>🔑 Clave de acceso</label><input type="password" id="password" placeholder="Clave de acceso"></div>
+
+    <div class="campo">
+      <label>📧 Email</label>
+      <input type="email" id="email" placeholder="nombre@email.com">
+    </div>
+
+    <div class="campo">
+      <label>🔒 Contraseña</label>
+      <input type="password" id="password" placeholder="Tu contraseña">
+    </div>
+
     <div class="error" id="errorLogin"></div>
     <div class="cargando" id="cargando"><div class="spinner"></div>Ingresando...</div>
-    <div class="fila-btns">
-      <div style="font-family:'Nunito Sans',sans-serif;font-size:12px;color:#aaa;text-align:center;padding-top:4px;">¿Primera vez? Ingresá tu email y la clave que te dieron 😊</div>
-      <button onclick="mostrarRecuperar()" style="background:none;border:none;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#5BBFEA;cursor:pointer;padding:4px;text-decoration:underline;">¿Problemas para entrar? Recuperá tu acceso</button>
-      <button class="btn-login" id="btnLogin" onclick="login()">Ingresar 🚀</button>
-    </div>
+
+    <button class="btn-login" id="btnLogin" onclick="login()">Ingresar 🚀</button>
+
+    <button class="btn-recuperar" onclick="abrirRecuperar()">¿Olvidaste tu contraseña?</button>
+
+    <div class="separador">¿Primera vez?</div>
+
+    <button class="btn-registro" onclick="abrirModal('modalRegistro')">✨ Crear cuenta gratis</button>
   </div>
+</div>
+
+<!-- Footer -->
+<div class="footer-fijo">
+  <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
+  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados. TEAbrazo es una herramienta de apoyo y no reemplaza la intervención profesional.</div>
 </div>
 
 <script>
@@ -176,78 +193,27 @@
   function mostrarError(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.style.display = 'block'; }
   function ocultarError(id) { document.getElementById(id).style.display = 'none'; }
 
+  // ── LOGIN ──────────────────────────────────────
   async function login() {
-    const email = document.getElementById('email').value.trim().toLowerCase();
-    const claveInput = document.getElementById('password').value.trim().toUpperCase();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
     ocultarError('errorLogin');
-
-    if(!email){ mostrarError('errorLogin','⚠️ Ingresá tu email.');return; }
-    if(!claveInput){ mostrarError('errorLogin','⚠️ Ingresá la clave de acceso.');return; }
-
-    // Validar clave genérica
-    const CLAVES_GENERICAS = ['URCOLA','AGUIRRE','PERROS','OLGA','DISPRO'];
-    if(!CLAVES_GENERICAS.includes(claveInput)){
-      mostrarError('errorLogin','❌ Clave de acceso incorrecta.');return;
-    }
-
-    // Contraseña interna para todos los usuarios beta
-    const PASS_INTERNA = 'TEAbrazo2025!xBeta';
-
+    if (!email || !password) { mostrarError('errorLogin', '⚠️ Completá el email y la contraseña'); return; }
     document.getElementById('btnLogin').disabled = true;
     document.getElementById('cargando').style.display = 'flex';
-
-    try{
-      // 1. Intentar login directo
-      const {data:loginData, error:loginError} = await sb.auth.signInWithPassword({
-        email:email, password:PASS_INTERNA
-      });
-
-      if(!loginError && loginData.user){
-        // Mail ya existía → entrar
-        window.location.href = 'perfiles.html';
-        return;
-      }
-
-      // 2. Mail no existe → registrar automáticamente
-      const {data:regData, error:regError} = await sb.auth.signUp({
-        email:email,
-        password:PASS_INTERNA,
-        options:{ data:{ clave_acceso:claveInput, beta:true } }
-      });
-
-      if(regError){
-        mostrarError('errorLogin','❌ No pudimos crear tu cuenta. Revisá el email.');
-        return;
-      }
-
-      // 3. Guardar registro beta (mail + clave de origen)
-      try{
-        await sb.from('beta_registros').insert({
-          email: email,
-          clave_acceso: claveInput,
-          user_id: regData.user?.id || null,
-        });
-      }catch(e){ /* no bloquear el flujo si falla */ }
-
-      // 4. Login inmediato post-registro
-      const {error:loginError2} = await sb.auth.signInWithPassword({
-        email:email, password:PASS_INTERNA
-      });
-
-      if(!loginError2){
-        window.location.href = 'perfiles.html';
-      }else{
-        mostrarError('errorLogin','✉️ ¡Cuenta creada! Revisá tu email para confirmar y volvé a ingresar.');
-      }
-
-    }catch(e){
-      mostrarError('errorLogin','⚠️ Error de conexión. Intentá de nuevo.');
-    }finally{
+    try {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) { mostrarError('errorLogin', '❌ Email o contraseña incorrectos'); return; }
+      window.location.href = 'perfiles.html';
+    } catch(e) {
+      mostrarError('errorLogin', '⚠️ Error de conexión. Intentá de nuevo.');
+    } finally {
       document.getElementById('btnLogin').disabled = false;
       document.getElementById('cargando').style.display = 'none';
     }
   }
 
+  // ── REGISTRO ───────────────────────────────────
   async function registrarse() {
     const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPassword').value;
@@ -257,207 +223,74 @@
     try {
       const { data, error } = await sb.auth.signUp({ email, password });
       if (error) { mostrarError('errorRegistro', '❌ ' + error.message); return; }
-      cerrarModal();
+      cerrarModal('modalRegistro');
       const el = document.getElementById('errorLogin');
-      el.textContent = '✅ ¡Cuenta creada! Ingresá con tu email y contraseña.';
+      el.textContent = '✅ ¡Cuenta creada! Revisá tu email para confirmar y luego ingresá.';
       el.style.background = '#F0FFF8'; el.style.borderColor = '#52D9A0'; el.style.color = '#2A9D6E'; el.style.display = 'block';
     } catch(e) { mostrarError('errorRegistro', '⚠️ Error de conexión. Intentá de nuevo.'); }
   }
 
-  function abrirModal() { document.getElementById('modalRegistro').style.display = 'flex'; }
-  function cerrarModal() {
-    document.getElementById('modalRegistro').style.display = 'none';
-    document.getElementById('regEmail').value = '';
-    document.getElementById('regPassword').value = '';
-    ocultarError('errorRegistro');
+  // ── RECUPERAR CONTRASEÑA ───────────────────────
+  function abrirRecuperar() {
+    // Pre-llenar con el email del campo principal
+    const emailMain = document.getElementById('email').value.trim();
+    if (emailMain) document.getElementById('recEmail').value = emailMain;
+    ocultarError('errorRecuperar');
+    document.getElementById('okRecuperar').style.display = 'none';
+    abrirModal('modalRecuperar');
   }
+
+  async function enviarRecupero() {
+    const email = document.getElementById('recEmail').value.trim().toLowerCase();
+    ocultarError('errorRecuperar');
+    document.getElementById('okRecuperar').style.display = 'none';
+    if (!email) { mostrarError('errorRecuperar', '⚠️ Ingresá tu email.'); return; }
+
+    const btn = document.getElementById('btnEnviarRec');
+    btn.disabled = true; btn.textContent = 'Enviando...';
+
+    try {
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://teabrazo.netlify.app/index.html'
+      });
+      if (error) {
+        mostrarError('errorRecuperar', '❌ No encontramos ese email.');
+      } else {
+        document.getElementById('okRecuperar').style.display = 'block';
+        setTimeout(() => cerrarModal('modalRecuperar'), 4000);
+      }
+    } catch(e) {
+      mostrarError('errorRecuperar', '⚠️ Error de conexión. Intentá de nuevo.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enviar enlace 📧';
+    }
+  }
+
+  // ── MODALES ────────────────────────────────────
+  function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+
+  function cerrarModal(id) {
+    document.getElementById(id).style.display = 'none';
+    if (id === 'modalRegistro') {
+      document.getElementById('regEmail').value = '';
+      document.getElementById('regPassword').value = '';
+      ocultarError('errorRegistro');
+    }
+    if (id === 'modalRecuperar') {
+      ocultarError('errorRecuperar');
+      document.getElementById('okRecuperar').style.display = 'none';
+    }
+  }
+
+  // Cerrar modales tocando fuera
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('pointerdown', function(e) {
+      if (e.target === this) cerrarModal(this.id);
+    });
+  });
+
+  // Login con Enter
   document.addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
 </script>
-
-<!-- Botón silencio global -->
-<button id="btnMute" onclick="toggleMute()" style="
-  position:fixed;top:14px;right:16px;z-index:200;
-  background:white;border:2px solid #E0EFFF;border-radius:50%;
-  width:44px;height:44px;font-size:22px;cursor:pointer;
-  box-shadow:0 2px 12px #5BBFEA22;display:flex;align-items:center;justify-content:center;
-  transition:all 0.2s;
-" title="Silenciar/Activar sonido">🔊</button>
-
-<!-- Banner iOS -->
-<div id="iosBanner" style="display:none;position:fixed;bottom:70px;left:16px;right:16px;background:white;border-radius:20px;padding:16px 18px;box-shadow:0 8px 32px #5BBFEA33;z-index:200;border:2px solid #5BBFEA22;">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-    <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;color:#333;">📱 Instalá TEAbrazo en iPhone</div>
-    <button onclick="document.getElementById('iosBanner').style.display='none'" style="background:none;border:none;font-size:18px;color:#aaa;cursor:pointer;">✕</button>
-  </div>
-  <div style="font-family:'Nunito Sans',sans-serif;font-size:13px;color:#555;line-height:1.6;">
-    1. Tocá el botón <strong>Compartir</strong> <span style="font-size:16px;">⬆️</span> en Safari<br>
-    2. Deslizá y elegí <strong>"Agregar a inicio"</strong> 🏠<br>
-    3. ¡Listo! TEAbrazo queda en tu pantalla
-  </div>
-</div>
-<!-- Banner PWA -->
-<div id="pwaBanner" style="display:none;position:fixed;bottom:70px;left:16px;right:16px;background:white;border-radius:20px;padding:14px 18px;box-shadow:0 8px 32px #5BBFEA33;z-index:200;display:none;flex-direction:column;gap:10px;border:2px solid #5BBFEA22;">
-  <div style="display:flex;align-items:center;gap:12px;">
-    <img src="TEAbrazo.png" style="width:44px;height:44px;border-radius:12px;filter:drop-shadow(0 2px 6px #5BBFEA33);">
-    <div>
-      <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;color:#333;">Instalá TEAbrazo</div>
-      <div style="font-family:'Nunito Sans',sans-serif;font-size:12px;color:#888;">Acceso rápido desde tu pantalla de inicio</div>
-    </div>
-    <button onclick="document.getElementById('pwaBanner').style.display='none'" style="background:none;border:none;font-size:18px;color:#aaa;cursor:pointer;margin-left:auto;">✕</button>
-  </div>
-  <div style="display:flex;gap:8px;">
-    <button onclick="instalarPWA()" id="btnInstalar" style="flex:1;background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:14px;padding:10px;font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;color:white;cursor:pointer;">📲 Instalar</button>
-    <button onclick="document.getElementById('pwaBanner').style.display='none'" style="background:#F0F7FF;border:none;border-radius:14px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#888;cursor:pointer;">Ahora no</button>
-  </div>
-</div>
-
-<div style="position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #E0EFFF;padding:6px 20px;display:flex;flex-direction:column;align-items:center;gap:2px;z-index:50;">
-  <div style="font-family:'Nunito',sans-serif;font-weight:700;font-size:11px;color:#5BBFEA;">Un producto de <a href="https://www.cusol.com.ar" target="_blank" style="color:#5BBFEA;text-decoration:none;">cusol.com.ar</a></div>
-  <div style="font-family:'Nunito Sans',sans-serif;font-size:9px;color:#aaa;text-align:center;">© 2025 Cusol. Todos los derechos reservados. TEAbrazo es una herramienta de apoyo y no reemplaza la intervención profesional.</div>
-</div>
-<script>
-  // PWA Install Prompt
-  let deferredPrompt=null;
-  window.addEventListener('beforeinstallprompt',(e)=>{
-    e.preventDefault();
-    deferredPrompt=e;
-    // Mostrar banner automáticamente si no lo instaló antes
-    if(!localStorage.getItem('pwa_installed')){
-      setTimeout(()=>{
-        const banner=document.getElementById('pwaBanner');
-        if(banner)banner.style.display='flex';
-      },2000);
-    }
-  });
-
-  function instalarPWA(){
-    if(!deferredPrompt)return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(r=>{
-      if(r.outcome==='accepted'){
-        localStorage.setItem('pwa_installed','1');
-        document.getElementById('pwaBanner').style.display='none';
-      }
-      deferredPrompt=null;
-    });
-  }
-
-  // Botón manual de instalación (para cuando ya pasó el evento)
-  function mostrarBannerInstalacion(){
-    const banner=document.getElementById('pwaBanner');
-    if(deferredPrompt&&banner){
-      banner.style.display='flex';
-    }else{
-      alert('Para instalar TEAbrazo:\n1. Tocá los 3 puntitos del navegador ⋮\n2. Seleccioná "Añadir a pantalla de inicio"');
-    }
-  }
-</script>
-
-<script>
-  // =============================================
-  // SILENCIO GLOBAL
-  // =============================================
-  let appMuted = localStorage.getItem('teabrazo_muted') === '1';
-  
-  function toggleMute(){
-    appMuted = !appMuted;
-    localStorage.setItem('teabrazo_muted', appMuted ? '1' : '0');
-    actualizarBtnMute();
-    if(appMuted) window.speechSynthesis?.cancel();
-  }
-  
-  function actualizarBtnMute(){
-    const btn = document.getElementById('btnMute');
-    if(btn) btn.textContent = appMuted ? '🔇' : '🔊';
-  }
-  
-  // Inicializar al cargar
-  window.addEventListener('load', ()=>{
-    actualizarBtnMute();
-    
-    // Detectar iOS para mostrar instrucciones
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    const isInStandalone = window.navigator.standalone === true;
-    if(isIOS && !isInStandalone && !localStorage.getItem('ios_banner_shown')){
-      setTimeout(()=>{
-        document.getElementById('iosBanner').style.display='block';
-        localStorage.setItem('ios_banner_shown','1');
-      }, 2500);
-    }
-  });
-</script>
-
-
-<!-- Modal recuperar acceso -->
-<div id="modalRecuperar" style="display:none;position:fixed;inset:0;background:#00000066;z-index:300;align-items:center;justify-content:center;padding:24px;">
-  <div style="background:white;border-radius:28px;padding:28px 24px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px;">
-    <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:#333;text-align:center;">📧 Recuperar acceso</div>
-    <div style="font-family:'Nunito Sans',sans-serif;font-size:13px;color:#777;text-align:center;line-height:1.5;">Ingresá tu email y te enviamos un enlace para restablecer tu acceso.</div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <label style="font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#555;">📧 Email</label>
-      <input id="emailRecuperar" type="email" placeholder="tu@email.com" style="border:2px solid #E0EFFF;border-radius:16px;padding:14px 16px;font-family:'Nunito',sans-serif;font-size:16px;color:#333;outline:none;background:#F8FBFF;" oninput="this.style.borderColor='#5BBFEA'">
-    </div>
-    <div id="errorRecuperar" style="display:none;background:#FFF0EE;border-radius:12px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;"></div>
-    <div id="okRecuperar" style="display:none;background:#F0FFF8;border-radius:12px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#52D9A0;text-align:center;"></div>
-    <div style="display:flex;gap:10px;">
-      <button onclick="cerrarRecuperar()" style="flex:1;background:#F0F7FF;border:none;border-radius:16px;padding:13px;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;">Cancelar</button>
-      <button onclick="enviarRecupero()" id="btnEnviarRecupero" style="flex:1.5;background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:16px;padding:13px;font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;color:white;cursor:pointer;">Enviar enlace 📧</button>
-    </div>
-  </div>
-</div>
-
-
-<script>
-  function mostrarRecuperar(){
-    document.getElementById('modalRecuperar').style.display='flex';
-    document.getElementById('emailRecuperar').value='';
-    document.getElementById('errorRecuperar').style.display='none';
-    document.getElementById('okRecuperar').style.display='none';
-    // Pre-llenar con el email del campo principal si ya lo escribió
-    const emailMain=document.getElementById('email')?.value?.trim();
-    if(emailMain)document.getElementById('emailRecuperar').value=emailMain;
-  }
-
-  function cerrarRecuperar(){
-    document.getElementById('modalRecuperar').style.display='none';
-  }
-
-  async function enviarRecupero(){
-    const email=document.getElementById('emailRecuperar').value.trim().toLowerCase();
-    const errEl=document.getElementById('errorRecuperar');
-    const okEl=document.getElementById('okRecuperar');
-    const btn=document.getElementById('btnEnviarRecupero');
-
-    errEl.style.display='none';okEl.style.display='none';
-    if(!email){errEl.textContent='⚠️ Ingresá tu email.';errEl.style.display='block';return;}
-
-    btn.disabled=true;btn.textContent='Enviando...';
-
-    try{
-      const {error}=await sb.auth.resetPasswordForEmail(email,{
-        redirectTo:'https://teabrazo.netlify.app/index.html'
-      });
-      if(error){
-        errEl.textContent='❌ No encontramos ese email. Verificá que sea el correcto.';
-        errEl.style.display='block';
-      }else{
-        okEl.textContent='✅ ¡Listo! Revisá tu email y seguí el enlace para recuperar tu acceso.';
-        okEl.style.display='block';
-        setTimeout(cerrarRecuperar,4000);
-      }
-    }catch(e){
-      errEl.textContent='⚠️ Error de conexión. Intentá de nuevo.';
-      errEl.style.display='block';
-    }finally{
-      btn.disabled=false;btn.textContent='Enviar enlace 📧';
-    }
-  }
-
-  // Cerrar modal tocando fuera
-  document.getElementById('modalRecuperar').addEventListener('pointerdown',function(e){
-    if(e.target===this)cerrarRecuperar();
-  });
-</script>
-
 </body>
 </html>
