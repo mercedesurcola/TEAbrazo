@@ -154,6 +154,7 @@
     <div class="cargando" id="cargando"><div class="spinner"></div>Ingresando...</div>
     <div class="fila-btns">
       <div style="font-family:'Nunito Sans',sans-serif;font-size:12px;color:#aaa;text-align:center;padding-top:4px;">¿Primera vez? Ingresá tu email y la clave que te dieron 😊</div>
+      <button onclick="mostrarRecuperar()" style="background:none;border:none;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#5BBFEA;cursor:pointer;padding:4px;text-decoration:underline;">¿Problemas para entrar? Recuperá tu acceso</button>
       <button class="btn-login" id="btnLogin" onclick="login()">Ingresar 🚀</button>
     </div>
   </div>
@@ -219,7 +220,16 @@
         return;
       }
 
-      // 3. Login inmediato post-registro
+      // 3. Guardar registro beta (mail + clave de origen)
+      try{
+        await sb.from('beta_registros').insert({
+          email: email,
+          clave_acceso: claveInput,
+          user_id: regData.user?.id || null,
+        });
+      }catch(e){ /* no bloquear el flujo si falla */ }
+
+      // 4. Login inmediato post-registro
       const {error:loginError2} = await sb.auth.signInWithPassword({
         email:email, password:PASS_INTERNA
       });
