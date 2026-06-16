@@ -2,823 +2,819 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TEAbrazo — ¿Quién juega hoy?</title>
-<link rel="icon" type="image/png" href="TEAbrazo.png">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#5BBFEA">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TEAbrazo — Perfiles</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:#F0F7FF;font-family:'Nunito Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:28px 20px 80px;position:relative;overflow-x:hidden;}
-  .burbuja{position:fixed;border-radius:50%;opacity:0.12;animation:flotar 6s ease-in-out infinite;z-index:0;pointer-events:none;}
-  .b1{width:200px;height:200px;background:#5BBFEA;top:-50px;left:-50px;}
-  .b2{width:150px;height:150px;background:#FFCC3B;top:10%;right:-30px;animation-delay:1s;}
-  .b3{width:100px;height:100px;background:#52D9A0;bottom:15%;left:10px;animation-delay:2s;}
-  .b4{width:120px;height:120px;background:#A78BFA;bottom:-30px;right:20%;animation-delay:0.5s;}
-  @keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { background:#F0F7FF; font-family:'Nunito Sans',sans-serif; min-height:100vh; display:flex; flex-direction:column; }
 
-  .contenedor{z-index:10;width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;gap:22px;}
-  .header{width:100%;display:flex;align-items:center;justify-content:space-between;}
-  .logo-img{height:44px;animation:flotar 3s ease-in-out infinite;filter:drop-shadow(0 4px 12px #5BBFEA33);}
-  .header-btns{display:flex;gap:8px;}
-  .logo-texto{font-family:'Nunito',sans-serif;font-weight:900;font-size:26px;color:#5BBFEA;}
-  .logo-texto span{color:#A78BFA;}
-  .btn-config{background:white;border:2px solid #5BBFEA;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#5BBFEA;cursor:pointer;}
-  .btn-salir{background:white;border:2px solid #FF7E6B;border-radius:14px;padding:8px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#FF7E6B;cursor:pointer;}
-  .titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:26px;color:#333;text-align:center;}
+/* ── HEADER ── */
+.header1 { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:white; box-shadow:0 2px 8px #5BBFEA15; z-index:50; flex-shrink:0; }
+.logo-img { height:36px; }
+.btn-salir { background:#FFF0EE; border:2px solid #FF7E6B; border-radius:12px; padding:7px 14px; font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; color:#FF7E6B; cursor:pointer; }
 
-  .grid-perfiles{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%;}
-  .tarjeta-perfil{background:white;border-radius:22px;padding:18px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 4px 20px #5BBFEA15;cursor:pointer;border:3px solid transparent;animation:aparecer 0.4s ease forwards;opacity:0;transform:translateY(20px);position:relative;}
-  @keyframes aparecer{to{opacity:1;transform:translateY(0)}}
-  .tarjeta-perfil:active{transform:scale(0.96);border-color:#5BBFEA;}
-  .btn-eliminar-hijo{position:absolute;top:8px;right:8px;background:#FFF0EE;border:none;border-radius:10px;padding:4px 8px;font-size:13px;cursor:pointer;color:#FF7E6B;font-family:'Nunito',sans-serif;font-weight:700;}
-  .btn-editar-hijo{position:absolute;top:8px;right:36px;background:#F0F7FF;border:none;border-radius:10px;padding:4px 8px;font-size:13px;cursor:pointer;color:#5BBFEA;font-family:'Nunito',sans-serif;font-weight:700;}
-  .avatar-circulo{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;}
-  .perfil-nombre{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#333;text-align:center;}
-  .perfil-nivel{display:flex;align-items:center;gap:4px;background:#F0F7FF;border-radius:50px;padding:3px 10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;color:#555;}
-  .perfil-xp{font-family:'Nunito',sans-serif;font-weight:700;font-size:12px;color:#FFCC3B;}
-  .perfil-tiempo{font-size:11px;color:#A78BFA;font-family:'Nunito',sans-serif;font-weight:600;}
+.header2 { display:flex; align-items:center; gap:10px; padding:10px 16px; background:white; border-top:1px solid #F0F7FF; box-shadow:0 2px 8px #5BBFEA10; z-index:49; flex-shrink:0; }
+.btn-h2 { display:flex; align-items:center; gap:6px; background:#F0F7FF; border:2px solid #E0EFFF; border-radius:14px; padding:8px 16px; font-family:'Nunito',sans-serif; font-weight:800; font-size:14px; color:#5BBFEA; cursor:pointer; flex:1; justify-content:center; }
+.btn-h2:active { background:#E0EFFF; }
 
-  .tarjeta-agregar{background:white;border-radius:22px;padding:24px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 4px 20px #5BBFEA15;cursor:pointer;border:3px dashed #C5E8F7;transition:all 0.2s;}
-  .tarjeta-agregar:active{border-color:#5BBFEA;background:#F0F7FF;}
-  .agregar-icono{width:68px;height:68px;border-radius:50%;background:#F0F7FF;display:flex;align-items:center;justify-content:center;font-size:30px;}
-  .agregar-texto{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#5BBFEA;text-align:center;}
+/* ── CONTENIDO ── */
+.contenido { flex:1; overflow-y:auto; padding:20px 16px 100px; }
+.seccion-titulo { font-family:'Nunito',sans-serif; font-weight:900; font-size:18px; color:#333; margin-bottom:14px; }
 
-  .cargando{display:flex;flex-direction:column;align-items:center;gap:14px;padding:40px;}
-  .spinner{width:40px;height:40px;border:4px solid #E0EFFF;border-top-color:#5BBFEA;border-radius:50%;animation:girar 0.8s linear infinite;}
-  @keyframes girar{to{transform:rotate(360deg)}}
-  .cargando-texto{font-family:'Nunito',sans-serif;font-weight:700;color:#5BBFEA;font-size:15px;}
+/* ── GRID HIJOS ── */
+.grid-hijos { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+.tarjeta-hijo { background:white; border-radius:22px; padding:20px 12px 14px; display:flex; flex-direction:column; align-items:center; gap:8px; box-shadow:0 4px 16px #5BBFEA12; border:3px solid transparent; position:relative; animation:aparecer .4s ease forwards; opacity:0; transform:translateY(16px); }
+@keyframes aparecer { to { opacity:1; transform:translateY(0); } }
+.tarjeta-hijo:active { transform:scale(0.97); }
+.avatar-circulo { width:72px; height:72px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:36px; }
+.hijo-nombre { font-family:'Nunito',sans-serif; font-weight:900; font-size:16px; color:#333; text-align:center; }
+.hijo-xp { background:#F0F7FF; border-radius:50px; padding:3px 10px; font-family:'Nunito',sans-serif; font-weight:700; font-size:12px; color:#5BBFEA; }
+.hijo-nivel { font-size:12px; color:#aaa; font-family:'Nunito',sans-serif; font-weight:600; }
+.btn-editar-hijo { position:absolute; top:10px; right:10px; background:#F0F7FF; border:none; border-radius:10px; width:30px; height:30px; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.btn-jugar-hijo { background:linear-gradient(135deg,#5BBFEA,#A78BFA); border:none; border-radius:12px; padding:8px 0; width:100%; font-family:'Nunito',sans-serif; font-weight:900; font-size:13px; color:white; cursor:pointer; margin-top:2px; }
+.btn-jugar-hijo:active { transform:scale(0.96); }
 
-  /* MODALES */
-  .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#00000055;z-index:200;display:none;align-items:flex-end;justify-content:center;}
-  .modal{background:white;border-radius:28px 28px 0 0;padding:28px 22px 44px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;animation:subir 0.3s ease;max-height:90vh;overflow-y:auto;}
-  @keyframes subir{from{transform:translateY(100%)}to{transform:translateY(0)}}
-  .modal-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:#333;text-align:center;}
-  .campo{display:flex;flex-direction:column;gap:7px;}
-  .campo label{font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;color:#555;}
-  .campo input{background:#F0F7FF;border:2px solid #E0EFFF;border-radius:14px;padding:14px 16px;font-family:'Nunito Sans',sans-serif;font-size:15px;color:#333;outline:none;width:100%;}
-  .campo input:focus{border-color:#5BBFEA;}
-  .avatares{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
-  .avatar-opcion{width:46px;height:46px;border-radius:50%;background:#F0F7FF;border:3px solid transparent;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:all 0.15s;}
-  .avatar-opcion.seleccionado{border-color:#5BBFEA;background:#E0F4FF;transform:scale(1.15);}
-  .niveles-selector{display:flex;gap:8px;justify-content:center;}
-  .nivel-opcion{flex:1;background:#F0F7FF;border:3px solid transparent;border-radius:16px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all 0.2s;}
-  .nivel-opcion.seleccionado{border-color:#5BBFEA;background:#E0F4FF;}
-  .nivel-opcion-animal{font-size:28px;}
-  .nivel-opcion-nombre{font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;color:#444;text-align:center;}
-  .fila-2{display:flex;gap:10px;}
-  .fila-2 .campo{flex:1;}
-  .btn-guardar{background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:18px;padding:16px;width:100%;font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:white;cursor:pointer;}
-  .btn-guardar:active{transform:scale(0.97);}
-  .btn-guardar:disabled{opacity:0.6;}
-  .btn-cancelar{background:#F0F7FF;border:none;border-radius:14px;padding:12px;width:100%;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;}
-  .error{background:#FFF0EE;border:2px solid #FF7E6B;border-radius:12px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;text-align:center;display:none;}
+/* Tarjeta agregar */
+.tarjeta-agregar { background:white; border-radius:22px; padding:20px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; box-shadow:0 4px 16px #5BBFEA12; cursor:pointer; border:3px dashed #C5E8F7; transition:all .2s; justify-content:center; min-height:180px; }
+.tarjeta-agregar:active { border-color:#5BBFEA; background:#F0F7FF; }
+.agregar-icono { font-size:36px; }
+.agregar-texto { font-family:'Nunito',sans-serif; font-weight:800; font-size:14px; color:#5BBFEA; text-align:center; }
 
-  /* CONFIG */
-  .config-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#00000055;z-index:300;display:none;align-items:flex-end;justify-content:center;}
-  .config-panel{background:white;border-radius:28px 28px 0 0;padding:28px 22px 44px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:18px;animation:subir 0.3s ease;max-height:92vh;overflow-y:auto;}
-  .config-titulo{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:#333;text-align:center;}
-  .seccion-titulo{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#5BBFEA;border-bottom:2px solid #E0EFFF;padding-bottom:6px;margin-top:4px;}
-  .voces-grid{display:flex;flex-direction:column;gap:8px;}
-  .voz-fila{display:flex;align-items:center;gap:8px;background:#F0F7FF;border-radius:12px;padding:9px 12px;}
-  .voz-label{font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#444;flex:1;min-width:0;}
-  .estado-voz{font-size:11px;color:#888;font-family:'Nunito Sans',sans-serif;white-space:nowrap;}
-  .btn-grabar{background:white;border:2px solid #FF7E6B;border-radius:10px;padding:5px 10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:11px;color:#FF7E6B;cursor:pointer;white-space:nowrap;}
-  .btn-grabar.grabando{background:#FF7E6B;color:white;animation:pulsar-btn 1s ease-in-out infinite;}
-  @keyframes pulsar-btn{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-  .btn-play{background:white;border:2px solid #52D9A0;border-radius:10px;padding:5px 8px;font-size:13px;cursor:pointer;display:none;}
+/* Secciones próximamente */
+.proxima-card { background:white; border-radius:20px; padding:20px; display:flex; align-items:center; gap:14px; box-shadow:0 4px 16px #5BBFEA10; opacity:0.6; margin-top:14px; }
+.proxima-emoji { font-size:32px; }
+.proxima-info { display:flex; flex-direction:column; gap:2px; }
+.proxima-titulo { font-family:'Nunito',sans-serif; font-weight:900; font-size:15px; color:#333; }
+.proxima-sub { font-family:'Nunito Sans',sans-serif; font-size:12px; color:#aaa; }
+.proxima-badge { background:#F0F7FF; border-radius:50px; padding:3px 10px; font-family:'Nunito',sans-serif; font-weight:700; font-size:11px; color:#aaa; margin-top:2px; width:fit-content; }
 
-  /* Solapas */
-  .solapas{display:flex;gap:6px;border-bottom:2px solid #E0EFFF;padding-bottom:0;}
-  .solapa{flex:1;background:transparent;border:none;border-bottom:3px solid transparent;padding:8px 4px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#888;cursor:pointer;border-radius:0;transition:all 0.2s;margin-bottom:-2px;}
-  .solapa.activa{color:#5BBFEA;border-bottom-color:#5BBFEA;background:transparent;}
-  .solapa-contenido{display:flex;flex-direction:column;gap:10px;}
+/* ── OVERLAY GENÉRICO ── */
+.overlay { position:fixed; inset:0; background:#00000066; z-index:200; display:none; align-items:flex-end; justify-content:center; }
+.overlay.activo { display:flex; }
+.panel { background:white; border-radius:28px 28px 0 0; width:100%; max-width:480px; max-height:92vh; display:flex; flex-direction:column; animation:subir .3s ease; }
+@keyframes subir { from { transform:translateY(100%); } to { transform:translateY(0); } }
+.panel-header { display:flex; align-items:center; justify-content:space-between; padding:18px 20px 0; flex-shrink:0; }
+.panel-titulo { font-family:'Nunito',sans-serif; font-weight:900; font-size:20px; color:#333; }
+.btn-cerrar-panel { background:#F0F7FF; border:none; border-radius:12px; width:36px; height:36px; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.panel-body { flex:1; overflow-y:auto; padding:16px 20px 40px; display:flex; flex-direction:column; gap:16px; }
 
-  /* Fila animal doble columna */
-  .voz-fila-animal{background:#F0F7FF;border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;}
-  .voz-fila-animal-titulo{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#333;}
-  .voz-fila-animal-cols{display:flex;gap:8px;}
-  .voz-col{flex:1;background:white;border-radius:10px;padding:7px 8px;display:flex;align-items:center;gap:6px;}
-  .voz-col-label{font-family:'Nunito',sans-serif;font-weight:700;font-size:11px;color:#777;flex:1;}
+/* ── SOLAPAS ── */
+.solapas { display:flex; gap:8px; flex-wrap:wrap; flex-shrink:0; padding:0 20px; margin-top:14px; }
+.solapa { background:#F0F7FF; border:2px solid #E0EFFF; border-radius:50px; padding:8px 16px; font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; color:#888; cursor:pointer; }
+.solapa.activa { background:linear-gradient(135deg,#5BBFEA,#A78BFA); border-color:transparent; color:white; }
+.solapa-contenido { display:none; }
+.solapa-contenido.activa { display:flex; flex-direction:column; gap:12px; }
 
+/* ── CAMPOS ── */
+.campo { display:flex; flex-direction:column; gap:6px; }
+.campo label { font-family:'Nunito',sans-serif; font-weight:700; font-size:14px; color:#555; }
+.campo input, .campo select { background:#F0F7FF; border:2px solid #E0EFFF; border-radius:14px; padding:12px 14px; font-family:'Nunito Sans',sans-serif; font-size:15px; color:#333; outline:none; width:100%; }
+.campo input:focus, .campo select:focus { border-color:#5BBFEA; }
+.campos-fila { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
-  /* Niveles por juego */
-  .niveles-juego-wrap{display:flex;flex-direction:column;gap:10px;margin-top:8px;}
-  .juego-nivel-row{display:flex;align-items:center;justify-content:space-between;background:#F8FBFF;border-radius:16px;padding:10px 14px;gap:10px;}
-  .juego-nivel-info{display:flex;align-items:center;gap:8px;flex:1;}
-  .juego-nivel-emoji{font-size:20px;}
-  .juego-nivel-nombre{font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#333;}
-  .juego-nivel-racha{font-family:'Nunito',sans-serif;font-size:11px;color:#aaa;}
-  .juego-nivel-btns{display:flex;gap:4px;}
-  .btn-nivel-juego{width:34px;height:34px;border-radius:10px;border:2px solid #E0EFFF;background:white;font-family:'Nunito',sans-serif;font-weight:900;font-size:14px;color:#888;cursor:pointer;transition:all 0.15s;}
-  .btn-nivel-juego.activo{background:linear-gradient(135deg,#5BBFEA,#A78BFA);color:white;border-color:transparent;}
-  .btn-nivel-juego:active{transform:scale(0.92);}
+.btn-guardar { background:linear-gradient(135deg,#5BBFEA,#A78BFA); border:none; border-radius:18px; padding:15px; width:100%; font-family:'Nunito',sans-serif; font-weight:900; font-size:17px; color:white; cursor:pointer; }
+.btn-guardar:active { transform:scale(0.97); }
+.btn-guardar:disabled { opacity:0.6; }
+.btn-secundario { background:#F0F7FF; border:none; border-radius:14px; padding:12px; width:100%; font-family:'Nunito',sans-serif; font-weight:700; font-size:15px; color:#888; cursor:pointer; }
 
-  /* Secciones próximamente */
-  .proximas-wrap{width:100%;max-width:480px;display:flex;flex-direction:column;gap:12px;z-index:10;}
-  .proximas-titulo{font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:#aaa;text-transform:uppercase;letter-spacing:1px;text-align:center;}
-  .proxima-card{background:white;border-radius:20px;padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 12px #00000008;opacity:0.6;position:relative;overflow:hidden;}
-  .proxima-card::after{content:'Próximamente';position:absolute;right:16px;background:#F0F7FF;border-radius:50px;padding:4px 12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;color:#5BBFEA;}
-  .proxima-emoji{font-size:32px;flex-shrink:0;}
-  .proxima-info{display:flex;flex-direction:column;gap:2px;}
-  .proxima-nombre{font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;color:#333;}
-  .proxima-desc{font-family:'Nunito Sans',sans-serif;font-size:12px;color:#888;}
+/* Avatar selector */
+.avatares { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.avatar-op { width:48px; height:48px; border-radius:50%; background:#F0F7FF; border:3px solid transparent; display:flex; align-items:center; justify-content:center; font-size:26px; cursor:pointer; transition:all .15s; }
+.avatar-op.sel { border-color:#5BBFEA; background:#E0F4FF; transform:scale(1.15); }
 
-  /* Footer */
-  .footer{position:fixed;bottom:0;left:0;right:0;z-index:50;background:white;border-top:1px solid #E0EFFF;padding:7px 20px;display:flex;flex-direction:column;align-items:center;gap:2px;}
-  .footer-marca{font-family:'Nunito',sans-serif;font-weight:700;font-size:11px;color:#5BBFEA;}
-  .footer-marca a{color:#5BBFEA;text-decoration:none;}
-  .footer-legal{font-family:'Nunito Sans',sans-serif;font-size:9px;color:#aaa;text-align:center;}
+/* Nivel selector */
+.nivel-sel { display:flex; gap:8px; justify-content:center; }
+.btn-nivel { width:52px; height:52px; border-radius:14px; border:2px solid #E0EFFF; background:white; font-family:'Nunito',sans-serif; font-weight:900; font-size:18px; color:#aaa; cursor:pointer; }
+.btn-nivel.activo { background:linear-gradient(135deg,#5BBFEA,#A78BFA); color:white; border-color:transparent; }
+
+/* ── JUEGOS POR HIJO ── */
+.juego-row { display:flex; align-items:center; justify-content:space-between; background:#F8FBFF; border-radius:16px; padding:10px 14px; gap:10px; }
+.juego-row-info { display:flex; align-items:center; gap:8px; flex:1; }
+.juego-row-emoji { font-size:20px; }
+.juego-row-nombre { font-family:'Nunito',sans-serif; font-weight:800; font-size:14px; color:#333; }
+.juego-row-right { display:flex; align-items:center; gap:8px; }
+/* Toggle ON/OFF */
+.toggle-wrap { display:flex; align-items:center; gap:6px; }
+.toggle-label { font-family:'Nunito',sans-serif; font-weight:700; font-size:11px; color:#aaa; }
+.toggle { position:relative; width:44px; height:24px; cursor:pointer; }
+.toggle input { opacity:0; width:0; height:0; }
+.toggle-slider { position:absolute; inset:0; background:#ddd; border-radius:50px; transition:.3s; }
+.toggle-slider:before { content:''; position:absolute; width:18px; height:18px; left:3px; bottom:3px; background:white; border-radius:50%; transition:.3s; }
+.toggle input:checked + .toggle-slider { background:#52D9A0; }
+.toggle input:checked + .toggle-slider:before { transform:translateX(20px); }
+/* Botones nivel (en OFF) */
+.juego-niveles { display:flex; gap:4px; }
+.btn-nj { width:30px; height:30px; border-radius:8px; border:2px solid #E0EFFF; background:white; font-family:'Nunito',sans-serif; font-weight:900; font-size:13px; color:#aaa; cursor:pointer; }
+.btn-nj.activo { background:linear-gradient(135deg,#5BBFEA,#A78BFA); color:white; border-color:transparent; }
+
+/* Voces */
+.seccion-label { font-family:'Nunito',sans-serif; font-weight:900; font-size:15px; color:#555; margin-top:4px; }
+.voces-grid { display:flex; flex-direction:column; gap:10px; }
+.voz-row { display:flex; align-items:center; justify-content:space-between; background:#F8FBFF; border-radius:16px; padding:10px 14px; gap:10px; }
+.voz-label { font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; color:#333; flex:1; }
+.voz-btns { display:flex; gap:6px; }
+.btn-voz { background:#F0F7FF; border:2px solid #E0EFFF; border-radius:10px; padding:6px 10px; font-size:18px; cursor:pointer; }
+.btn-voz.grabando { background:#FF7E6B22; border-color:#FF7E6B; animation:pulsar-rec .8s ease-in-out infinite; }
+.btn-voz.tiene-voz { background:#52D9A022; border-color:#52D9A0; }
+@keyframes pulsar-rec { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+/* Error / ok */
+.error-msg { background:#FFF0EE; border:2px solid #FF7E6B; border-radius:12px; padding:10px 14px; font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; color:#FF7E6B; display:none; }
+.ok-msg { background:#F0FFF8; border:2px solid #52D9A0; border-radius:12px; padding:10px 14px; font-family:'Nunito',sans-serif; font-weight:700; font-size:13px; color:#2A9D6E; display:none; }
+
+/* Cargando */
+.spinner { width:36px; height:36px; border:4px solid #E0EFFF; border-top-color:#5BBFEA; border-radius:50%; animation:girar .8s linear infinite; margin:40px auto; }
+@keyframes girar { to { transform:rotate(360deg); } }
+
+/* Footer */
+.footer { background:white; border-top:1px solid #E0EFFF; padding:6px 20px; text-align:center; flex-shrink:0; }
+.footer-marca { font-family:'Nunito',sans-serif; font-weight:700; font-size:10px; color:#5BBFEA; }
+.footer-marca a { color:#5BBFEA; text-decoration:none; }
+.footer-legal { font-family:'Nunito Sans',sans-serif; font-size:9px; color:#aaa; }
 </style>
 </head>
 <body>
-<div class="burbuja b1"></div><div class="burbuja b2"></div><div class="burbuja b3"></div><div class="burbuja b4"></div>
 
-<!-- Modal hijo -->
-<div class="modal-overlay" id="modalHijo">
-  <div class="modal">
-    <div class="modal-titulo" id="modalTitulo">👶 Agregar hijo</div>
-    <div class="campo" id="campoNombre">
-      <label>📝 Nombre del niño</label>
-      <input type="text" id="nuevoNombre" placeholder="¿Cómo se llama?">
-    </div>
-    <div class="campo" id="campoAvatar">
-      <label>🎨 Elegí un avatar</label>
-      <div class="avatares">
-        <div class="avatar-opcion seleccionado" onclick="elegirAvatar(this,'🦋')">🦋</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this,'🦁')">🦁</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this,'🐬')">🐬</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this,'🦊')">🦊</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this,'🐸')">🐸</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this,'🦄')">🦄</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this,'🐧')">🐧</div>
-        <div class="avatar-opcion" onclick="elegirAvatar(this,'🐯')">🐯</div>
-      </div>
-    </div>
-    <div class="campo">
-      <label>🐣 Nivel de inicio</label>
-      <div class="niveles-selector">
-        <div class="nivel-opcion seleccionado" onclick="elegirNivel(this,1)"><div class="nivel-opcion-animal">🥚</div><div class="nivel-opcion-nombre">Huevo</div></div>
-        <div class="nivel-opcion" onclick="elegirNivel(this,2)"><div class="nivel-opcion-animal">🐣</div><div class="nivel-opcion-nombre">Pollito</div></div>
-        <div class="nivel-opcion" onclick="elegirNivel(this,3)"><div class="nivel-opcion-animal">🐤</div><div class="nivel-opcion-nombre">Pollito grande</div></div>
-      </div>
-    </div>
-    <div class="fila-2">
-      <div class="campo">
-        <label>⏱️ Tiempo límite (min)</label>
-        <input type="number" id="tiempoLimite" placeholder="vacío = sin límite" min="1" max="120">
-      </div>
-      <div class="campo">
-        <label>🔐 PIN (4 dígitos)</label>
-        <input type="number" id="pinHijo" placeholder="ej: 1234" maxlength="4">
-      </div>
-    </div>
-    <div class="error" id="errorModal"></div>
-    <button class="btn-guardar" id="btnGuardar" onclick="guardarHijo()">✅ Guardar</button>
-    <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
-  </div>
+<!-- HEADER LÍNEA 1 -->
+<div class="header1">
+  <img class="logo-img" src="TEAbrazo.png" alt="TEAbrazo">
+  <button class="btn-salir" onclick="salir()">Cerrar sesión 👋</button>
 </div>
 
-<!-- Config padre -->
-<div class="config-overlay" id="configOverlay">
-  <div class="config-panel">
-    <div class="config-titulo">⚙️ Voces de Pupi</div>
-    <p style="font-family:'Nunito Sans',sans-serif;font-size:11px;color:#aaa;text-align:center;margin-top:-8px;">Si no grabás, se usa la voz por defecto</p>
-    <div style="display:flex;gap:8px;justify-content:center;">
-      <button onclick="exportarVoces()" style="background:#52D9A0;border:none;border-radius:12px;padding:8px 16px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:white;cursor:pointer;">⬆️ Exportar voces</button>
-      <label style="background:#5BBFEA;border:none;border-radius:12px;padding:8px 16px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:white;cursor:pointer;">⬇️ Importar voces<input type="file" accept=".json" onchange="importarVoces(event)" style="display:none;"></label>
-    </div>
-
-    <!-- Solapas -->
-    <div class="solapas">
-      <button class="solapa activa" onclick="cambiarSolapa('general')">🐙 General</button>
-      <button class="solapa" onclick="cambiarSolapa('burbujas')">🫧 Burbujas</button>
-      <button class="solapa" onclick="cambiarSolapa('animales')">🐾 Animales</button>
-      <button class="solapa" onclick="cambiarSolapa('emociones')">😊 Emociones</button>
-      <button class="solapa" onclick="cambiarSolapa('gestos')">🎭 Gestos</button>
-      <button class="solapa" onclick="cambiarSolapa('cara')">😊 Cara</button>
-    </div>
-
-    <!-- Contenido Burbujas -->
-    <div class="solapa-contenido" id="tab-burbujas" style="display:none;">
-      <div class="seccion-titulo">🎨 Colores</div>
-      <div class="voces-grid" id="vocesGridColores"></div>
-      <div class="seccion-titulo">⏱️ Cuenta regresiva</div>
-      <div class="voces-grid" id="vocesGridCountdown"></div>
-      <div class="seccion-titulo">🎉 Celebración</div>
-      <div class="voces-grid" id="vocesGridCelebracion"></div>
-    </div>
-
-    <!-- Contenido Animales -->
-    <div class="solapa-contenido" id="tab-animales" style="display:none;">
-      <p style="font-family:'Nunito Sans',sans-serif;font-size:11px;color:#aaa;text-align:center;">Grabá el sonido Y el nombre en la misma fila</p>
-      <div class="voces-grid" id="vocesGridAnimales"></div>
-    </div>
-
-    <!-- Contenido Emociones -->
-    <div class="solapa-contenido" id="tab-emociones" style="display:none;">
-      <div class="seccion-titulo">😊 Nombres de emociones</div>
-      <div class="voces-grid" id="vocesGridEmociones"></div>
-    </div>
-
-    <!-- Contenido Cara -->
-    <div class="solapa-contenido" id="tab-cara" style="display:none;">
-      <div class="seccion-titulo">😊 Partes de la cara</div>
-      <div class="voces-grid" id="vocesGridCara"></div>
-    </div>
-
-    <!-- Contenido Gestos -->
-    <div class="solapa-contenido" id="tab-gestos" style="display:none;">
-      <div class="seccion-titulo">🎭 Instrucciones de gestos</div>
-      <div class="voces-grid" id="vocesGridGestos"></div>
-    </div>
-
-    <!-- Contenido General -->
-    <div class="solapa-contenido" id="tab-general">
-      <div class="seccion-titulo">🐙 Pupi</div>
-      <div class="voces-grid" id="vocesGridPupi"></div>
-    </div>
-
-    <button class="btn-guardar" style="margin-top:8px;" onclick="cerrarConfig()">✅ Listo</button>
-    <button class="btn-cancelar" onclick="cerrarConfig()">Cerrar</button>
-  </div>
+<!-- HEADER LÍNEA 2 -->
+<div class="header2">
+  <button class="btn-h2" id="btnInstalarApp" onclick="instalarApp()" style="display:none;">📲 Instalar app</button>
+  <button class="btn-h2" onclick="abrirConfig()">⚙️ Configuración</button>
 </div>
 
-<div class="contenedor">
-  <div class="header">
-    <div class="logo-texto">TEA<span>brazo</span></div>
-    <div class="header-btns">
-      <button class="btn-config" onclick="abrirConfig()">⚙️ Voces</button>
-      <button id="btnInstalarApp" onclick="mostrarBannerInstalacion()" style="display:none;background:white;border:2px solid #5BBFEA;border-radius:14px;padding:8px 12px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#5BBFEA;cursor:pointer;">📲 Instalar</button>
-      <button class="btn-salir" onclick="salir()">Salir 👋</button>
-    </div>
+<!-- CONTENIDO -->
+<div class="contenido">
+  <div class="seccion-titulo">👨‍👩‍👧‍👦 Mis hijos</div>
+  <div class="grid-hijos" id="gridHijos">
+    <div class="spinner"></div>
   </div>
-  <div class="titulo">¿Quién juega hoy? 🎮</div>
-  <div class="cargando" id="cargando"><div class="spinner"></div><div class="cargando-texto">Cargando perfiles...</div></div>
-  <div class="grid-perfiles" id="gridPerfiles" style="display:none;"></div>
-</div>
 
-<div class="proximas-wrap" style="padding:0 20px 16px;">
-  <div class="proximas-titulo">En desarrollo 🚀</div>
-  <div class="proxima-card">
-    <div class="proxima-emoji">👨‍👩‍👧‍👦</div>
-    <div class="proxima-info">
-      <div class="proxima-nombre">Comunidad</div>
-      <div class="proxima-desc">Conectate con otras familias</div>
+  <!-- Próximamente -->
+  <div style="margin-top:24px;">
+    <div class="seccion-titulo" style="font-size:15px;color:#aaa;">Próximamente</div>
+    <div class="proxima-card">
+      <div class="proxima-emoji">👨‍👩‍👧‍👦</div>
+      <div class="proxima-info">
+        <div class="proxima-titulo">Comunidad</div>
+        <div class="proxima-sub">Conectá con otras familias</div>
+        <div class="proxima-badge">Próximamente</div>
+      </div>
     </div>
-  </div>
-  <div class="proxima-card">
-    <div class="proxima-emoji">🌈</div>
-    <div class="proxima-info">
-      <div class="proxima-nombre">Especialistas</div>
-      <div class="proxima-desc">Consultá con profesionales del área</div>
+    <div class="proxima-card">
+      <div class="proxima-emoji">🌈</div>
+      <div class="proxima-info">
+        <div class="proxima-titulo">Especialistas</div>
+        <div class="proxima-sub">Encontrá profesionales cerca</div>
+        <div class="proxima-badge">Próximamente</div>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- FOOTER -->
 <div class="footer">
   <div class="footer-marca">Un producto de <a href="https://www.cusol.com.ar" target="_blank">cusol.com.ar</a></div>
-  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados. TEAbrazo es una herramienta de apoyo y no reemplaza la intervención profesional.</div>
+  <div class="footer-legal">© 2025 Cusol. Todos los derechos reservados.</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL CONFIGURACIÓN DEL PADRE
+══════════════════════════════════════════ -->
+<div class="overlay" id="overlayConfig">
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-titulo">⚙️ Configuración</div>
+      <button class="btn-cerrar-panel" onclick="cerrarOverlay('overlayConfig')">✕</button>
+    </div>
+    <div class="solapas">
+      <button class="solapa activa" onclick="cambiarSolapa('config','datos')">👤 Mis datos</button>
+      <button class="solapa" onclick="cambiarSolapa('config','voces')">🎙️ Voces</button>
+    </div>
+    <div class="panel-body">
+
+      <!-- SOLAPA: Datos personales -->
+      <div class="solapa-contenido activa" id="config-datos">
+        <div class="campo"><label>👤 Nombre</label><input type="text" id="padreNombre" placeholder="Tu nombre"></div>
+        <div class="campo">
+          <label>⚧ Sexo</label>
+          <select id="padreSexo">
+            <option value="">Seleccioná</option>
+            <option value="masculino">Masculino</option>
+            <option value="femenino">Femenino</option>
+            <option value="otro">Otro / Prefiero no decir</option>
+          </select>
+        </div>
+        <div class="campo"><label>🎂 Fecha de nacimiento</label><input type="date" id="padreFechaNac"></div>
+        <div class="campo"><label>🌍 Nacionalidad</label><input type="text" id="padreNacionalidad" placeholder="Ej: Argentina"></div>
+        <div class="campos-fila">
+          <div class="campo"><label>🏙️ Ciudad</label><input type="text" id="padreCiudad" placeholder="Ej: Rosario"></div>
+          <div class="campo"><label>🗺️ Provincia</label><input type="text" id="padreProvincia" placeholder="Ej: Santa Fe"></div>
+        </div>
+        <div class="campo"><label>🌐 País</label><input type="text" id="padrePais" placeholder="Ej: Argentina"></div>
+        <div class="campo">
+          <label>🎓 Nivel de estudio</label>
+          <select id="padreEstudio">
+            <option value="">Seleccioná</option>
+            <option value="primario">Primario</option>
+            <option value="secundario">Secundario</option>
+            <option value="terciario">Terciario</option>
+            <option value="universitario">Universitario</option>
+            <option value="posgrado">Posgrado</option>
+          </select>
+        </div>
+        <div class="error-msg" id="errorConfig"></div>
+        <div class="ok-msg" id="okConfig"></div>
+        <button class="btn-guardar" onclick="guardarDatosPadre()">Guardar datos 💾</button>
+      </div>
+
+      <!-- SOLAPA: Voces -->
+      <div class="solapa-contenido" id="config-voces">
+        <div style="font-family:'Nunito Sans',sans-serif;font-size:13px;color:#777;line-height:1.5;">
+          Grabá tu voz para que el niño escuche las instrucciones con tu voz real. 🎙️
+        </div>
+        <div class="seccion-label">🎉 Celebración — ¡Sé muy efusivo!</div>
+        <div class="voces-grid" id="vocesGridCelebracion"></div>
+        <div class="seccion-label">🫧 Burbujas mágicas</div>
+        <div class="voces-grid" id="vocesGridBurbujas"></div>
+        <div class="seccion-label">🐾 Sonidos de animales</div>
+        <div class="voces-grid" id="vocesGridAnimales"></div>
+        <div class="seccion-label">✨ Sigue la luz</div>
+        <div class="voces-grid" id="vocesGridLuz"></div>
+        <div class="seccion-label">😊 Emociones</div>
+        <div class="voces-grid" id="vocesGridEmociones"></div>
+        <div class="seccion-label">🌧️ Causa y efecto</div>
+        <div class="voces-grid" id="vocesGridCausa"></div>
+        <div class="seccion-label">🧩 Rompecabezas</div>
+        <div class="voces-grid" id="vocesGridRompe"></div>
+        <div class="seccion-label">🔗 Asociación</div>
+        <div class="voces-grid" id="vocesGridAsociacion"></div>
+        <div class="seccion-label">🎭 Gestos</div>
+        <div class="voces-grid" id="vocesGridGestos"></div>
+        <div class="seccion-label">🔢 Números</div>
+        <div class="voces-grid" id="vocesGridNumeros"></div>
+        <div class="seccion-label">😊 La Cara</div>
+        <div class="voces-grid" id="vocesGridCara"></div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="btn-secundario" onclick="exportarVoces()">📤 Exportar voces</button>
+          <button class="btn-secundario" onclick="document.getElementById('importVoces').click()">📥 Importar voces</button>
+        </div>
+        <input type="file" id="importVoces" accept=".json" style="display:none" onchange="importarVoces(this)">
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL HIJO (agregar / editar)
+══════════════════════════════════════════ -->
+<div class="overlay" id="overlayHijo">
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-titulo" id="panelHijoTitulo">👶 Nuevo hijo</div>
+      <button class="btn-cerrar-panel" onclick="cerrarOverlay('overlayHijo')">✕</button>
+    </div>
+    <div class="solapas">
+      <button class="solapa activa" onclick="cambiarSolapa('hijo','datos')">👤 Datos</button>
+      <button class="solapa" onclick="cambiarSolapa('hijo','juegos')">🎮 Juegos</button>
+    </div>
+    <div class="panel-body">
+
+      <!-- SOLAPA: Datos del hijo -->
+      <div class="solapa-contenido activa" id="hijo-datos">
+        <div class="campo">
+          <label>🎨 Avatar</label>
+          <div class="avatares" id="avatarSelector">
+            <div class="avatar-op sel" onclick="selAvatar(this,'🦋')">🦋</div>
+            <div class="avatar-op" onclick="selAvatar(this,'🦁')">🦁</div>
+            <div class="avatar-op" onclick="selAvatar(this,'🐬')">🐬</div>
+            <div class="avatar-op" onclick="selAvatar(this,'🦊')">🦊</div>
+            <div class="avatar-op" onclick="selAvatar(this,'🐸')">🐸</div>
+            <div class="avatar-op" onclick="selAvatar(this,'🦄')">🦄</div>
+            <div class="avatar-op" onclick="selAvatar(this,'🐧')">🐧</div>
+            <div class="avatar-op" onclick="selAvatar(this,'🐯')">🐯</div>
+            <div class="avatar-op" onclick="selAvatar(this,'🐙')">🐙</div>
+            <div class="avatar-op" onclick="selAvatar(this,'🐼')">🐼</div>
+          </div>
+        </div>
+        <div class="campo"><label>📝 Nombre</label><input type="text" id="hijoNombre" placeholder="¿Cómo se llama?"></div>
+        <div class="campo">
+          <label>🏆 Nivel global</label>
+          <div class="nivel-sel">
+            <button class="btn-nivel activo" onclick="selNivel(1,this)">🥚 1</button>
+            <button class="btn-nivel" onclick="selNivel(2,this)">🐣 2</button>
+            <button class="btn-nivel" onclick="selNivel(3,this)">🐤 3</button>
+          </div>
+        </div>
+        <div class="campo"><label>⏱️ Tiempo límite (minutos, 0 = sin límite)</label><input type="number" id="hijoTiempo" placeholder="0" min="0" max="60"></div>
+        <div class="campo"><label>🔐 PIN de salida (4 dígitos)</label><input type="number" id="hijoPin" placeholder="Ej: 1234" maxlength="4"></div>
+        <div class="error-msg" id="errorHijo"></div>
+        <button class="btn-guardar" id="btnGuardarHijo" onclick="guardarHijo()">Guardar 💾</button>
+        <button class="btn-secundario" id="btnEliminarHijo" style="display:none;color:#FF7E6B;" onclick="eliminarHijo()">🗑️ Eliminar perfil</button>
+      </div>
+
+      <!-- SOLAPA: Juegos del hijo -->
+      <div class="solapa-contenido" id="hijo-juegos">
+        <div style="font-family:'Nunito Sans',sans-serif;font-size:13px;color:#777;line-height:1.5;">
+          <b>ON</b> = nivel automático (sube/baja solo). <b>OFF</b> = vos elegís el nivel para ese juego.
+        </div>
+        <div id="juegosList"></div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <script>
-  const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
-  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
-  const {createClient}=supabase;
-  const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+const SUPABASE_URL='https://oyuriwnxioylyetchbbz.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dXJpd254aW95bHlldGNoYmJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyNzA1ODYsImV4cCI6MjA5Njg0NjU4Nn0.omJAxTGFX5tdPr3Ny0fpxjxCuG9ieYPVA8AMSzPsVIA';
+const {createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 
-  const COLORES_PERFIL=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
-  const NIVELES={1:{animal:'🥚',nombre:'Huevo',xpInicio:0},2:{animal:'🐣',nombre:'Pollito',xpInicio:50},3:{animal:'🐤',nombre:'Pollito grande',xpInicio:150}};
+const COLORES=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+const NIVELES_EMOJI={1:'🥚',2:'🐣',3:'🐤'};
 
-  // TODAS las voces organizadas por sección
-  const VOCES_SECCIONES = {
-    // ⭐ NOTA PARA GRABACIÓN: Las voces de celebración pueden ser MUY efusivas,
-    // creativas y emocionantes. ¡Dale rienda suelta a la energía y al entusiasmo!
-    vocesGridCelebracion: [
-      {id:'excelente', label:'¡EXCELENTE! 🌟 — ¡Sé muy efusivo!'},  // ⭐ Podés ser creativo y exagerado
-      {id:'que_bien',  label:'¡QUÉ BIEN! ✨ — ¡Con mucha energía!'},  // ⭐ Cuanto más entusiasta mejor
-      {id:'increible', label:'¡INCREÍBLE! 🎉 — ¡El más efusivo de todos!'},  // ⭐ Libertad total
-      {id:'bien',      label:'¡BIEN!'},
-      {id:'genial',    label:'¡GENIAL!'},
-      {id:'si',        label:'¡SÍ!'},
-      {id:'bravo',     label:'¡BRAVO!'},
-    ],
-    vocesGridColores: [
-      {id:'rojo',      label:'Rojo 🔴'},
-      {id:'amarillo',  label:'Amarillo 🟡'},
-      {id:'verde',     label:'Verde 🟢'},
-      {id:'azul',      label:'Azul 🔵'},
-      {id:'violeta',   label:'Violeta 🟣'},
-      {id:'blanco',    label:'Blanco ⚪'},
-    ],
-    vocesGridCountdown: [
-      {id:'tres',  label:'¡TRES!'},
-      {id:'dos',   label:'¡DOS!'},
-      {id:'uno',   label:'¡UNO!'},
-      {id:'ya',    label:'¡YA!'},
-    ],
-    vocesGridPupi: [
-      {id:'saludo_bienvenida', label:'Saludo bienvenida ("¡Hola! Soy Pupi")'},
-      {id:'hola',     label:'Inicio de juego'},
-      {id:'upps',     label:'¡UPPS!'},
-      {id:'seguimos', label:'¡SEGUIMOS!'},
-      {id:'vamos',    label:'¡VAMOS!'},
-    ],
-    vocesGridAnimalesNombre: [
-      {id:'nombre_perro',   label:'Nombre: Perro 🐶'},
-      {id:'nombre_gato',    label:'Nombre: Gato 🐱'},
-      {id:'nombre_vaca',    label:'Nombre: Vaca 🐄'},
-      {id:'nombre_sapo',    label:'Nombre: Sapo 🐸'},
-      {id:'nombre_leon',    label:'Nombre: León 🦁'},
-      {id:'nombre_gallo',   label:'Nombre: Gallo 🐓'},
-      {id:'nombre_chancho', label:'Nombre: Chancho 🐷'},
-      {id:'nombre_caballo', label:'Nombre: Caballo 🐴'},
-    ],
-    vocesGridCara: [
-      {id:'cara_boca',    label:'¡Tocá tu boca! 👄'},
-      {id:'cara_ojos',    label:'¡Tocá tus ojos! 👁️'},
-      {id:'cara_nariz',   label:'¡Tocá tu nariz! 👃'},
-      {id:'cara_oreja',   label:'¡Tocá tu oreja! 👂'},
-      {id:'cara_pelo',    label:'¡Tocá tu pelo! 💇'},
-      {id:'cara_cejas',   label:'¡Tocá tus cejas! 🤨'},
-      {id:'cara_cachetes',label:'¡Tocá tus cachetes! 😊'},
-      {id:'cara_lengua',  label:'¡Sacá la lengua! 😛'},
-      {id:'cara_pomulo',  label:'¡Tocá tu pómulo! 🫦'},
-      {id:'cara_dientes', label:'¡Mostrá tus dientes! 🦷'},
-      {id:'cara_menton',  label:'¡Tocá tu mentón! 🫢'},
-      {id:'cara_frente',  label:'¡Tocá tu frente! 🧠'},
-    ],
-    vocesGridGestos: [
-      {id:'gesto_sonrei',      label:'Sonreí 😊'},
-      {id:'gesto_boca',        label:'Abrí la boca 😮'},
-      {id:'gesto_lengua',      label:'Sacá la lengua 😛'},
-      {id:'gesto_guino',       label:'Guiñá un ojo 😉'},
-      {id:'gesto_ceno',        label:'Fruncí el ceño 😠'},
-      {id:'gesto_cejas',       label:'Levantá las cejas 🤨'},
-      {id:'gesto_trompita',    label:'Hacé trompita 😗'},
-    ],
-    vocesGridEmociones: [
-      {id:'emocion_alegria',    label:'Alegría 😊'},
-      {id:'emocion_tristeza',   label:'Tristeza 😢'},
-      {id:'emocion_enojo',      label:'Enojo 😠'},
-      {id:'emocion_miedo',      label:'Miedo 😨'},
-      {id:'emocion_sorpresa',   label:'Sorpresa 😲'},
-      {id:'emocion_entusiasmo', label:'Entusiasmo 🤩'},
-    ],
-    vocesGridAnimalesSonido: [
-      {id:'animal_perro',   label:'Sonido: Perro 🐶 (guau guau)'},
-      {id:'animal_gato',    label:'Sonido: Gato 🐱 (miau miau)'},
-      {id:'animal_vaca',    label:'Sonido: Vaca 🐄 (muuu)'},
-      {id:'animal_sapo',    label:'Sonido: Sapo 🐸 (croac croac)'},
-      {id:'animal_leon',    label:'Sonido: León 🦁 (grrr)'},
-      {id:'animal_gallo',   label:'Sonido: Gallo 🐓 (quiquiriquí)'},
-      {id:'animal_chancho', label:'Sonido: Chancho 🐷 (oink oink)'},
-      {id:'animal_caballo', label:'Sonido: Caballo 🐴 (hiiii)'},
-    ],
-  };
+const JUEGOS_CONFIG=[
+  {id:'burbujas',    emoji:'🫧', nombre:'Burbujas mágicas'},
+  {id:'animales',    emoji:'🐾', nombre:'Sonidos de animales'},
+  {id:'luz',         emoji:'✨', nombre:'Sigue la luz'},
+  {id:'emociones',   emoji:'😊', nombre:'Emociones'},
+  {id:'causaefecto', emoji:'🌧️', nombre:'Causa y efecto'},
+  {id:'rompecabezas',emoji:'🧩', nombre:'Rompecabezas'},
+  {id:'asociacion',  emoji:'🔗', nombre:'Asociación'},
+  {id:'gestos',      emoji:'🎭', nombre:'Copiá el gesto'},
+  {id:'numeros',     emoji:'🔢', nombre:'Números'},
+  {id:'cara',        emoji:'😊', nombre:'La Cara'},
+  {id:'silueta',     emoji:'✏️', nombre:'Silueta'},
+  {id:'golpecitos',  emoji:'✨', nombre:'Golpecitos'},
+  {id:'perseguir',   emoji:'🌟', nombre:'Perseguí la luz'},
+  {id:'puntos',      emoji:'🔗', nombre:'Uní los puntos'},
+];
 
-  let avatarSeleccionado='🦋', nivelSeleccionado=1;
-  let sesionActual=null, modoEdicion=false, hijoEditandoId=null;
-  let mediaRecorder=null, grabandoId=null, chunksAudio=[];
-  let vocesGrabadas={};
+// Voces a grabar por sección
+const VOCES_SECCIONES={
+  vocesGridCelebracion:[
+    {id:'excelente', label:'¡EXCELENTE! 🌟 — ¡Sé muy efusivo!'},
+    {id:'que_bien',  label:'¡QUÉ BIEN! ✨ — ¡Con mucha energía!'},
+    {id:'increible', label:'¡INCREÍBLE! 🎉 — ¡El más efusivo de todos!'},
+    {id:'bien',      label:'¡Bien! ✅'},
+    {id:'upps',      label:'¡Upps! ❌'},
+  ],
+  vocesGridBurbujas:[{id:'burbujas_instruccion',label:'¡Tocá las burbujas!'}],
+  vocesGridAnimales:[{id:'animales_instruccion',label:'¡Escuchá el animal!'}],
+  vocesGridLuz:[{id:'luz_instruccion',label:'¡Seguí la luz!'}],
+  vocesGridEmociones:[
+    {id:'emociones_feliz',label:'😊 Feliz'},
+    {id:'emociones_triste',label:'😢 Triste'},
+    {id:'emociones_enojado',label:'😠 Enojado'},
+    {id:'emociones_sorprendido',label:'😲 Sorprendido'},
+  ],
+  vocesGridCausa:[{id:'causa_instruccion',label:'¡Tocá para ver qué pasa!'}],
+  vocesGridRompe:[{id:'rompe_instruccion',label:'¡Armá el rompecabezas!'}],
+  vocesGridAsociacion:[{id:'asoc_instruccion',label:'¡Uní los que van juntos!'}],
+  vocesGridGestos:[{id:'gestos_instruccion',label:'¡Imitá el gesto!'}],
+  vocesGridNumeros:[{id:'numeros_instruccion',label:'¡Contá los elementos!'}],
+  vocesGridCara:[
+    {id:'cara_boca',    label:'¡Tocá tu boca! 👄'},
+    {id:'cara_ojos',    label:'¡Tocá tus ojos! 👁️'},
+    {id:'cara_nariz',   label:'¡Tocá tu nariz! 👃'},
+    {id:'cara_oreja',   label:'¡Tocá tu oreja! 👂'},
+    {id:'cara_pelo',    label:'¡Tocá tu pelo! 💇'},
+    {id:'cara_cejas',   label:'¡Tocá tus cejas! 🤨'},
+    {id:'cara_cachetes',label:'¡Tocá tus cachetes! 😊'},
+    {id:'cara_lengua',  label:'¡Sacá la lengua! 😛'},
+  ],
+};
 
-  window.addEventListener('load',async()=>{
-    try{
-      const{data:{session}}=await sb.auth.getSession();
-      if(!session){window.location.href='index.html';return;}
-      sesionActual=session;
-      vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');
-      await cargarPerfiles();
-    }catch(e){window.location.href='index.html';}
-  });
+let sesion=null, hijos=[], hijoEditando=null;
+let avatarSel='🦋', nivelSel=1;
+let mediaRec=null, grabando=null;
+let vocesGrabadas={};
+try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
+let progresoJuegos={}; // hijo_id → {juego_id → {nivel, auto}}
 
-  // =============================================
-  // PERFILES
-  // =============================================
-  async function cargarPerfiles(){
-    document.getElementById('cargando').style.display='flex';
-    document.getElementById('gridPerfiles').style.display='none';
-    try{
-      const{data:hijos,error}=await sb.from('children').select('*').eq('padre_id',sesionActual.user.id).order('created_at',{ascending:true});
-      if(error)throw error;
-      document.getElementById('cargando').style.display='none';
-      if(!hijos||hijos.length===0){renderAgregarBoton(true);return;}
-      renderPerfiles(hijos);
-    }catch(e){document.getElementById('cargando').style.display='none';renderAgregarBoton(true);}
-  }
+// ══════════════════════════════════════════
+// INICIO
+// ══════════════════════════════════════════
+window.addEventListener('load',async()=>{
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='index.html';return;}
+    sesion=session;
+    await cargarHijos();
+    renderVoces();
+    await cargarDatosPadre();
+    setupPWA();
+  }catch(e){window.location.href='index.html';}
+});
 
-  function renderPerfiles(hijos){
-    const grid=document.getElementById('gridPerfiles');
-    grid.style.display='grid';grid.innerHTML='';
-    hijos.forEach((hijo,i)=>{
-      const color=COLORES_PERFIL[i%COLORES_PERFIL.length];
-      const nivel=NIVELES[hijo.nivel]||NIVELES[1];
-      const tiempo=hijo.tiempo_limite?hijo.tiempo_limite+' min':'∞ libre';
-      const t=document.createElement('div');
-      t.className='tarjeta-perfil';
-      t.style.animationDelay=(i*0.1)+'s';
-      t.innerHTML=`
-        <button class="btn-editar-hijo" onclick="abrirEdicion(event,${JSON.stringify(hijo).replace(/"/g,'&quot;')})" style="right:36px">✏️</button>
-        <button class="btn-eliminar-hijo" onclick="confirmarEliminar(event,'${hijo.id}','${hijo.nombre}')">🗑️</button>
-        <div class="avatar-circulo" style="background:${color}22;">${hijo.avatar_emoji||'🦋'}</div>
-        <div class="perfil-nombre">${hijo.nombre}</div>
-        <div class="perfil-nivel">${nivel.animal} ${nivel.nombre}</div>
-        <div class="perfil-tiempo">⏱️ ${tiempo}</div>
-      `;
-      t.addEventListener('click',e=>{if(!e.target.closest('.btn-editar-hijo'))seleccionarHijo(hijo);});
-      grid.appendChild(t);
-    });
-    renderAgregarBoton(false);
-  }
+// ══════════════════════════════════════════
+// HIJOS
+// ══════════════════════════════════════════
+async function cargarHijos(){
+  const {data,error}=await sb.from('children').select('*').eq('padre_id',sesion.user.id).order('created_at',{ascending:true});
+  hijos=data||[];
+  renderHijos();
+}
 
-  function renderAgregarBoton(solo){
-    const grid=document.getElementById('gridPerfiles');
-    if(solo){grid.style.display='grid';grid.innerHTML='';}
-    const a=document.createElement('div');
-    a.className='tarjeta-agregar';
-    a.innerHTML='<div class="agregar-icono">➕</div><div class="agregar-texto">Agregar hijo</div>';
-    a.onclick=abrirCreacion;
-    grid.appendChild(a);
-  }
-
-  function seleccionarHijo(hijo){
-    sessionStorage.setItem('hijoActual',JSON.stringify(hijo));
-    window.location.href='bienvenida.html';
-  }
-
-  // =============================================
-  // MODAL HIJO
-  // =============================================
-  function abrirCreacion(){
-    modoEdicion=false;hijoEditandoId=null;
-    document.getElementById('modalTitulo').textContent='👶 Agregar hijo';
-    document.getElementById('campoNombre').style.display='flex';
-    document.getElementById('campoAvatar').style.display='flex';
-    document.getElementById('nuevoNombre').value='';
-    document.getElementById('tiempoLimite').value='';
-    document.getElementById('pinHijo').value='';
-    document.getElementById('errorModal').style.display='none';
-    avatarSeleccionado='🦋';nivelSeleccionado=1;
-    document.querySelectorAll('.avatar-opcion').forEach((a,i)=>a.classList.toggle('seleccionado',i===0));
-    document.querySelectorAll('.nivel-opcion').forEach((n,i)=>n.classList.toggle('seleccionado',i===0));
-    document.getElementById('modalHijo').style.display='flex';
-  }
-
-  function abrirEdicion(e,hijo){
-    e.stopPropagation();
-    modoEdicion=true;hijoEditandoId=hijo.id;
-    document.getElementById('modalTitulo').textContent='✏️ Editar '+hijo.nombre;
-    document.getElementById('campoNombre').style.display='none';
-    document.getElementById('campoAvatar').style.display='none';
-    document.getElementById('tiempoLimite').value=hijo.tiempo_limite||'';
-    document.getElementById('pinHijo').value=hijo.pin||'';
-    document.getElementById('errorModal').style.display='none';
-    nivelSeleccionado=hijo.nivel||1;
-    document.querySelectorAll('.nivel-opcion').forEach((n,i)=>n.classList.toggle('seleccionado',i+1===nivelSeleccionado));
-    document.getElementById('modalHijo').style.display='flex';
-  }
-
-  function elegirAvatar(el,emoji){document.querySelectorAll('.avatar-opcion').forEach(a=>a.classList.remove('seleccionado'));el.classList.add('seleccionado');avatarSeleccionado=emoji;}
-  function elegirNivel(el,nivel){document.querySelectorAll('.nivel-opcion').forEach(n=>n.classList.remove('seleccionado'));el.classList.add('seleccionado');nivelSeleccionado=nivel;}
-
-  async function guardarHijo(){
-    const errorEl=document.getElementById('errorModal');
-    errorEl.style.display='none';
-    document.getElementById('btnGuardar').disabled=true;
-    const tiempoRaw=document.getElementById('tiempoLimite').value;
-    const pinRaw=document.getElementById('pinHijo').value.toString().trim();
-    const tiempo=tiempoRaw?parseInt(tiempoRaw):null;
-    const pin=pinRaw||null;
-    if(pin&&pin.length!==4){errorEl.textContent='⚠️ El PIN debe tener exactamente 4 dígitos';errorEl.style.display='block';document.getElementById('btnGuardar').disabled=false;return;}
-    try{
-      if(modoEdicion){
-        const{error}=await sb.from('children').update({nivel:nivelSeleccionado,xp_total:NIVELES[nivelSeleccionado].xpInicio,tiempo_limite:tiempo,pin}).eq('id',hijoEditandoId);
-        if(error)throw error;
-      }else{
-        const nombre=document.getElementById('nuevoNombre').value.trim();
-        if(!nombre){errorEl.textContent='⚠️ Escribí el nombre del niño';errorEl.style.display='block';document.getElementById('btnGuardar').disabled=false;return;}
-        const{error}=await sb.from('children').insert({padre_id:sesionActual.user.id,nombre,avatar_emoji:avatarSeleccionado,nivel:nivelSeleccionado,xp_total:NIVELES[nivelSeleccionado].xpInicio,racha_dias:0,tiempo_limite:tiempo,pin});
-        if(error)throw error;
-      }
-      cerrarModal();
-      await cargarPerfiles();
-    }catch(e){errorEl.textContent='❌ Error al guardar. Intentá de nuevo.';errorEl.style.display='block';}
-    finally{document.getElementById('btnGuardar').disabled=false;}
-  }
-
-  function confirmarEliminar(e, id, nombre){
-    e.stopPropagation();
-    if(confirm('¿Seguro que querés eliminar a ' + nombre + '? Esta acción no se puede deshacer.')){
-      eliminarHijo(id);
-    }
-  }
-
-  async function eliminarHijo(id){
-    try{
-      const{error}=await sb.from('children').delete().eq('id',id);
-      if(error)throw error;
-      await cargarPerfiles();
-    }catch(e){alert('Error al eliminar. Intentá de nuevo.');}
-  }
-
-  function cerrarModal(){document.getElementById('modalHijo').style.display='none';}
-
-  // =============================================
-  // CONFIG VOCES
-  // =============================================
-  const ANIMALES_IDS=[
-    {id:'perro',emoji:'🐶',nombre:'Perro'},
-    {id:'gato',emoji:'🐱',nombre:'Gato'},
-    {id:'vaca',emoji:'🐄',nombre:'Vaca'},
-    {id:'sapo',emoji:'🐸',nombre:'Sapo'},
-    {id:'leon',emoji:'🦁',nombre:'León'},
-    {id:'gallo',emoji:'🐓',nombre:'Gallo'},
-    {id:'chancho',emoji:'🐷',nombre:'Chancho'},
-    {id:'caballo',emoji:'🐴',nombre:'Caballo'},
-  ];
-
-  function crearFilaVoz(v){
-    const tieneGrabacion=!!vocesGrabadas[v.id];
-    const fila=document.createElement('div');
-    fila.className='voz-fila';
-    fila.innerHTML=`
-      <span class="voz-label">${v.label}</span>
-      <span class="estado-voz" id="estado_${v.id}">${tieneGrabacion?'✅':'Default'}</span>
-      <button class="btn-play" id="play_${v.id}" onclick="reproducirVoz('${v.id}')" style="display:${tieneGrabacion?'block':'none'}">▶️</button>
-      <button class="btn-grabar" id="btn_${v.id}" onclick="toggleGrabacion('${v.id}')">${tieneGrabacion?'🔄':'🎙️'}</button>
+function renderHijos(){
+  const grid=document.getElementById('gridHijos');
+  grid.innerHTML='';
+  hijos.forEach((h,i)=>{
+    const color=COLORES[i%COLORES.length];
+    const t=document.createElement('div');
+    t.className='tarjeta-hijo';
+    t.style.animationDelay=(i*0.08)+'s';
+    t.innerHTML=`
+      <button class="btn-editar-hijo" onclick="abrirEditarHijo(${i})">✏️</button>
+      <div class="avatar-circulo" style="background:${color}22;">${h.avatar_emoji||'🦋'}</div>
+      <div class="hijo-nombre">${h.nombre}</div>
+      <div class="hijo-xp">⚡ ${h.xp_total||0} XP</div>
+      <div class="hijo-nivel">${NIVELES_EMOJI[h.nivel]||'🥚'} Nivel ${h.nivel||1}</div>
+      <button class="btn-jugar-hijo" onclick="jugarCon(${i})">▶️ ¡Jugar!</button>
     `;
-    return fila;
-  }
+    grid.appendChild(t);
+  });
+  // Botón agregar
+  const a=document.createElement('div');
+  a.className='tarjeta-agregar';
+  a.innerHTML='<div class="agregar-icono">➕</div><div class="agregar-texto">Agregar hijo</div>';
+  a.onclick=abrirNuevoHijo;
+  grid.appendChild(a);
+}
 
-  function abrirConfig(){
-    // Secciones normales
-    const seccionesNormales=['vocesGridCelebracion','vocesGridColores','vocesGridCountdown','vocesGridPupi','vocesGridEmociones','vocesGridGestos','vocesGridCara'];
-    seccionesNormales.forEach(gridId=>{
-      const voces=VOCES_SECCIONES[gridId];
-      if(!voces)return;
-      const grid=document.getElementById(gridId);
-      if(!grid)return;
-      grid.innerHTML='';
-      voces.forEach(v=>grid.appendChild(crearFilaVoz(v)));
+function jugarCon(idx){
+  sessionStorage.setItem('hijoActual',JSON.stringify(hijos[idx]));
+  window.location.href='bienvenida.html';
+}
+
+// ══════════════════════════════════════════
+// PANEL HIJO — ABRIR
+// ══════════════════════════════════════════
+function abrirNuevoHijo(){
+  hijoEditando=null;
+  document.getElementById('panelHijoTitulo').textContent='👶 Nuevo hijo';
+  document.getElementById('hijoNombre').value='';
+  document.getElementById('hijoTiempo').value='';
+  document.getElementById('hijoPin').value='';
+  document.getElementById('btnEliminarHijo').style.display='none';
+  document.getElementById('errorHijo').style.display='none';
+  selAvatar(document.querySelector('.avatar-op'),avatarSel);
+  selNivelBtn(1);
+  cambiarSolapa('hijo','datos');
+  renderJuegosHijo(null,1);
+  abrirOverlay('overlayHijo');
+}
+
+async function abrirEditarHijo(idx){
+  hijoEditando=hijos[idx];
+  document.getElementById('panelHijoTitulo').textContent='✏️ Editar '+hijoEditando.nombre;
+  document.getElementById('hijoNombre').value=hijoEditando.nombre||'';
+  document.getElementById('hijoTiempo').value=hijoEditando.tiempo_limite||0;
+  document.getElementById('hijoPin').value=hijoEditando.pin||'';
+  document.getElementById('btnEliminarHijo').style.display='block';
+  document.getElementById('errorHijo').style.display='none';
+  // Avatar
+  const avEl=document.querySelector(`.avatar-op[onclick*="${hijoEditando.avatar_emoji||'🦋'}"]`);
+  selAvatar(avEl||document.querySelector('.avatar-op'),hijoEditando.avatar_emoji||'🦋');
+  selNivelBtn(hijoEditando.nivel||1);
+  cambiarSolapa('hijo','datos');
+  // Cargar progreso de juegos
+  await cargarProgresoJuegos(hijoEditando.id);
+  renderJuegosHijo(hijoEditando.id,hijoEditando.nivel||1);
+  abrirOverlay('overlayHijo');
+}
+
+// ══════════════════════════════════════════
+// JUEGOS POR HIJO
+// ══════════════════════════════════════════
+async function cargarProgresoJuegos(hijoId){
+  progresoJuegos[hijoId]=progresoJuegos[hijoId]||{};
+  try{
+    const {data}=await sb.from('game_progress').select('*').eq('hijo_id',hijoId);
+    if(data)data.forEach(r=>{
+      progresoJuegos[hijoId][r.juego]={nivel:r.nivel,auto:r.auto!==false};
     });
+  }catch(e){}
+}
 
-    // Animales en fila doble (sonido + nombre en misma línea)
-    const gridAnimales=document.getElementById('vocesGridAnimales');
-    if(gridAnimales){
-      gridAnimales.innerHTML='';
-      ANIMALES_IDS.forEach(a=>{
-        const idSonido='animal_'+a.id;
-        const idNombre='nombre_'+a.id;
-        const tieneS=!!vocesGrabadas[idSonido];
-        const tieneN=!!vocesGrabadas[idNombre];
-        const fila=document.createElement('div');
-        fila.className='voz-fila-animal';
-        fila.innerHTML=`
-          <div class="voz-fila-animal-titulo">${a.emoji} ${a.nombre}</div>
-          <div class="voz-fila-animal-cols">
-            <div class="voz-col">
-              <span class="voz-col-label">🔊 Sonido</span>
-              <button class="btn-play" id="play_${idSonido}" onclick="reproducirVoz('${idSonido}')" style="display:${tieneS?'block':'none'}">▶️</button>
-              <button class="btn-grabar ${tieneS?'':''}" id="btn_${idSonido}" onclick="toggleGrabacion('${idSonido}')">${tieneS?'🔄':'🎙️'}</button>
-            </div>
-            <div class="voz-col">
-              <span class="voz-col-label">🗣️ Nombre</span>
-              <button class="btn-play" id="play_${idNombre}" onclick="reproducirVoz('${idNombre}')" style="display:${tieneN?'block':'none'}">▶️</button>
-              <button class="btn-grabar" id="btn_${idNombre}" onclick="toggleGrabacion('${idNombre}')">${tieneN?'🔄':'🎙️'}</button>
-            </div>
-          </div>
-        `;
-        gridAnimales.appendChild(fila);
+function renderJuegosHijo(hijoId,nivelGlobal){
+  const list=document.getElementById('juegosList');
+  list.innerHTML='';
+  JUEGOS_CONFIG.forEach(j=>{
+    const prog=hijoId?progresoJuegos[hijoId]?.[j.id]:null;
+    const esAuto=prog?prog.auto!==false:true;
+    const nivelJuego=prog?.nivel||nivelGlobal||1;
+
+    const row=document.createElement('div');
+    row.className='juego-row';
+    row.innerHTML=`
+      <div class="juego-row-info">
+        <span class="juego-row-emoji">${j.emoji}</span>
+        <span class="juego-row-nombre">${j.nombre}</span>
+      </div>
+      <div class="juego-row-right">
+        <div class="toggle-wrap">
+          <span class="toggle-label">${esAuto?'AUTO':'FIJO'}</span>
+          <label class="toggle">
+            <input type="checkbox" ${esAuto?'checked':''} onchange="toggleAutoJuego(this,'${j.id}','${hijoId||''}',${nivelGlobal||1})">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="juego-niveles" id="nivJuego_${j.id}" style="display:${esAuto?'none':'flex'};">
+          <button class="btn-nj ${nivelJuego===1?'activo':''}" onclick="setNivelJuego('${j.id}','${hijoId||''}',1,this)">1</button>
+          <button class="btn-nj ${nivelJuego===2?'activo':''}" onclick="setNivelJuego('${j.id}','${hijoId||''}',2,this)">2</button>
+          <button class="btn-nj ${nivelJuego===3?'activo':''}" onclick="setNivelJuego('${j.id}','${hijoId||''}',3,this)">3</button>
+        </div>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+async function toggleAutoJuego(checkbox,juegoId,hijoId,nivelGlobal){
+  const esAuto=checkbox.checked;
+  const label=checkbox.closest('.toggle-wrap').querySelector('.toggle-label');
+  const nivelesDiv=document.getElementById('nivJuego_'+juegoId);
+  label.textContent=esAuto?'AUTO':'FIJO';
+  nivelesDiv.style.display=esAuto?'none':'flex';
+  if(!hijoId)return;
+  progresoJuegos[hijoId]=progresoJuegos[hijoId]||{};
+  progresoJuegos[hijoId][juegoId]=progresoJuegos[hijoId][juegoId]||{nivel:nivelGlobal};
+  progresoJuegos[hijoId][juegoId].auto=esAuto;
+  try{
+    await sb.from('game_progress').upsert({
+      hijo_id:hijoId,juego:juegoId,
+      auto:esAuto,
+      nivel:progresoJuegos[hijoId][juegoId].nivel||nivelGlobal,
+      racha_ok:0,racha_fail:0,nivel_maximo:3,
+      actualizado_at:new Date().toISOString(),
+    },{onConflict:'hijo_id,juego'});
+  }catch(e){}
+}
+
+async function setNivelJuego(juegoId,hijoId,nivel,btn){
+  btn.closest('.juego-niveles').querySelectorAll('.btn-nj').forEach(b=>b.classList.remove('activo'));
+  btn.classList.add('activo');
+  if(!hijoId)return;
+  progresoJuegos[hijoId]=progresoJuegos[hijoId]||{};
+  progresoJuegos[hijoId][juegoId]=progresoJuegos[hijoId][juegoId]||{};
+  progresoJuegos[hijoId][juegoId].nivel=nivel;
+  progresoJuegos[hijoId][juegoId].auto=false;
+  try{
+    await sb.from('game_progress').upsert({
+      hijo_id:hijoId,juego:juegoId,nivel,auto:false,
+      racha_ok:0,racha_fail:0,nivel_maximo:3,
+      actualizado_at:new Date().toISOString(),
+    },{onConflict:'hijo_id,juego'});
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════
+// GUARDAR HIJO
+// ══════════════════════════════════════════
+async function guardarHijo(){
+  const nombre=document.getElementById('hijoNombre').value.trim();
+  const tiempo=parseInt(document.getElementById('hijoTiempo').value)||0;
+  const pin=document.getElementById('hijoPin').value.trim();
+  const errEl=document.getElementById('errorHijo');
+  errEl.style.display='none';
+  if(!nombre){errEl.textContent='⚠️ Ingresá el nombre.';errEl.style.display='block';return;}
+  const btn=document.getElementById('btnGuardarHijo');btn.disabled=true;
+  try{
+    if(hijoEditando){
+      await sb.from('children').update({
+        nombre,avatar_emoji:avatarSel,nivel:nivelSel,
+        tiempo_limite:tiempo,pin:pin||null,
+      }).eq('id',hijoEditando.id);
+    }else{
+      await sb.from('children').insert({
+        padre_id:sesion.user.id,nombre,avatar_emoji:avatarSel,
+        nivel:nivelSel,xp_total:0,racha_dias:0,
+        tiempo_limite:tiempo,pin:pin||null,
       });
     }
+    cerrarOverlay('overlayHijo');
+    await cargarHijos();
+  }catch(e){errEl.textContent='❌ Error al guardar.';errEl.style.display='block';}
+  finally{btn.disabled=false;}
+}
 
-    document.getElementById('configOverlay').style.display='flex';
-    cambiarSolapa('general');
-  }
+async function eliminarHijo(){
+  if(!hijoEditando)return;
+  if(!confirm('¿Eliminar el perfil de '+hijoEditando.nombre+'? Esta acción no se puede deshacer.'))return;
+  await sb.from('children').delete().eq('id',hijoEditando.id);
+  cerrarOverlay('overlayHijo');
+  await cargarHijos();
+}
 
-  function cambiarSolapa(nombre){
-    document.querySelectorAll('.solapa').forEach(s=>s.classList.remove('activa'));
-    document.querySelectorAll('.solapa-contenido').forEach(c=>c.style.display='none');
-    document.getElementById('tab-'+nombre).style.display='flex';
-    document.getElementById('tab-'+nombre).style.flexDirection='column';
-    document.getElementById('tab-'+nombre).style.gap='10px';
-    event.currentTarget.classList.add('activa');
-  }
-
-  function cerrarConfig(){document.getElementById('configOverlay').style.display='none';}
-
-  async function toggleGrabacion(id){
-    // Si ya está grabando este mismo, detener
-    if(grabandoId===id){
-      if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();
-      return;
+// ══════════════════════════════════════════
+// DATOS DEL PADRE
+// ══════════════════════════════════════════
+async function cargarDatosPadre(){
+  try{
+    const {data}=await sb.from('padre_perfil').select('*').eq('user_id',sesion.user.id).single();
+    if(data){
+      document.getElementById('padreNombre').value=data.nombre||'';
+      document.getElementById('padreSexo').value=data.sexo||'';
+      document.getElementById('padreFechaNac').value=data.fecha_nac||'';
+      document.getElementById('padreNacionalidad').value=data.nacionalidad||'';
+      document.getElementById('padreCiudad').value=data.ciudad||'';
+      document.getElementById('padreProvincia').value=data.provincia||'';
+      document.getElementById('padrePais').value=data.pais||'';
+      document.getElementById('padreEstudio').value=data.estudio||'';
     }
-    // Si está grabando otro, detener primero
-    if(grabandoId&&mediaRecorder&&mediaRecorder.state==='recording'){
-      mediaRecorder.stop();
-      await new Promise(r=>setTimeout(r,300));
-    }
+  }catch(e){}
+}
 
-    // Verificar soporte
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-      mostrarErrorMic('Tu navegador no soporta grabación de audio. Usá Chrome o Edge.');
-      return;
-    }
+async function guardarDatosPadre(){
+  const datos={
+    user_id:sesion.user.id,
+    nombre:document.getElementById('padreNombre').value.trim(),
+    sexo:document.getElementById('padreSexo').value,
+    fecha_nac:document.getElementById('padreFechaNac').value||null,
+    nacionalidad:document.getElementById('padreNacionalidad').value.trim(),
+    ciudad:document.getElementById('padreCiudad').value.trim(),
+    provincia:document.getElementById('padreProvincia').value.trim(),
+    pais:document.getElementById('padrePais').value.trim(),
+    estudio:document.getElementById('padreEstudio').value,
+    actualizado_at:new Date().toISOString(),
+  };
+  const errEl=document.getElementById('errorConfig');
+  const okEl=document.getElementById('okConfig');
+  errEl.style.display='none';okEl.style.display='none';
+  try{
+    await sb.from('padre_perfil').upsert(datos,{onConflict:'user_id'});
+    okEl.textContent='✅ Datos guardados.';okEl.style.display='block';
+    setTimeout(()=>okEl.style.display='none',3000);
+  }catch(e){errEl.textContent='❌ Error al guardar.';errEl.style.display='block';}
+}
 
+// ══════════════════════════════════════════
+// VOCES
+// ══════════════════════════════════════════
+function renderVoces(){
+  Object.entries(VOCES_SECCIONES).forEach(([gridId,voces])=>{
+    const grid=document.getElementById(gridId);
+    if(!grid)return;
+    grid.innerHTML='';
+    voces.forEach(v=>{
+      const row=document.createElement('div');
+      row.className='voz-row';
+      const tieneVoz=!!vocesGrabadas[v.id];
+      row.innerHTML=`
+        <span class="voz-label">${v.label}</span>
+        <div class="voz-btns">
+          <button class="btn-voz ${tieneVoz?'tiene-voz':''}" id="btnGrab_${v.id}" onclick="toggleGrabar('${v.id}')">🎙️</button>
+          <button class="btn-voz" onclick="probarVoz('${v.id}')" ${tieneVoz?'':'disabled'} id="btnPlay_${v.id}">▶️</button>
+          <button class="btn-voz" onclick="borrarVoz('${v.id}')" ${tieneVoz?'':'style="opacity:0.3"'} id="btnDel_${v.id}">🗑️</button>
+        </div>
+      `;
+      grid.appendChild(row);
+    });
+  });
+}
+
+async function toggleGrabar(id){
+  const btn=document.getElementById('btnGrab_'+id);
+  if(grabando===id){
+    // Detener
+    mediaRec.stop();
+    grabando=null;
+    btn.classList.remove('grabando');
+    btn.textContent='🎙️';
+  }else{
+    if(grabando){mediaRec.stop();document.getElementById('btnGrab_'+grabando)?.classList.remove('grabando');}
     try{
-      const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
-      chunksAudio=[];
-      grabandoId=id;
-
-      // Intentar con webm, si no con mp4
-      const mimeType=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
-      mediaRecorder=new MediaRecorder(stream,{mimeType});
-
-      mediaRecorder.ondataavailable=e=>{if(e.data.size>0)chunksAudio.push(e.data);};
-      mediaRecorder.onstop=()=>{
-        const blob=new Blob(chunksAudio,{type:mimeType});
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      mediaRec=new MediaRecorder(stream);
+      const chunks=[];
+      mediaRec.ondataavailable=e=>chunks.push(e.data);
+      mediaRec.onstop=()=>{
+        const blob=new Blob(chunks,{type:'audio/webm'});
         const reader=new FileReader();
-        reader.onload=()=>{
-          vocesGrabadas[id]=reader.result;
+        reader.onload=ev=>{
+          vocesGrabadas[id]=ev.target.result;
           localStorage.setItem('voces_teabrazo',JSON.stringify(vocesGrabadas));
-          // Actualizar UI
-          const estadoEl=document.getElementById('estado_'+id);
-          const btnEl=document.getElementById('btn_'+id);
-          const playEl=document.getElementById('play_'+id);
-          if(estadoEl)estadoEl.textContent='✅ Grabada';
-          if(btnEl){btnEl.textContent='🔄';btnEl.classList.remove('grabando');}
-          if(playEl)playEl.style.display='block';
-          grabandoId=null;
+          document.getElementById('btnGrab_'+id)?.classList.add('tiene-voz');
+          document.getElementById('btnPlay_'+id)?.removeAttribute('disabled');
+          document.getElementById('btnDel_'+id)?.removeAttribute('style');
+          stream.getTracks().forEach(t=>t.stop());
         };
         reader.readAsDataURL(blob);
-        stream.getTracks().forEach(t=>t.stop());
       };
-
-      mediaRecorder.start(100); // recolectar cada 100ms
-      const btnEl=document.getElementById('btn_'+id);
-      const estadoEl=document.getElementById('estado_'+id);
-      if(btnEl){btnEl.textContent='⏹️';btnEl.classList.add('grabando');}
-      if(estadoEl)estadoEl.textContent='🔴 Grabando...';
-
-    }catch(e){
-      grabandoId=null;
-      if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'){
-        mostrarErrorMic('Permiso de micrófono denegado. Hacé clic en el candado 🔒 del navegador y habilitá el micrófono.');
-      }else if(e.name==='NotFoundError'){
-        mostrarErrorMic('No se encontró micrófono. Conectá uno e intentá de nuevo.');
-      }else{
-        mostrarErrorMic('Error al acceder al micrófono: '+e.message);
-      }
-    }
+      mediaRec.start();
+      grabando=id;
+      btn.classList.add('grabando');
+      btn.textContent='⏹️';
+    }catch(e){alert('No se pudo acceder al micrófono.');}
   }
+}
 
-  function mostrarErrorMic(msg){
-    // Mostrar error inline en el panel en vez de alert
-    let errorDiv=document.getElementById('mic-error');
-    if(!errorDiv){
-      errorDiv=document.createElement('div');
-      errorDiv.id='mic-error';
-      errorDiv.style.cssText='background:#FFF0EE;border:2px solid #FF7E6B;border-radius:12px;padding:10px 14px;font-family:Nunito,sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;text-align:center;margin:4px 0;';
-      const panel=document.querySelector('.config-panel');
-      const firstSolapa=document.querySelector('.solapas');
-      if(panel&&firstSolapa)panel.insertBefore(errorDiv,firstSolapa.nextSibling);
-    }
-    errorDiv.textContent='⚠️ '+msg;
-    errorDiv.style.display='block';
-    setTimeout(()=>{if(errorDiv)errorDiv.style.display='none';},6000);
-  }
+function probarVoz(id){
+  if(!vocesGrabadas[id])return;
+  const a=new Audio(vocesGrabadas[id]);a.play();
+}
 
-  function exportarVoces(){
+function borrarVoz(id){
+  delete vocesGrabadas[id];
+  localStorage.setItem('voces_teabrazo',JSON.stringify(vocesGrabadas));
+  renderVoces();
+}
+
+function exportarVoces(){
+  const blob=new Blob([JSON.stringify(vocesGrabadas)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='voces_teabrazo.json';a.click();
+}
+
+function importarVoces(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
     try{
-      const datos=JSON.stringify(vocesGrabadas,null,2);
-      const blob=new Blob([datos],{type:'application/json'});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url;a.download='teabrazo_voces.json';a.click();
-      URL.revokeObjectURL(url);
-    }catch(e){alert('Error al exportar voces.');}
-  }
+      const data=JSON.parse(e.target.result);
+      vocesGrabadas={...vocesGrabadas,...data};
+      localStorage.setItem('voces_teabrazo',JSON.stringify(vocesGrabadas));
+      renderVoces();
+      alert('✅ Voces importadas correctamente.');
+    }catch(err){alert('❌ Archivo inválido.');}
+  };
+  reader.readAsText(file);
+}
 
-  function importarVoces(event){
-    const file=event.target.files[0];
-    if(!file)return;
-    const reader=new FileReader();
-    reader.onload=(e)=>{
-      try{
-        const datos=JSON.parse(e.target.result);
-        // Validar que es un objeto de voces
-        if(typeof datos!=='object'||Array.isArray(datos)){alert('Archivo inválido.');return;}
-        // Mergear con las voces existentes
-        Object.assign(vocesGrabadas,datos);
-        localStorage.setItem('voces_teabrazo',JSON.stringify(vocesGrabadas));
-        alert('✅ Voces importadas correctamente. Ya podés usarlas.');
-        cerrarConfig();
-      }catch(err){alert('Error al importar. Verificá que el archivo sea válido.');}
-    };
-    reader.readAsText(file);
-  }
+// ══════════════════════════════════════════
+// HELPERS UI
+// ══════════════════════════════════════════
+function selAvatar(el,emoji){
+  if(!el)return;
+  document.querySelectorAll('.avatar-op').forEach(a=>a.classList.remove('sel'));
+  el.classList.add('sel');
+  avatarSel=emoji||el.textContent;
+}
 
-  function reproducirVoz(id){
-    const src=vocesGrabadas[id]||('audio/'+id+'.mp3');
-    new Audio(src).play().catch(()=>{});
-  }
-
-
-  // =============================================
-  // NIVELES POR JUEGO en perfiles
-  // =============================================
-  const JUEGOS_CONFIG = [("burbujas", "🫧", "Burbujas"), ("animales", "🐾", "Animales"), ("luz", "✨", "Sigue la luz"), ("emociones", "😊", "Emociones"), ("causaefecto", "🌧️", "Causa y efecto"), ("rompecabezas", "🧩", "Rompecabezas"), ("asociacion", "🔗", "Asociación"), ("gestos", "🎭", "Copiá el gesto"), ("numeros", "🔢", "Números"), ("cara", "😊", "La Cara"), ("silueta", "✏️", "Silueta"), ("golpecitos", "✨", "Golpecitos"), ("perseguir", "🌟", "Perseguí la luz"), ("puntos", "🔗", "Uní los puntos")];
-
-  async function cargarNivelesPorJuego(hijoId){
-    const wrap = document.getElementById('nivelesJuegoWrap');
-    if(!wrap)return;
-    wrap.innerHTML = '<div style="font-family:Nunito Sans,sans-serif;font-size:13px;color:#aaa;text-align:center;">Cargando...</div>';
-
-    let progreso = {};
-    try{
-      const {data} = await sb.from('game_progress').select('juego,nivel,racha_ok,racha_fail').eq('hijo_id',hijoId);
-      if(data)data.forEach(r=>{progreso[r.juego]=r;});
-    }catch(e){}
-
-    wrap.innerHTML = '';
-    JUEGOS_CONFIG.forEach(([id, emoji, nombre])=>{
-      const p = progreso[id] || {nivel:1, racha_ok:0, racha_fail:0};
-      const row = document.createElement('div');
-      row.className = 'juego-nivel-row';
-
-      const estrellas = '⭐'.repeat(p.racha_ok||0) + '·'.repeat(Math.max(0,3-(p.racha_ok||0)));
-      row.innerHTML = `
-        <div class="juego-nivel-info">
-          <span class="juego-nivel-emoji">${emoji}</span>
-          <div>
-            <div class="juego-nivel-nombre">${nombre}</div>
-            <div class="juego-nivel-racha">${estrellas} racha</div>
-          </div>
-        </div>
-        <div class="juego-nivel-btns" id="btnsnivel_${id}">
-          <button class="btn-nivel-juego ${p.nivel===1?'activo':''}" onclick="forzarNivelJuego('${hijoId}','${id}',1,this)">1</button>
-          <button class="btn-nivel-juego ${p.nivel===2?'activo':''}" onclick="forzarNivelJuego('${hijoId}','${id}',2,this)">2</button>
-          <button class="btn-nivel-juego ${p.nivel===3?'activo':''}" onclick="forzarNivelJuego('${hijoId}','${id}',3,this)">3</button>
-        </div>
-      `;
-      wrap.appendChild(row);
-    });
-  }
-
-  async function forzarNivelJuego(hijoId, juego, nivel, btnEl){
-    // Actualizar UI inmediato
-    const wrap = btnEl.closest('.juego-nivel-btns');
-    wrap.querySelectorAll('.btn-nivel-juego').forEach(b=>b.classList.remove('activo'));
-    btnEl.classList.add('activo');
-
-    // Guardar en Supabase
-    try{
-      await sb.from('game_progress').upsert({
-        hijo_id:hijoId, juego:juego,
-        nivel:nivel, racha_ok:0, racha_fail:0,
-        nivel_maximo:3, actualizado_at:new Date().toISOString(),
-      },{onConflict:'hijo_id,juego'});
-    }catch(e){console.error(e);}
-  }
-
-  async function salir(){await sb.auth.signOut();window.location.href='index.html';}
-
-  // PWA
-  let deferredPrompt=null;
-  window.addEventListener('beforeinstallprompt',(e)=>{
-    e.preventDefault();deferredPrompt=e;
-    const btn=document.getElementById('btnInstalarApp');
-    if(btn)btn.style.display='block';
+function selNivelBtn(n){
+  nivelSel=n;
+  document.querySelectorAll('.btn-nivel').forEach((b,i)=>{
+    b.classList.toggle('activo',i+1===n);
   });
-  function mostrarBannerInstalacion(){
-    if(deferredPrompt){
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(r=>{
-        if(r.outcome==='accepted')localStorage.setItem('pwa_installed','1');
-        deferredPrompt=null;
-        const btn=document.getElementById('btnInstalarApp');
-        if(btn)btn.style.display='none';
-      });
-    }else{
-      alert('Para instalar TEAbrazo:\n1. Tocá los 3 puntitos ⋮\n2. Seleccioná "Añadir a pantalla de inicio"');
-    }
-  }
-</script>
+}
 
-<!-- Botón silencio global -->
-<button id="btnMute" onclick="toggleMute()" style="
-  position:fixed;top:14px;right:16px;z-index:200;
-  background:white;border:2px solid #E0EFFF;border-radius:50%;
-  width:44px;height:44px;font-size:22px;cursor:pointer;
-  box-shadow:0 2px 12px #5BBFEA22;display:flex;align-items:center;justify-content:center;
-" title="Silenciar/Activar sonido">🔊</button>
-<script>
-  let _appMuted=localStorage.getItem('teabrazo_muted')==='1';
-  function toggleMute(){_appMuted=!_appMuted;localStorage.setItem('teabrazo_muted',_appMuted?'1':'0');document.getElementById('btnMute').textContent=_appMuted?'🔇':'🔊';}
-  window.addEventListener('load',()=>{document.getElementById('btnMute').textContent=_appMuted?'🔇':'🔊';});
-</script>
+function selNivel(n,btn){selNivelBtn(n);}
 
+function cambiarSolapa(panel,tab){
+  const prefix=panel+'-';
+  document.querySelectorAll(`[id^="${prefix}"]`).forEach(el=>{
+    el.classList.toggle('activa',el.id===prefix+tab);
+  });
+  // Botones de solapa
+  const panelEl=document.getElementById('overlay'+panel.charAt(0).toUpperCase()+panel.slice(1))||
+                document.getElementById('overlayConfig');
+  panelEl?.querySelectorAll('.solapa').forEach(s=>{
+    const t=s.getAttribute('onclick')?.match(/'([^']+)'\)$/)?.[1];
+    s.classList.toggle('activa',t===tab);
+  });
+}
+
+function abrirConfig(){
+  cambiarSolapa('config','datos');
+  abrirOverlay('overlayConfig');
+}
+
+function abrirOverlay(id){document.getElementById(id).classList.add('activo');}
+function cerrarOverlay(id){document.getElementById(id).classList.remove('activo');}
+
+// Cerrar tocando fuera
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('pointerdown',function(e){if(e.target===this)cerrarOverlay(this.id);});
+});
+
+// ══════════════════════════════════════════
+// PWA
+// ══════════════════════════════════════════
+let deferredPrompt=null;
+function setupPWA(){
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();deferredPrompt=e;
+    document.getElementById('btnInstalarApp').style.display='flex';
+  });
+}
+async function instalarApp(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  const {outcome}=await deferredPrompt.userChoice;
+  if(outcome==='accepted')document.getElementById('btnInstalarApp').style.display='none';
+  deferredPrompt=null;
+}
+
+async function salir(){await sb.auth.signOut();window.location.href='index.html';}
+</script>
 </body>
 </html>
