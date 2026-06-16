@@ -377,5 +377,77 @@
   });
 </script>
 
+
+<!-- Modal recuperar acceso -->
+<div id="modalRecuperar" style="display:none;position:fixed;inset:0;background:#00000066;z-index:300;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:white;border-radius:28px;padding:28px 24px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px;">
+    <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:#333;text-align:center;">📧 Recuperar acceso</div>
+    <div style="font-family:'Nunito Sans',sans-serif;font-size:13px;color:#777;text-align:center;line-height:1.5;">Ingresá tu email y te enviamos un enlace para restablecer tu acceso.</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <label style="font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:#555;">📧 Email</label>
+      <input id="emailRecuperar" type="email" placeholder="tu@email.com" style="border:2px solid #E0EFFF;border-radius:16px;padding:14px 16px;font-family:'Nunito',sans-serif;font-size:16px;color:#333;outline:none;background:#F8FBFF;" oninput="this.style.borderColor='#5BBFEA'">
+    </div>
+    <div id="errorRecuperar" style="display:none;background:#FFF0EE;border-radius:12px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#FF7E6B;"></div>
+    <div id="okRecuperar" style="display:none;background:#F0FFF8;border-radius:12px;padding:10px 14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:13px;color:#52D9A0;text-align:center;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="cerrarRecuperar()" style="flex:1;background:#F0F7FF;border:none;border-radius:16px;padding:13px;font-family:'Nunito',sans-serif;font-weight:700;font-size:15px;color:#888;cursor:pointer;">Cancelar</button>
+      <button onclick="enviarRecupero()" id="btnEnviarRecupero" style="flex:1.5;background:linear-gradient(135deg,#5BBFEA,#A78BFA);border:none;border-radius:16px;padding:13px;font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;color:white;cursor:pointer;">Enviar enlace 📧</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  function mostrarRecuperar(){
+    document.getElementById('modalRecuperar').style.display='flex';
+    document.getElementById('emailRecuperar').value='';
+    document.getElementById('errorRecuperar').style.display='none';
+    document.getElementById('okRecuperar').style.display='none';
+    // Pre-llenar con el email del campo principal si ya lo escribió
+    const emailMain=document.getElementById('email')?.value?.trim();
+    if(emailMain)document.getElementById('emailRecuperar').value=emailMain;
+  }
+
+  function cerrarRecuperar(){
+    document.getElementById('modalRecuperar').style.display='none';
+  }
+
+  async function enviarRecupero(){
+    const email=document.getElementById('emailRecuperar').value.trim().toLowerCase();
+    const errEl=document.getElementById('errorRecuperar');
+    const okEl=document.getElementById('okRecuperar');
+    const btn=document.getElementById('btnEnviarRecupero');
+
+    errEl.style.display='none';okEl.style.display='none';
+    if(!email){errEl.textContent='⚠️ Ingresá tu email.';errEl.style.display='block';return;}
+
+    btn.disabled=true;btn.textContent='Enviando...';
+
+    try{
+      const {error}=await sb.auth.resetPasswordForEmail(email,{
+        redirectTo:'https://teabrazo.netlify.app/index.html'
+      });
+      if(error){
+        errEl.textContent='❌ No encontramos ese email. Verificá que sea el correcto.';
+        errEl.style.display='block';
+      }else{
+        okEl.textContent='✅ ¡Listo! Revisá tu email y seguí el enlace para recuperar tu acceso.';
+        okEl.style.display='block';
+        setTimeout(cerrarRecuperar,4000);
+      }
+    }catch(e){
+      errEl.textContent='⚠️ Error de conexión. Intentá de nuevo.';
+      errEl.style.display='block';
+    }finally{
+      btn.disabled=false;btn.textContent='Enviar enlace 📧';
+    }
+  }
+
+  // Cerrar modal tocando fuera
+  document.getElementById('modalRecuperar').addEventListener('pointerdown',function(e){
+    if(e.target===this)cerrarRecuperar();
+  });
+</script>
+
 </body>
 </html>
