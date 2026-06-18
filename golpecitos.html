@@ -258,11 +258,18 @@
 
   window.addEventListener('load',()=>{
     const h=sessionStorage.getItem('hijoActual');if(!h){window.location.href='perfiles.html';return;}
-    hijo=JSON.parse(h);puntaje=hijo.xp_total||0;nivelActual=1; // se sobreescribe con cargarProgresoJuego()
+    hijo=JSON.parse(h);puntaje=hijo.xp_total||0;nivelActual=hijo.nivel||1;
     document.getElementById('puntaje').textContent=puntaje;
     const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
     document.getElementById('nivelEmoji').textContent=nc.emoji;document.getElementById('nivelNombre').textContent=nc.nombre;
-    cargarProgresoJuego().then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
+    cargarProgresoJuego().then(()=>{
+      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
+    }).catch(()=>{
+      // Si falla todo, arrancar igual
+      nivelActual=hijo.nivel||1;
+      actualizarUIDeNivel();
+      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
+    });
   });
 
   function mostrarCountdown(){

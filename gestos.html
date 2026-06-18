@@ -311,11 +311,19 @@
         progresoJuego=data;
         nivelActual=data.nivel;
       }else{
-        await sb.from('game_progress').insert({hijo_id:hijo.id,juego:JUEGO_ID,nivel:1,racha_ok:0,racha_fail:0,nivel_maximo:NIVEL_MAXIMO_JUEGO});
-        nivelActual=1;
+        // Tabla no existe o sin registro: usar nivel del hijo
+        nivelActual=hijo.nivel||1;
+        // Intentar crear el registro, pero si falla no bloqueamos
+        try{
+          await sb.from('game_progress').insert({hijo_id:hijo.id,juego:JUEGO_ID,nivel:nivelActual,racha_ok:0,racha_fail:0,nivel_maximo:NIVEL_MAXIMO_JUEGO});
+        }catch(e2){}
       }
-    }catch(e){nivelActual=1;}
-    actualizarUIDeNivel();
+    }catch(e){
+      // Si falla cualquier cosa, usar nivel del hijo sin bloquear
+      nivelActual=hijo.nivel||1;
+    }finally{
+      actualizarUIDeNivel();
+    }
   }
 
   async function registrarResultadoPartida(aciertos,total){
@@ -522,7 +530,14 @@
       video.srcObject=cameraStream;
       await video.play();
       await iniciarMediaPipe();
-      cargarProgresoJuego().then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
+      cargarProgresoJuego().then(()=>{
+      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
+    }).catch(()=>{
+      // Si falla todo, arrancar igual
+      nivelActual=hijo.nivel||1;
+      actualizarUIDeNivel();
+      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
+    });
     }catch(e){
       document.getElementById('camBlocked').style.display='flex';
     }
