@@ -256,14 +256,7 @@
   // Respeta silencio global
   function appEstaSilenciada(){return localStorage.getItem('teabrazo_muted')==='1';}
 
-  function _hablar(texto,rate=1.0){
-    if(appEstaSilenciada()){return;}
-    if(!('speechSynthesis' in window))return;
-    window.speechSynthesis.cancel();
-    const msg=new SpeechSynthesisUtterance(texto);
-    msg.lang='es-AR';msg.rate=rate;msg.pitch=1.8;
-    window.speechSynthesis.speak(msg);
-  }
+
 
 
   const COLORES=[
@@ -284,6 +277,441 @@
     2: "¡Tocá solo las burbujas del color que te pido!",
     3: "¡Escuchá qué color pido y tocá esa burbuja!",
   };
+
+  function mostrarIntro(onDone){
+    const overlay=document.getElementById('introOverlay');
+    if(!overlay){onDone();return;}
+    // Setear contenido
+    const emojiEl=document.getElementById('introEmoji');
+    const tituloEl=document.getElementById('introTitulo');
+    const textoEl=document.getElementById('introTexto');
+    if(emojiEl)emojiEl.textContent='💦';
+    if(tituloEl)tituloEl.textContent='¡Burbujas mágicas!';
+    const texto=INSTRUCCIONES_JUEGO[nivelActual]||INSTRUCCIONES_JUEGO[1];
+    if(textoEl)textoEl.textContent=texto;
+    // Mostrar overlay
+    overlay.style.display='flex';
+    // Guardar callback
+    window._introDone=onDone;
+    // Narrar con delay para que el navegador pinte primero
+    setTimeout(()=>_hablar(texto,1.0),600);
+  }
+
+  function cerrarIntro(){
+    const overlay=document.getElementById('introOverlay');
+    if(overlay)overlay.style.display='none';
+    
+    if(window._introDone)window._introDone();
+  }
+
+  // =============================================
+  // AUDIO — usa voz grabada si existe, sino MP3
+  // =============================================
+    // AUDIO — carga desde audio/teabrazo_voces.json o localStorage. Sin voz = silencio.
+  let vocesGrabadas = {};
+  let audioActual = null;
+  let audioQueue = [];
+  let reproduciendo = false;
+  let _vocesListas = false;
+
+  async function cargarVoces() {
+    try { const l=localStorage.getItem('voces_teabrazo'); if(l) vocesGrabadas=JSON.parse(l); } catch(e) {}
+    try {
+      const res=await fetch('audio/teabrazo_voces.json');
+      if(res.ok){ const d=await res.json(); vocesGrabadas={...d,...vocesGrabadas}; }
+    } catch(e) {}
+    _vocesListas=true;
+  }
+
+  function reproducir(id, forzar=true){
+    if(appEstaSilenciada()) return;
+    if(forzar){ audioQueue=[]; reproduciendo=false; if(audioActual){audioActual.pause();audioActual.currentTime=0;audioActual=null;} }
+    if(!vocesGrabadas[id]){ if(!forzar) _procesarCola(); return; }
+    if(forzar) _reproducirAhora(id); else { audioQueue.push(id); if(!reproduciendo) _procesarCola(); }
+  }
+
+  function _reproducirAhora(id){
+    if(!vocesGrabadas[id]){ reproduciendo=false; _procesarCola(); return; }
+    const a=new Audio(vocesGrabadas[id]); audioActual=a; reproduciendo=true;
+    a.onended=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.onerror=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.play().catch(()=>{ reproduciendo=false; _procesarCola(); });
+  }
+
+  function _procesarCola(){
+    if(audioQueue.length>0&&!reproduciendo){ const item=audioQueue.shift(); if(item) _reproducirAhora(item); }
+  }
+
+  function _hablar(t,r,onEnd){ if(onEnd) onEnd(); }
+
+// =============================================
+  // ESTADO
+  // =============================================
+  let hijo=null, nivelActual=1, puntaje=0;
+  let burbujaCorrectas=0, intervaloBurbujas=null;
+  let burbujasEnPantalla=[], juegoActivo=false;
+  let colorFijoNivel2=null, colorPedidoNivel3=null, timeoutNivel3=null;
+
+  // Tiempo límite
+  let tiempoLimiteSegundos=0;
+  let tiempoRestante=0;
+  let intervaloTimer=null;
+
+  // =============================================
+  // INICIO
+  // =============================================
+  window.addEventListener('load',()=>{
+    crearEstrellas();
+    const hijoData=sessionStorage.getItem('hijoActual');
+    if(!hijoData){window.location.href='perfiles.html';return;}
+    hijo=JSON.parse(hijoData);
+    puntaje=hijo.xp_total||0;
+    nivelActual=1; // se sobreescribe con cargarProgresoJuego()
+    document.getElementById('puntaje').textContent=puntaje;
+
+    // Configurar tiempo límite
+    if(hijo.tiempo_limite&&hijo.tiempo_limite>0){
+      tiempoLimiteSegundos=hijo.tiempo_limite*60;
+      tiempoRestante=tiempoLimiteSegundos;
+      document.getElementById('timerWrap').style.display='flex';
+      actualizarTimerDisplay();
+    }
+
+    // Cargar voces y progreso en paralelo, luego arrancar
+    Promise.allSettled([cargarVoces(),cargarProgresoJuego()]).then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
+  });
+
+  // =============================================
+  // CUENTA REGRESIVA
+  // =============================================
+  function mostrarCountdown(){
+    const overlay=document.getElementById('countdownOverlay');
+    const numEl=document.getElementById('countdownNumero');
+    overlay.style.display='flex';
+
+    const pasos=[
+      {texto:'3',color:'#FF7E6B',audio:'tres'},
+      {texto:'2',color:'#FFCC3B',audio:'dos'},
+      {texto:'1',color:'#52D9A0',audio:'uno'},
+      {texto:'¡YA!',color:'#FFCC3B',audio:'ya',esYa:true},
+    ];
+
+    let i=0;
+    function siguiente(){
+      if(i>=pasos.length){
+        overlay.style.display='none';
+        configurarNivelYArrancar();
+        return;
+      }
+      const paso=pasos[i];
+      numEl.className=paso.esYa?'countdown-ya':'countdown-numero';
+      numEl.style.color=paso.color;
+      numEl.textContent=paso.texto;
+      // Forzar re-animación
+      numEl.style.animation='none';
+      numEl.offsetHeight;
+      numEl.style.animation='';
+      reproducir(paso.audio);
+      i++;
+      setTimeout(siguiente,900);
+    }
+    siguiente();
+  }
+
+  // =============================================
+  // CONFIGURAR NIVEL
+  // =============================================
+  function configurarNivelYArrancar(){
+    if(nivelActual===1){
+      setConsigna('¡Tocá cualquier burbuja! 💦',null);
+      mostrarPupi('¡Tocá cualquier burbuja!');
+    }else if(nivelActual===2){
+      colorFijoNivel2=COLORES[Math.floor(Math.random()*COLORES.length)];
+      setConsigna('¡Tocá la '+colorFijoNivel2.nombre.toUpperCase()+'!',colorFijoNivel2.hex);
+      mostrarPupi('¡Tocá la '+colorFijoNivel2.nombre+'!');
+      setTimeout(()=>reproducir(colorFijoNivel2.nombre),300);
+      setInterval(()=>{if(juegoActivo&&nivelActual===2&&!reproduciendo)reproducir(colorFijoNivel2.nombre,false);},8000);
+    }else{
+      setConsigna('¡Escuchá a Pupi! 🐙',null);
+      setTimeout(()=>pedirNuevoColorNivel3(),800);
+    }
+    iniciarJuego();
+  }
+
+  function pedirNuevoColorNivel3(){
+    if(!juegoActivo||nivelActual!==3)return;
+    colorPedidoNivel3=COLORES[Math.floor(Math.random()*COLORES.length)];
+    setConsigna('¡'+colorPedidoNivel3.nombre.toUpperCase()+'!',colorPedidoNivel3.hex);
+    mostrarPupi('¡'+colorPedidoNivel3.nombre.toUpperCase()+'! 🐙');
+    reproducir(colorPedidoNivel3.nombre);
+    timeoutNivel3=setTimeout(()=>pedirNuevoColorNivel3(),6000);
+    setTimeout(()=>crearBurbujaColor(),400);
+  }
+
+  function setConsigna(texto,colorHex){
+    document.getElementById('consignaTexto').textContent=texto;
+    const c=document.getElementById('consignaCiruclo');
+    if(colorHex){c.style.display='block';c.style.background=colorHex;c.style.boxShadow='0 0 10px '+colorHex;}
+    else c.style.display='none';
+  }
+
+  // =============================================
+  // TIMER DE TIEMPO LÍMITE
+  // =============================================
+  function iniciarTimer(){
+    if(!tiempoLimiteSegundos)return;
+    intervaloTimer=setInterval(()=>{
+      tiempoRestante--;
+      actualizarTimerDisplay();
+      if(tiempoRestante<=60) document.getElementById('timerWrap').classList.add('urgente');
+      if(tiempoRestante<=0){
+        clearInterval(intervaloTimer);
+        detenerJuego();
+        mostrarFinDeTiempo();
+      }
+    },1000);
+  }
+
+  function actualizarTimerDisplay(){
+    const min=Math.floor(tiempoRestante/60);
+    const seg=tiempoRestante%60;
+    document.getElementById('timerTexto').textContent=min+':'+(seg<10?'0':'')+seg;
+  }
+
+  function mostrarFinDeTiempo(){
+    juegoActivo=false;
+    clearInterval(intervaloBurbujas);
+    clearTimeout(timeoutNivel3);
+    // Limpiar burbujas
+    document.getElementById('areaJuego').innerHTML='';
+    document.getElementById('finOverlay').style.display='flex';
+    reproducir('excelente');
+  }
+
+  // =============================================
+  // PIN
+  // =============================================
+  function avanzarPin(el,siguienteId){
+    if(el.value.length===1){
+      const sig=document.getElementById(siguienteId);
+      if(sig)sig.focus();
+    }
+  }
+
+  function verificarPin(){
+    const ingresado=[
+      document.getElementById('p1').value,
+      document.getElementById('p2').value,
+      document.getElementById('p3').value,
+      document.getElementById('p4').value,
+    ].join('');
+
+    const pinCorrecto=hijo.pin?hijo.pin.toString():'';
+
+    if(!pinCorrecto||ingresado===pinCorrecto){
+      window.location.href='perfiles.html';
+    }else{
+      document.getElementById('pinError').style.display='block';
+      ['p1','p2','p3','p4'].forEach(id=>{document.getElementById(id).value='';});
+      document.getElementById('p1').focus();
+    }
+  }
+
+  // =============================================
+  // JUEGO
+  // =============================================
+  function iniciarJuego(){
+    juegoActivo=true;
+    burbujasEnPantalla=[];
+    burbujaCorrectas=0;
+    crearBurbuja();
+    intervaloBurbujas=setInterval(()=>{
+      if(juegoActivo&&burbujasEnPantalla.length<10)crearBurbuja();
+    },900);
+    iniciarTimer();
+  }
+
+  function detenerJuego(){
+    juegoActivo=false;
+    clearInterval(intervaloBurbujas);
+    clearInterval(intervaloTimer);
+    clearTimeout(timeoutNivel3);
+  }
+
+  function crearBurbujaColor(){
+    // Crea una burbuja del color pedido para que aparezca rápido
+    const colorObjetivo = nivelActual===2 ? colorFijoNivel2 : colorPedidoNivel3;
+    if(!colorObjetivo||!juegoActivo)return;
+    const tam=tamañoPorNivel();
+    const size=Math.floor(Math.random()*(tam.max-tam.min)+tam.min);
+    const dur=velocidadPorNivel()+Math.random()*2;
+    const drift=(Math.random()-0.5)*100;
+    const margen=16;
+    const area=document.getElementById('areaJuego');
+    const posX=margen+Math.random()*(window.innerWidth-size-margen*2);
+    const posY=window.innerHeight+size+10;
+    const b=document.createElement('div');
+    b.className='burbuja';
+    b.dataset.color=colorObjetivo.nombre;
+    b.style.cssText=`width:${size}px;height:${size}px;left:${posX}px;top:${posY}px;background:radial-gradient(circle at 35% 30%,${colorObjetivo.borde},${colorObjetivo.hex});box-shadow:0 0 24px ${colorObjetivo.sombra},inset -4px -4px 12px rgba(0,0,0,0.15),inset 2px 2px 8px rgba(255,255,255,0.45);border:2px solid ${colorObjetivo.borde}44;--drift:${drift}px;animation-duration:${dur}s;`;
+    b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();tocarBurbuja(b,colorObjetivo);});
+    area.appendChild(b);
+    burbujasEnPantalla.push(b);
+    b.addEventListener('animationend',()=>{b.remove();burbujasEnPantalla=burbujasEnPantalla.filter(x=>x!==b);});
+  }
+
+  function crearBurbuja(){
+    const area=document.getElementById('areaJuego');
+    const colorData=COLORES[Math.floor(Math.random()*COLORES.length)];
+    const tam=nivelActual===1?{min:80,max:120}:nivelActual===2?{min:65,max:100}:{min:55,max:85};
+    const size=Math.floor(Math.random()*(tam.max-tam.min)+tam.min);
+    const dur=(nivelActual===1?8:nivelActual===2?6:5)+Math.random()*3;
+    const drift=(Math.random()-0.5)*100;
+    const margen=16;
+    const posX=margen+Math.random()*(window.innerWidth-size-margen*2);
+    const posY=window.innerHeight+size+10;
+    const esOscuro=colorData.nombre==='negro';
+
+    const b=document.createElement('div');
+    b.className='burbuja';
+    b.dataset.color=colorData.nombre;
+    b.style.cssText=`width:${size}px;height:${size}px;left:${posX}px;top:${posY}px;background:radial-gradient(circle at 35% 30%,${colorData.borde},${colorData.hex});box-shadow:0 0 20px ${colorData.sombra},inset -3px -3px 10px rgba(0,0,0,0.25),inset 2px 2px 8px rgba(255,255,255,${esOscuro?'0.12':'0.45'});border:2px solid ${colorData.borde}44;--drift:${drift}px;animation-duration:${dur}s;`;
+
+    if(nivelActual===1){
+      const emojis=['🌟','⭐','✨','💫','🎈','🌈'];
+      b.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    }
+
+    b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();tocarBurbuja(b,colorData);});
+    area.appendChild(b);
+    burbujasEnPantalla.push(b);
+    b.addEventListener('animationend',()=>{b.remove();burbujasEnPantalla=burbujasEnPantalla.filter(x=>x!==b);});
+  }
+
+  function esCorrecta(colorNombre){
+    if(nivelActual===1)return true;
+    if(nivelActual===2)return colorFijoNivel2&&colorNombre===colorFijoNivel2.nombre;
+    if(nivelActual===3)return colorPedidoNivel3&&colorNombre===colorPedidoNivel3.nombre;
+    return true;
+  }
+
+  function tocarBurbuja(b,colorData){
+    if(!juegoActivo||!b.parentNode)return;
+    const correcto=esCorrecta(colorData.nombre);
+    const rect=b.getBoundingClientRect();
+    explotar(rect,colorData.hex,correcto);
+    b.remove();
+    burbujasEnPantalla=burbujasEnPantalla.filter(x=>x!==b);
+    sonidoBurbuja(correcto);
+
+    if(correcto){
+      burbujaCorrectas++;
+      puntaje+=(nivelActual===1?5:nivelActual===2?8:12);
+      document.getElementById('puntaje').textContent=puntaje;
+      const audios=['bien','genial','si','bravo','excelente','que_bien'];
+      const audio=audios[Math.floor(Math.random()*audios.length)];
+      const textos={bien:'¡BIEN! 🎉',genial:'¡GENIAL! ⭐',si:'¡SÍ! 🌟',bravo:'¡BRAVO! 🎊',excelente:'¡EXCELENTE! 🏆',que_bien:'¡QUÉ BIEN! 💫'};
+      mostrarPupi(textos[audio]);
+      reproducir(audio);
+      if(burbujaCorrectas%5===0)setTimeout(mostrarCelebracion,400);
+      if(nivelActual===3){clearTimeout(timeoutNivel3);timeoutNivel3=setTimeout(()=>pedirNuevoColorNivel3(),2000);}
+    }else if(nivelActual>1){
+      mostrarPupi('¡Esa no! 🙈');
+      reproducir('upps');
+    }
+  }
+
+  function explotar(rect,color,correcto){
+    const area=document.getElementById('areaJuego');
+    const cx=rect.left+rect.width/2;
+    const cy=rect.top+rect.height/2;
+    const size=rect.width;
+    const anillo=document.createElement('div');
+    anillo.className='anillo';
+    anillo.style.cssText=`left:${cx-size/2}px;top:${cy-size/2}px;width:${size}px;height:${size}px;border:4px solid ${correcto?'#52D9A0':'#FF4444'};`;
+    area.appendChild(anillo);
+    setTimeout(()=>anillo.remove(),600);
+    if(!correcto)return;
+    const cols=['#FFCC3B','#52D9A0','#5BBFEA','#A78BFA','#FF7E6B',color];
+    for(let i=0;i<16;i++){
+      const p=document.createElement('div');p.className='particula';
+      const ang=(i/16)*Math.PI*2;const dist=55+Math.random()*70;const s=Math.random()*12+6;
+      p.style.cssText=`left:${cx-s/2}px;top:${cy-s/2}px;width:${s}px;height:${s}px;background:${cols[Math.floor(Math.random()*cols.length)]};--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;`;
+      area.appendChild(p);
+      setTimeout(()=>p.remove(),800);
+    }
+  }
+
+  function mostrarPupi(texto){document.getElementById('pupiTexto').textContent=texto;}
+
+  function mostrarCelebracion(){
+    const frases=[{texto:'¡EXCELENTE!',audio:'excelente'},{texto:'¡QUÉ BIEN!',audio:'que_bien'},{texto:'¡INCREÍBLE!',audio:'increible'}];
+    const f=frases[Math.floor(Math.random()*frases.length)];
+    document.getElementById('celTitulo').textContent=f.texto;
+    document.getElementById('celXP').textContent='+'+(burbujaCorrectas*(nivelActual===1?5:nivelActual===2?8:12))+' XP ⚡';
+    document.getElementById('celebracion').style.display='flex';
+    lanzarConfeti();
+    reproducir(f.audio);
+    guardarProgreso(rondasCorrectas||partesCorrectas||juegosCorrectos||0, rondasJugadas||partesJugadas||juegosEnRonda||RONDAS_POR_CELEBRACION||5);
+  }
+
+  function cerrarCelebracion(){
+    document.getElementById('celebracion').style.display='none';
+    burbujaCorrectas=0;
+    juegoActivo=true;
+    if(nivelActual===2){
+      colorFijoNivel2=COLORES[Math.floor(Math.random()*COLORES.length)];
+      setConsigna('¡'+colorFijoNivel2.nombre.toUpperCase()+'!',colorFijoNivel2.hex);
+      setTimeout(()=>reproducir(colorFijoNivel2.nombre),300);
+    }
+    if(nivelActual===3)setTimeout(()=>pedirNuevoColorNivel3(),500);
+    crearBurbuja();
+    intervaloBurbujas=setInterval(()=>{if(juegoActivo&&burbujasEnPantalla.length<10)crearBurbuja();},900);
+    mostrarPupi('¡Seguimos! 🐙');
+    reproducir('seguimos');
+  }
+
+  async function guardarProgreso(aciertos=0,total=0){
+    await registrarResultadoPartida(aciertos,total);
+    try{
+      // Solo guardar XP — el nivel lo cambia siempre el padre desde perfiles
+      await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);
+      hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));
+    }catch(e){}
+  }
+
+  function lanzarConfeti(){
+    const confeti=document.getElementById('confeti');
+    confeti.style.display='block';confeti.innerHTML='';
+    const cols=['#5BBFEA','#FFCC3B','#52D9A0','#FF7E6B','#A78BFA'];
+    for(let i=0;i<80;i++){
+      const p=document.createElement('div');p.className='confeti-pieza';
+      p.style.left=Math.random()*100+'vw';p.style.top='-10px';
+      p.style.background=cols[Math.floor(Math.random()*cols.length)];
+      p.style.animationDelay=Math.random()*1+'s';
+      p.style.width=(Math.random()*10+6)+'px';p.style.height=(Math.random()*10+6)+'px';
+      confeti.appendChild(p);
+    }
+    setTimeout(()=>{confeti.style.display='none';confeti.innerHTML='';},2500);
+  }
+
+  function crearEstrellas(){
+    const fondo=document.getElementById('fondo');
+    for(let i=0;i<35;i++){
+      const s=document.createElement('div');s.className='estrella-fondo';
+      const size=Math.random()*3+1;
+      s.style.cssText=`width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${Math.random()*4+2}s;--op:${Math.random()*0.5+0.2};animation-delay:${Math.random()*4}s`;
+      fondo.appendChild(s);
+    }
+  }
+
+  function salir(){
+    detenerJuego();
+    window.location.href='bienvenida.html';
+  }
+</script>
+</body>
+</html>;
 
   function mostrarIntro(onDone){
     const overlay=document.getElementById('introOverlay');
