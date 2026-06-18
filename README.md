@@ -11,3 +11,5 @@ Navegá a la carpeta del proyecto:
 cd ruta/a/tu/carpeta
 python3 -m http.server 8080
 entrar a: http://localhost:8080
+
+supabase -> base de datos
