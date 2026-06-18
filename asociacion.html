@@ -228,6 +228,7 @@
   }
 
   function actualizarUIDeNivel(){
+    if(typeof NIVELES_CONFIG==='undefined')return;
     const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
     const em=document.getElementById('nivelEmoji');const nm=document.getElementById('nivelNombre');
     if(em)em.textContent=nc.emoji;if(nm)nm.textContent=nc.nombre;
@@ -235,6 +236,7 @@
   }
 
   function actualizarEstrellas(){
+    if(typeof NIVELES_CONFIG==='undefined')return;
     let el=document.getElementById('rachaStars');
     if(!el){
       el=document.createElement('div');el.id='rachaStars';
