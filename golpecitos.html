@@ -222,75 +222,37 @@
   };
   const EMOJIS_DESTELLO=['⭐','✨','💫','🌟','⚡','🎇','🎆'];
 
-  let vocesGrabadas={};
-  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
-  let audioActual=null;
-  function reproducir(id){
-    if(appEstaSilenciada())return;
+
+  // =============================================
+  // SISTEMA DE AUDIO
+  // 1. Carga audio/teabrazo_voces.json al inicio
+  // 2. Merge con localStorage (localStorage tiene prioridad)
+  // 3. Si no hay voz → silencio (sin TTS ni MP3)
+  // =============================================
+    // AUDIO — carga desde audio/teabrazo_voces.json o localStorage. Sin voz = silencio.
+  let vocesGrabadas = {};
+  let audioActual = null;
+  let _vocesListas = false;
+
+  async function cargarVoces() {
+    try { const l=localStorage.getItem('voces_teabrazo'); if(l) vocesGrabadas=JSON.parse(l); } catch(e) {}
+    try {
+      const res=await fetch('audio/teabrazo_voces.json');
+      if(res.ok){ const d=await res.json(); vocesGrabadas={...d,...vocesGrabadas}; }
+    } catch(e) {}
+    _vocesListas=true;
+  }
+
+  function reproducir(id) {
+    if(appEstaSilenciada()||!vocesGrabadas[id]) return;
     if(audioActual){audioActual.pause();audioActual.currentTime=0;}
-    const tts={excelente:'¡Excelente!',que_bien:'¡Qué bien!',increible:'¡Increíble!',bien:'¡Bien!',upps:'¡Upps!',tres:'Tres',dos:'Dos',uno:'Uno',ya:'¡Ya!'};
-    const a=new Audio(vocesGrabadas[id]||('audio/'+id+'.mp3'));audioActual=a;
-    a.onerror=()=>{if(tts[id])_hablar(tts[id]);};a.play().catch(()=>a.onerror());
-  }
-  function _hablar(t,r=1.0){
-    if(appEstaSilenciada())return;
-    if(!('speechSynthesis' in window))return;
-    window.speechSynthesis.cancel();
-    const m=new SpeechSynthesisUtterance(t);m.lang='es-AR';m.rate=r;m.pitch=1.8;window.speechSynthesis.speak(m);
+    const a=new Audio(vocesGrabadas[id]); audioActual=a;
+    a.onerror=()=>{}; a.play().catch(()=>{});
   }
 
-  const INSTRUCCIONES_JUEGO={
-    1:'¡Mirá cuántos destellos aparecen y golpeá la misma cantidad!',
-    2:'¡Contá los destellos y golpeá igual cantidad de veces!',
-    3:'¡Contá bien los destellos y golpeá exactamente igual!',
-  };
-  function mostrarIntro(onDone){
-    const overlay=document.getElementById('introOverlay');if(!overlay){onDone();return;}
-    const texto=INSTRUCCIONES_JUEGO[nivelActual]||INSTRUCCIONES_JUEGO[1];
-    document.getElementById('introTexto').textContent=texto;overlay.style.display='flex';window._introDone=onDone;
-    setTimeout(()=>_hablar(texto,1.0),600);
-  }
-  function cerrarIntro(){document.getElementById('introOverlay').style.display='none';window.speechSynthesis&&window.speechSynthesis.cancel();if(window._introDone)window._introDone();}
+  function _hablar(t,r){}
 
-  let hijo=null,nivelActual=1,puntaje=0,juegoActivo=false;
-  let juegosEnRonda=0,juegosCorrectos=0;
-  let cantidadDestellos=0,golpesActuales=0,faseActual='',emojiActual='';
 
-  window.addEventListener('load',()=>{
-    const h=sessionStorage.getItem('hijoActual');if(!h){window.location.href='perfiles.html';return;}
-    hijo=JSON.parse(h);puntaje=hijo.xp_total||0;nivelActual=hijo.nivel||1;
-    document.getElementById('puntaje').textContent=puntaje;
-    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
-    document.getElementById('nivelEmoji').textContent=nc.emoji;document.getElementById('nivelNombre').textContent=nc.nombre;
-    cargarProgresoJuego().then(()=>{
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    }).catch(()=>{
-      // Si falla todo, arrancar igual
-      nivelActual=hijo.nivel||1;
-      actualizarUIDeNivel();
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    });
-  });
-
-  function mostrarCountdown(){
-    const overlay=document.getElementById('countdownOverlay'),numEl=document.getElementById('countdownNumero');
-    overlay.style.display='flex';
-    const pasos=[{texto:'3',color:'#FF7E6B',audio:'tres'},{texto:'2',color:'#FFCC3B',audio:'dos'},{texto:'1',color:'#52D9A0',audio:'uno'},{texto:'¡YA!',color:'#FFCC3B',audio:'ya',esYa:true}];
-    let i=0;
-    function sig(){if(i>=pasos.length){overlay.style.display='none';iniciarJuego();return;}const p=pasos[i];numEl.className=p.esYa?'countdown-ya':'countdown-numero';numEl.style.color=p.color;numEl.textContent=p.texto;numEl.style.animation='none';numEl.offsetHeight;numEl.style.animation='';reproducir(p.audio);i++;setTimeout(sig,900);}
-    sig();
-  }
-
-  function iniciarJuego(){juegoActivo=true;juegosEnRonda=0;juegosCorrectos=0;nuevaRonda();}
-
-  function nuevaRonda(){
-    if(!juegoActivo)return;
-    const nc=NIVELES_CONFIG[nivelActual]||NIVELES_CONFIG[1];
-    cantidadDestellos=nc.rango[0]+Math.floor(Math.random()*(nc.rango[1]-nc.rango[0]+1));
-    golpesActuales=0;
-    emojiActual=EMOJIS_DESTELLO[Math.floor(Math.random()*EMOJIS_DESTELLO.length)];
-    mostrarFaseMostrar();
-  }
 
   // =============================================
   // FASE 1: MOSTRAR DESTELLOS
@@ -433,7 +395,7 @@
     await registrarResultadoPartida(aciertos,total);
     try{await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));}catch(e){}
   }
-  function salir(){juegoActivo=false;window.speechSynthesis?.cancel();window.location.href='bienvenida.html';}
+  function salir(){juegoActivo=false;if(audioActual){audioActual.pause();audioActual.currentTime=0;}window.location.href='bienvenida.html';}
 </script>
 </body>
 </html>

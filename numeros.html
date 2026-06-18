@@ -351,73 +351,51 @@
   }
   function cerrarIntro(){
     document.getElementById('introOverlay').style.display='none';
-    window.speechSynthesis&&window.speechSynthesis.cancel();
+    
     if(window._introDone)window._introDone();
   }
 
   // =============================================
   // AUDIO
   // =============================================
-  let vocesGrabadas={};
-  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
-  let audioActual=null,audioQueue=[],reproduciendo=false;
+    // AUDIO — carga desde audio/teabrazo_voces.json o localStorage. Sin voz = silencio.
+  let vocesGrabadas = {};
+  let audioActual = null;
+  let audioQueue = [];
+  let reproduciendo = false;
+  let _vocesListas = false;
 
-  function reproducir(id,forzar=true){
-    if(forzar){audioQueue=[];reproduciendo=false;if(audioActual){audioActual.pause();audioActual.currentTime=0;audioActual=null;}_reproducirAhora(id);}
-    else{audioQueue.push(id);if(!reproduciendo)_procesarCola();}
+  async function cargarVoces() {
+    try { const l=localStorage.getItem('voces_teabrazo'); if(l) vocesGrabadas=JSON.parse(l); } catch(e) {}
+    try {
+      const res=await fetch('audio/teabrazo_voces.json');
+      if(res.ok){ const d=await res.json(); vocesGrabadas={...d,...vocesGrabadas}; }
+    } catch(e) {}
+    _vocesListas=true;
   }
+
+  function reproducir(id, forzar=true){
+    if(appEstaSilenciada()) return;
+    if(forzar){ audioQueue=[]; reproduciendo=false; if(audioActual){audioActual.pause();audioActual.currentTime=0;audioActual=null;} }
+    if(!vocesGrabadas[id]){ if(!forzar) _procesarCola(); return; }
+    if(forzar) _reproducirAhora(id); else { audioQueue.push(id); if(!reproduciendo) _procesarCola(); }
+  }
+
   function _reproducirAhora(id){
-    if(appEstaSilenciada()){reproduciendo=false;_procesarCola();return;}
-    const tts={excelente:'¡Excelente!',que_bien:'¡Qué bien!',increible:'¡Increíble!',bien:'¡Bien!',upps:'¡Upps!',tres:'Tres',dos:'Dos',uno:'Uno',ya:'¡Ya!'};
-    const src=vocesGrabadas[id]||('audio/'+id+'.mp3');
-    const audio=new Audio(src);
-    audioActual=audio;reproduciendo=true;
-    audio.onended=()=>{reproduciendo=false;audioActual=null;_procesarCola();};
-    audio.onerror=()=>{reproduciendo=false;audioActual=null;if(tts[id])_hablar(tts[id],()=>_procesarCola());else _procesarCola();};
-    audio.play().catch(()=>audio.onerror());
-  }
-  function _procesarCola(){if(audioQueue.length>0&&!reproduciendo){const item=audioQueue.shift();if(item)_reproducirAhora(item);}}
-  function _hablar(texto,rate=1.0,onEnd){
-    if(appEstaSilenciada()){if(onEnd)onEnd();return;}
-    if(!('speechSynthesis' in window)){if(onEnd)onEnd();return;}
-    window.speechSynthesis.cancel();
-    const msg=new SpeechSynthesisUtterance(texto);
-    msg.lang='es-AR';msg.rate=rate;msg.pitch=1.8;
-    msg.onend=()=>{reproduciendo=false;if(onEnd)onEnd();};
-    msg.onerror=()=>{reproduciendo=false;if(onEnd)onEnd();};
-    reproduciendo=true;
-    window.speechSynthesis.speak(msg);
+    if(!vocesGrabadas[id]){ reproduciendo=false; _procesarCola(); return; }
+    const a=new Audio(vocesGrabadas[id]); audioActual=a; reproduciendo=true;
+    a.onended=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.onerror=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.play().catch(()=>{ reproduciendo=false; _procesarCola(); });
   }
 
-  // =============================================
-  // CONJUNTOS — emoji + nombre para dibujar en canvas
-  // =============================================
-  const CONJUNTOS=[
-    {emoji:'🌳',nombre:'árbol'},
-    {emoji:'🏠',nombre:'casa'},
-    {emoji:'🐶',nombre:'perro'},
-    {emoji:'⭐',nombre:'estrella'},
-    {emoji:'🍎',nombre:'manzana'},
-    {emoji:'🚗',nombre:'auto'},
-    {emoji:'🐱',nombre:'gato'},
-    {emoji:'🌸',nombre:'flor'},
-    {emoji:'🎈',nombre:'globo'},
-    {emoji:'🐟',nombre:'pez'},
-    {emoji:'🦋',nombre:'mariposa'},
-    {emoji:'🍕',nombre:'pizza'},
-    {emoji:'🌙',nombre:'luna'},
-    {emoji:'🐸',nombre:'sapo'},
-    {emoji:'🎀',nombre:'moño'},
-  ];
+  function _procesarCola(){
+    if(audioQueue.length>0&&!reproduciendo){ const item=audioQueue.shift(); if(item) _reproducirAhora(item); }
+  }
 
-  const NIVELES_CONFIG={
-    1:{emoji:'🥚',nombre:'Huevo',        rangoMax:5,  cantOpciones:3, xpPor:8},
-    2:{emoji:'🐣',nombre:'Pollito',       rangoMax:10, cantOpciones:4, xpPor:12},
-    3:{emoji:'🐤',nombre:'Pollito grande',rangoMax:15, cantOpciones:4, xpPor:16},
-  };
-  const RONDAS_POR_CELEBRACION=5;
+  function _hablar(t,r,onEnd){ if(onEnd) onEnd(); }
 
-  // =============================================
+// =============================================
   // ESTADO
   // =============================================
   let hijo=null,nivelActual=1,puntaje=0;
@@ -445,14 +423,8 @@
       tiempoLimiteSegundos=hijo.tiempo_limite*60;tiempoRestante=tiempoLimiteSegundos;
       document.getElementById('timerWrap').style.display='flex';actualizarTimerDisplay();
     }
-    cargarProgresoJuego().then(()=>{
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    }).catch(()=>{
-      // Si falla todo, arrancar igual
-      nivelActual=hijo.nivel||1;
-      actualizarUIDeNivel();
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    });
+    // Cargar voces y progreso en paralelo, luego arrancar
+    Promise.allSettled([cargarVoces(),cargarProgresoJuego()]).then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
   });
 
   // =============================================
@@ -823,7 +795,7 @@
     await registrarResultadoPartida(aciertos,total);
     try{await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));}catch(e){}
   }
-  function salir(){juegoActivo=false;clearInterval(intervaloTimer);window.speechSynthesis?.cancel();window.location.href='bienvenida.html';}
+  function salir(){juegoActivo=false;clearInterval(intervaloTimer);if(audioActual){audioActual.pause();audioActual.currentTime=0;}window.location.href='bienvenida.html';}
 
   // Soporte roundRect para navegadores viejos
   if(!CanvasRenderingContext2D.prototype.roundRect){

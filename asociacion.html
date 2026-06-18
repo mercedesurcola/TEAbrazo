@@ -289,33 +289,44 @@
     3:'¡Completá toda la grilla con los emojis!',
   };
 
-  let vocesGrabadas={};
-  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
-  let audioActual=null;
-  function reproducir(id){
-    const tts={excelente:'¡Excelente!',que_bien:'¡Qué bien!',increible:'¡Increíble!',bien:'¡Bien!',upps:'¡Upps!',tres:'Tres',dos:'Dos',uno:'Uno',ya:'¡Ya!'};
-    if(audioActual){audioActual.pause();audioActual.currentTime=0;}
-    const audio=new Audio(vocesGrabadas[id]||('audio/'+id+'.mp3'));
-    audioActual=audio;audio.onerror=()=>{if(tts[id])_hablar(tts[id]);};
-    audio.play().catch(()=>audio.onerror());
-  }
-  function _hablar(t){if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();const m=new SpeechSynthesisUtterance(t);m.lang='es-AR';m.rate=1.0;m.pitch=1.7;window.speechSynthesis.speak(m);}
+    // AUDIO — carga desde audio/teabrazo_voces.json o localStorage. Sin voz = silencio.
+  let vocesGrabadas = {};
+  let audioActual = null;
+  let audioQueue = [];
+  let reproduciendo = false;
+  let _vocesListas = false;
 
-  // INTRO
-  function mostrarIntro(onDone){
-    const overlay=document.getElementById('introOverlay');
-    if(!overlay){onDone();return;}
-    const texto=INSTRUCCIONES_JUEGO[nivelActual]||INSTRUCCIONES_JUEGO[1];
-    document.getElementById('introTexto').textContent=texto;
-    overlay.style.display='flex';
-    window._introDone=onDone;
-    setTimeout(()=>_hablar(texto),400);
+  async function cargarVoces() {
+    try { const l=localStorage.getItem('voces_teabrazo'); if(l) vocesGrabadas=JSON.parse(l); } catch(e) {}
+    try {
+      const res=await fetch('audio/teabrazo_voces.json');
+      if(res.ok){ const d=await res.json(); vocesGrabadas={...d,...vocesGrabadas}; }
+    } catch(e) {}
+    _vocesListas=true;
   }
-  function cerrarIntro(){
-    document.getElementById('introOverlay').style.display='none';
-    window.speechSynthesis&&window.speechSynthesis.cancel();
-    if(window._introDone)window._introDone();
+
+  function reproducir(id, forzar=true){
+    if(appEstaSilenciada()) return;
+    if(forzar){ audioQueue=[]; reproduciendo=false; if(audioActual){audioActual.pause();audioActual.currentTime=0;audioActual=null;} }
+    if(!vocesGrabadas[id]){ if(!forzar) _procesarCola(); return; }
+    if(forzar) _reproducirAhora(id); else { audioQueue.push(id); if(!reproduciendo) _procesarCola(); }
   }
+
+  function _reproducirAhora(id){
+    if(!vocesGrabadas[id]){ reproduciendo=false; _procesarCola(); return; }
+    const a=new Audio(vocesGrabadas[id]); audioActual=a; reproduciendo=true;
+    a.onended=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.onerror=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.play().catch(()=>{ reproduciendo=false; _procesarCola(); });
+  }
+
+  function _procesarCola(){
+    if(audioQueue.length>0&&!reproduciendo){ const item=audioQueue.shift(); if(item) _reproducirAhora(item); }
+  }
+
+  function _hablar(t,r,onEnd){ if(onEnd) onEnd(); }
+
+
 
   let hijo=null,nivelActual=1,puntaje=0;
   let rondasJugadas=0,juegoActivo=false;
@@ -333,14 +344,8 @@
     document.getElementById('nivelEmoji').textContent=nc.emoji;
     document.getElementById('nivelNombre').textContent=nc.nombre;
     if(hijo.tiempo_limite&&hijo.tiempo_limite>0){tiempoLimiteSegundos=hijo.tiempo_limite*60;tiempoRestante=tiempoLimiteSegundos;document.getElementById('timerWrap').style.display='flex';actualizarTimerDisplay();}
-    cargarProgresoJuego().then(()=>{
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    }).catch(()=>{
-      // Si falla todo, arrancar igual
-      nivelActual=hijo.nivel||1;
-      actualizarUIDeNivel();
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    });
+    // Cargar voces y progreso en paralelo, luego arrancar
+    Promise.allSettled([cargarVoces(),cargarProgresoJuego()]).then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
   });
 
   function mostrarCountdown(){
@@ -494,7 +499,7 @@
   function verificarPin(){const ing=['p1','p2','p3','p4'].map(id=>document.getElementById(id).value).join('');const pin=hijo.pin?hijo.pin.toString():'';if(!pin||ing===pin){window.location.href='perfiles.html';}else{document.getElementById('pinError').style.display='block';['p1','p2','p3','p4'].forEach(id=>document.getElementById(id).value='');document.getElementById('p1').focus();}}
   async function guardarProgreso(aciertos=0,total=0){
     await registrarResultadoPartida(aciertos,total);try{await sb.from('children').update({xp_total:puntaje}).eq('id',hijo.id);hijo.xp_total=puntaje;sessionStorage.setItem('hijoActual',JSON.stringify(hijo));}catch(e){}}
-  function salir(){juegoActivo=false;clearInterval(intervaloTimer);window.speechSynthesis?.cancel();window.location.href='bienvenida.html';}
+  function salir(){juegoActivo=false;clearInterval(intervaloTimer);if(audioActual){audioActual.pause();audioActual.currentTime=0;}window.location.href='bienvenida.html';}
 </script>
 </body>
 </html>

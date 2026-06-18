@@ -377,63 +377,51 @@
   function cerrarIntro(){
     const overlay=document.getElementById('introOverlay');
     if(overlay)overlay.style.display='none';
-    window.speechSynthesis&&window.speechSynthesis.cancel();
+    
     if(window._introDone)window._introDone();
   }
 
   // =============================================
   // AUDIO
   // =============================================
-  let vocesGrabadas={};
-  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
-  let audioActual=null, audioQueue=[], reproduciendo=false;
+    // AUDIO — carga desde audio/teabrazo_voces.json o localStorage. Sin voz = silencio.
+  let vocesGrabadas = {};
+  let audioActual = null;
+  let audioQueue = [];
+  let reproduciendo = false;
+  let _vocesListas = false;
 
-  function reproducir(id,forzar=true){
-    if(forzar){
-      audioQueue=[];reproduciendo=false;
-      if(audioActual){audioActual.pause();audioActual.currentTime=0;audioActual=null;}
-      _reproducirAhora(id);
-    }else{audioQueue.push(id);if(!reproduciendo)_procesarCola();}
+  async function cargarVoces() {
+    try { const l=localStorage.getItem('voces_teabrazo'); if(l) vocesGrabadas=JSON.parse(l); } catch(e) {}
+    try {
+      const res=await fetch('audio/teabrazo_voces.json');
+      if(res.ok){ const d=await res.json(); vocesGrabadas={...d,...vocesGrabadas}; }
+    } catch(e) {}
+    _vocesListas=true;
+  }
+
+  function reproducir(id, forzar=true){
+    if(appEstaSilenciada()) return;
+    if(forzar){ audioQueue=[]; reproduciendo=false; if(audioActual){audioActual.pause();audioActual.currentTime=0;audioActual=null;} }
+    if(!vocesGrabadas[id]){ if(!forzar) _procesarCola(); return; }
+    if(forzar) _reproducirAhora(id); else { audioQueue.push(id); if(!reproduciendo) _procesarCola(); }
   }
 
   function _reproducirAhora(id){
-    if(appEstaSilenciada()){reproduciendo=false;_procesarCola();return;}
-    const mapaTTS={
-      'excelente':'¡Excelente!','que_bien':'¡Qué bien!','increible':'¡Increíble!',
-      'bien':'¡Bien!','upps':'¡Upps!','tres':'Tres','dos':'Dos','uno':'Uno','ya':'¡Ya!',
-    };
-    const src=vocesGrabadas[id]||('audio/'+id+'.mp3');
-    const audio=new Audio(src);
-    audioActual=audio;reproduciendo=true;
-    audio.onended=()=>{reproduciendo=false;audioActual=null;_procesarCola();};
-    audio.onerror=()=>{
-      reproduciendo=false;audioActual=null;
-      if(mapaTTS[id])_hablar(mapaTTS[id],()=>_procesarCola());
-      else _procesarCola();
-    };
-    audio.play().catch(()=>audio.onerror());
+    if(!vocesGrabadas[id]){ reproduciendo=false; _procesarCola(); return; }
+    const a=new Audio(vocesGrabadas[id]); audioActual=a; reproduciendo=true;
+    a.onended=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.onerror=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.play().catch(()=>{ reproduciendo=false; _procesarCola(); });
   }
 
   function _procesarCola(){
-    if(audioQueue.length>0&&!reproduciendo){
-      const item=audioQueue.shift();
-      if(item&&item.startsWith('__tts__'))_hablar(item.replace('__tts__',''),()=>_procesarCola());
-      else if(item)_reproducirAhora(item);
-    }
+    if(audioQueue.length>0&&!reproduciendo){ const item=audioQueue.shift(); if(item) _reproducirAhora(item); }
   }
 
-  function _hablar(texto,onEnd){
-    if(!('speechSynthesis' in window)){if(onEnd)onEnd();return;}
-    window.speechSynthesis.cancel();
-    const msg=new SpeechSynthesisUtterance(texto);
-    msg.lang='es-AR';msg.rate=1.0;msg.pitch=1.7;
-    msg.onend=()=>{reproduciendo=false;if(onEnd)onEnd();};
-    msg.onerror=()=>{reproduciendo=false;if(onEnd)onEnd();};
-    reproduciendo=true;
-    window.speechSynthesis.speak(msg);
-  }
+  function _hablar(t,r,onEnd){ if(onEnd) onEnd(); }
 
-  // =============================================
+// =============================================
   // ESTADO
   // =============================================
   let hijo=null,nivelActual=1,puntaje=0;
@@ -463,14 +451,8 @@
       document.getElementById('timerWrap').style.display='flex';
       actualizarTimerDisplay();
     }
-    cargarProgresoJuego().then(()=>{
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    }).catch(()=>{
-      // Si falla todo, arrancar igual
-      nivelActual=hijo.nivel||1;
-      actualizarUIDeNivel();
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    });
+    // Cargar voces y progreso en paralelo, luego arrancar
+    Promise.allSettled([cargarVoces(),cargarProgresoJuego()]).then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
   });
 
   // =============================================
@@ -765,7 +747,7 @@
 
   function salir(){
     juegoActivo=false;clearInterval(intervaloTimer);
-    window.speechSynthesis?.cancel();
+    if(audioActual){audioActual.pause();audioActual.currentTime=0;}
     window.location.href='bienvenida.html';
   }
 </script>

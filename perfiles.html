@@ -238,7 +238,8 @@ body { background:#F0F7FF; font-family:'Nunito Sans',sans-serif; min-height:100v
       <!-- SOLAPA: Voces -->
       <div class="solapa-contenido" id="config-voces">
         <div style="font-family:'Nunito Sans',sans-serif;font-size:13px;color:#777;line-height:1.5;">
-          Grabá tu voz para que el niño escuche las instrucciones con tu voz real. 🎙️
+          Grabá tu voz para que el niño escuche las instrucciones con tu voz real. 🎙️<br>
+          <b>Importante:</b> cuando termines de grabar, exportá el archivo y subilo a GitHub en la carpeta <code>audio/</code> con el nombre <code>teabrazo_voces.json</code>.
         </div>
         <div class="seccion-label">🎉 Celebración — ¡Sé muy efusivo!</div>
         <div class="voces-grid" id="vocesGridCelebracion"></div>
@@ -752,7 +753,7 @@ function borrarVoz(id){
 function exportarVoces(){
   const blob=new Blob([JSON.stringify(vocesGrabadas)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='voces_teabrazo.json';a.click();
+  const a=document.createElement('a');a.href=url;a.download='teabrazo_voces.json';a.click();
 }
 
 function importarVoces(input){

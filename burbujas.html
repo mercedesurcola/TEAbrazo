@@ -307,69 +307,51 @@
   function cerrarIntro(){
     const overlay=document.getElementById('introOverlay');
     if(overlay)overlay.style.display='none';
-    window.speechSynthesis&&window.speechSynthesis.cancel();
+    
     if(window._introDone)window._introDone();
   }
 
   // =============================================
   // AUDIO — usa voz grabada si existe, sino MP3
   // =============================================
-  let vocesGrabadas={};
-  try{ vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}'); }catch(e){}
+    // AUDIO — carga desde audio/teabrazo_voces.json o localStorage. Sin voz = silencio.
+  let vocesGrabadas = {};
+  let audioActual = null;
+  let audioQueue = [];
+  let reproduciendo = false;
+  let _vocesListas = false;
 
-  let audioActual=null;
-  let audioQueue=[];
-  let reproduciendo=false;
+  async function cargarVoces() {
+    try { const l=localStorage.getItem('voces_teabrazo'); if(l) vocesGrabadas=JSON.parse(l); } catch(e) {}
+    try {
+      const res=await fetch('audio/teabrazo_voces.json');
+      if(res.ok){ const d=await res.json(); vocesGrabadas={...d,...vocesGrabadas}; }
+    } catch(e) {}
+    _vocesListas=true;
+  }
 
   function reproducir(id, forzar=true){
-    // forzar=true interrumpe el audio actual (para respuestas inmediatas)
-    // forzar=false encola (para secuencias)
-    if(forzar){
-      audioQueue=[];
-      reproduciendo=false;
-      if(audioActual){audioActual.pause();audioActual.currentTime=0;}
-      _reproducirAhora(id);
-    } else {
-      audioQueue.push(id);
-      if(!reproduciendo)_procesarCola();
-    }
+    if(appEstaSilenciada()) return;
+    if(forzar){ audioQueue=[]; reproduciendo=false; if(audioActual){audioActual.pause();audioActual.currentTime=0;audioActual=null;} }
+    if(!vocesGrabadas[id]){ if(!forzar) _procesarCola(); return; }
+    if(forzar) _reproducirAhora(id); else { audioQueue.push(id); if(!reproduciendo) _procesarCola(); }
   }
 
   function _reproducirAhora(id){
-    if(appEstaSilenciada()){reproduciendo=false;_procesarCola();return;}
-    try{
-      const src=vocesGrabadas[id]||('audio/'+id+'.mp3');
-      audioActual=new Audio(src);
-      reproduciendo=true;
-      audioActual.onended=()=>{reproduciendo=false;_procesarCola();};
-      audioActual.onerror=()=>{reproduciendo=false;_procesarCola();};
-      audioActual.play().catch(()=>{reproduciendo=false;_procesarCola();});
-    }catch(e){reproduciendo=false;}
+    if(!vocesGrabadas[id]){ reproduciendo=false; _procesarCola(); return; }
+    const a=new Audio(vocesGrabadas[id]); audioActual=a; reproduciendo=true;
+    a.onended=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.onerror=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.play().catch(()=>{ reproduciendo=false; _procesarCola(); });
   }
 
   function _procesarCola(){
-    if(audioQueue.length>0&&!reproduciendo){
-      _reproducirAhora(audioQueue.shift());
-    }
+    if(audioQueue.length>0&&!reproduciendo){ const item=audioQueue.shift(); if(item) _reproducirAhora(item); }
   }
 
-  function sonidoBurbuja(correcto){
-    try{
-      const ctx=new(window.AudioContext||window.webkitAudioContext)();
-      const buf=ctx.createBuffer(1,ctx.sampleRate*0.15,ctx.sampleRate);
-      const data=buf.getChannelData(0);
-      for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
-      const src=ctx.createBufferSource();src.buffer=buf;
-      const filt=ctx.createBiquadFilter();filt.type='bandpass';
-      filt.frequency.value=correcto?1800:400;filt.Q.value=8;
-      const gain=ctx.createGain();
-      gain.gain.setValueAtTime(correcto?0.35:0.12,ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15);
-      src.connect(filt);filt.connect(gain);gain.connect(ctx.destination);src.start();
-    }catch(e){}
-  }
+  function _hablar(t,r,onEnd){ if(onEnd) onEnd(); }
 
-  // =============================================
+// =============================================
   // ESTADO
   // =============================================
   let hijo=null, nivelActual=1, puntaje=0;
@@ -402,14 +384,8 @@
       actualizarTimerDisplay();
     }
 
-    cargarProgresoJuego().then(()=>{
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    }).catch(()=>{
-      // Si falla todo, arrancar igual
-      nivelActual=hijo.nivel||1;
-      actualizarUIDeNivel();
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    });
+    // Cargar voces y progreso en paralelo, luego arrancar
+    Promise.allSettled([cargarVoces(),cargarProgresoJuego()]).then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
   });
 
   // =============================================

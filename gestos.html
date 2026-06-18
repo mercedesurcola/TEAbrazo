@@ -451,33 +451,51 @@
   function cerrarIntro(){
     const overlay=document.getElementById('introOverlay');
     if(overlay)overlay.style.display='none';
-    window.speechSynthesis&&window.speechSynthesis.cancel();
+    
     if(window._introDone)window._introDone();
   }
 
   // =============================================
   // AUDIO
   // =============================================
-  let vocesGrabadas={};
-  try{vocesGrabadas=JSON.parse(localStorage.getItem('voces_teabrazo')||'{}');}catch(e){}
-  let audioActual=null;
-  function reproducir(id){
-    const tts={excelente:'¡Excelente!',que_bien:'¡Qué bien!',increible:'¡Increíble!',bien:'¡Bien!',upps:'¡Upps!',tres:'Tres',dos:'Dos',uno:'Uno',ya:'¡Ya!'};
-    if(audioActual){audioActual.pause();audioActual.currentTime=0;}
-    const audio=new Audio(vocesGrabadas[id]||('audio/'+id+'.mp3'));
-    audioActual=audio;
-    audio.onerror=()=>{if(tts[id])_hablar(tts[id]);};
-    audio.play().catch(()=>audio.onerror());
-  }
-  function _hablar(t,rate=1.0){
-    if(!('speechSynthesis' in window))return;
-    window.speechSynthesis.cancel();
-    const m=new SpeechSynthesisUtterance(t);
-    m.lang='es-AR';m.rate=rate;m.pitch=1.8;
-    window.speechSynthesis.speak(m);
+    // AUDIO — carga desde audio/teabrazo_voces.json o localStorage. Sin voz = silencio.
+  let vocesGrabadas = {};
+  let audioActual = null;
+  let audioQueue = [];
+  let reproduciendo = false;
+  let _vocesListas = false;
+
+  async function cargarVoces() {
+    try { const l=localStorage.getItem('voces_teabrazo'); if(l) vocesGrabadas=JSON.parse(l); } catch(e) {}
+    try {
+      const res=await fetch('audio/teabrazo_voces.json');
+      if(res.ok){ const d=await res.json(); vocesGrabadas={...d,...vocesGrabadas}; }
+    } catch(e) {}
+    _vocesListas=true;
   }
 
-  // =============================================
+  function reproducir(id, forzar=true){
+    if(appEstaSilenciada()) return;
+    if(forzar){ audioQueue=[]; reproduciendo=false; if(audioActual){audioActual.pause();audioActual.currentTime=0;audioActual=null;} }
+    if(!vocesGrabadas[id]){ if(!forzar) _procesarCola(); return; }
+    if(forzar) _reproducirAhora(id); else { audioQueue.push(id); if(!reproduciendo) _procesarCola(); }
+  }
+
+  function _reproducirAhora(id){
+    if(!vocesGrabadas[id]){ reproduciendo=false; _procesarCola(); return; }
+    const a=new Audio(vocesGrabadas[id]); audioActual=a; reproduciendo=true;
+    a.onended=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.onerror=()=>{ reproduciendo=false; audioActual=null; _procesarCola(); };
+    a.play().catch(()=>{ reproduciendo=false; _procesarCola(); });
+  }
+
+  function _procesarCola(){
+    if(audioQueue.length>0&&!reproduciendo){ const item=audioQueue.shift(); if(item) _reproducirAhora(item); }
+  }
+
+  function _hablar(t,r,onEnd){ if(onEnd) onEnd(); }
+
+// =============================================
   // ESTADO
   // =============================================
   let hijo=null,nivelActual=1,puntaje=0;
@@ -532,14 +550,8 @@
       video.srcObject=cameraStream;
       await video.play();
       await iniciarMediaPipe();
-      cargarProgresoJuego().then(()=>{
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    }).catch(()=>{
-      // Si falla todo, arrancar igual
-      nivelActual=hijo.nivel||1;
-      actualizarUIDeNivel();
-      mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300));
-    });
+      // Cargar voces y progreso en paralelo, luego arrancar
+    Promise.allSettled([cargarVoces(),cargarProgresoJuego()]).then(()=>mostrarIntro(()=>setTimeout(()=>mostrarCountdown(),300)));
     }catch(e){
       document.getElementById('camBlocked').style.display='flex';
     }
@@ -879,7 +891,7 @@
     clearInterval(intervaloGesto);clearInterval(intervaloTimerLim);
     if(cameraStream)cameraStream.getTracks().forEach(t=>t.stop());
     if(faceMesh)faceMesh.close();
-    window.speechSynthesis?.cancel();
+    if(audioActual){audioActual.pause();audioActual.currentTime=0;}
     window.location.href='bienvenida.html';
   }
 </script>
