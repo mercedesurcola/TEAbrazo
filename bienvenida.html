@@ -274,14 +274,14 @@
 
 <script>
   function compartirApp(){
-    const texto = '🧠 Descubrí TEAbrazo, una app pensada para acompañar a niños con TEA en su aprendizaje con juegos divertidos y estimulantes. ¡Lo probé con mi hijo/a y me encantó! 💙\n\n👉 teabrazo.netlify.app';
+    const texto = '🧠 Descubrí TEAbrazo, una app pensada para acompañar a niños con TEA en su aprendizaje con juegos divertidos y estimulantes. ¡Lo probé con mi hijo/a y me encantó! 💙\n\n👉 www.teabrazo.com.ar';
     if(navigator.share){
-      navigator.share({title:'TEAbrazo',text:texto,url:'https://teabrazo.netlify.app'}).catch(()=>{});
+      navigator.share({title:'TEAbrazo',text:texto,url:'https://www.teabrazo.com.ar'}).catch(()=>{});
     }else{
-      navigator.clipboard.writeText(texto+'\n\nhttps://teabrazo.netlify.app').then(()=>{
+      navigator.clipboard.writeText(texto+'\n\nhttps://www.teabrazo.com.ar').then(()=>{
         alert('¡Texto copiado! Pegalo donde quieras compartirlo 📋');
       }).catch(()=>{
-        prompt('Copiá este texto:',texto+' https://teabrazo.netlify.app');
+        prompt('Copiá este texto:',texto+' https://www.teabrazo.com.ar');
       });
     }
   }
