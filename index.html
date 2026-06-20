@@ -332,6 +332,11 @@
     }
     _deferredPrompt = null;
   }
+
+  // Registrar Service Worker (necesario para que Chrome habilite la instalación)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
 </script>
 </body>
 </html>
