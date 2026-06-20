@@ -254,7 +254,7 @@
 
 <!-- Botón silencio global -->
 <button id="btnMute" onclick="toggleMute()" style="
-  position:fixed;top:14px;right:16px;z-index:200;
+  position:fixed;top:14px;right:68px;z-index:200;
   background:white;border:2px solid #E0EFFF;border-radius:50%;
   width:44px;height:44px;font-size:22px;cursor:pointer;
   box-shadow:0 2px 12px #5BBFEA22;display:flex;align-items:center;justify-content:center;
@@ -278,6 +278,36 @@
         prompt('Copiá este texto:',texto+' https://teabrazo.netlify.app');
       });
     }
+  }
+</script>
+<!-- Botón instalar PWA (entre ← Atrás y 🔊) -->
+<button id="btnInstalarPWA" onclick="instalarPWA()" style="
+  position:fixed;top:14px;right:16px;z-index:200;
+  background:white;border:2px solid #E0EFFF;border-radius:50%;
+  width:44px;height:44px;font-size:22px;cursor:pointer;
+  box-shadow:0 2px 12px #5BBFEA22;display:none;align-items:center;justify-content:center;
+" title="Instalar app en el dispositivo">📲</button>
+
+<script>
+  let _deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    _deferredPrompt = e;
+    const btn = document.getElementById('btnInstalarPWA');
+    btn.style.display = 'flex';
+  });
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('btnInstalarPWA').style.display = 'none';
+    _deferredPrompt = null;
+  });
+  async function instalarPWA() {
+    if (!_deferredPrompt) return;
+    _deferredPrompt.prompt();
+    const { outcome } = await _deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      document.getElementById('btnInstalarPWA').style.display = 'none';
+    }
+    _deferredPrompt = null;
   }
 </script>
 

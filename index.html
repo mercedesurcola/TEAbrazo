@@ -99,6 +99,16 @@
   .btn-cerrar { background: #F0F7FF; border: none; border-radius: 14px; padding: 12px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 16px; color: #888; cursor: pointer; }
   .ok-msg { background: #F0FFF8; border: 2px solid #52D9A0; border-radius: 14px; padding: 12px 16px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 14px; color: #2A9D6E; text-align: center; display: none; }
 
+  /* Botón instalar PWA */
+  .btn-instalar-pwa {
+    position: fixed; top: 14px; left: 16px; z-index: 200;
+    background: white; border: 2px solid #E0EFFF; border-radius: 50%;
+    width: 44px; height: 44px; font-size: 22px; cursor: pointer;
+    box-shadow: 0 2px 12px #5BBFEA22; display: none; align-items: center; justify-content: center;
+    transition: transform 0.15s;
+  }
+  .btn-instalar-pwa:active { transform: scale(0.93); }
+
   /* Footer */
   .footer-fijo { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E0EFFF; padding: 6px 20px; display: flex; flex-direction: column; align-items: center; z-index: 50; }
   .footer-marca { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 11px; color: #5BBFEA; }
@@ -291,6 +301,31 @@
 
   // Login con Enter
   document.addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
+</script>
+<!-- Botón instalar PWA -->
+<button id="btnInstalarPWA" class="btn-instalar-pwa" onclick="instalarPWA()" title="Instalar app en el dispositivo">📲</button>
+
+<script>
+  let _deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    _deferredPrompt = e;
+    const btn = document.getElementById('btnInstalarPWA');
+    btn.style.display = 'flex';
+  });
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('btnInstalarPWA').style.display = 'none';
+    _deferredPrompt = null;
+  });
+  async function instalarPWA() {
+    if (!_deferredPrompt) return;
+    _deferredPrompt.prompt();
+    const { outcome } = await _deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      document.getElementById('btnInstalarPWA').style.display = 'none';
+    }
+    _deferredPrompt = null;
+  }
 </script>
 </body>
 </html>
